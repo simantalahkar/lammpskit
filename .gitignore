@@ -10,7 +10,7 @@ wheels/
 .venv
 
 # Folders and files to be completed
-docs/
-outputs/
-examples/
+# docs/
+# outputs/
+# examples/
 main.py
