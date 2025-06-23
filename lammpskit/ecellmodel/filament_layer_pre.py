@@ -1,0 +1,1300 @@
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import re
+import glob
+from ovito.io import import_file  
+import ovito.modifiers as om
+# from ovito.modifiers import *  
+# import scipy.constants as scicon
+
+plt.rcParams['axes.titlesize'] = 10
+plt.rcParams['axes.labelsize'] = 10
+plt.rcParams['xtick.labelsize'] = 10
+plt.rcParams['ytick.labelsize'] = 10
+plt.rcParams['legend.fontsize'] = 10
+
+# mpl.rcParams['pdf.fonttype'] = 42  #this would allow us to edit the fonts in acrobat illustrator
+
+#   ### Variables for time series plots 
+#--------------------------------------------------------------------------------
+ts = 0.001
+dstep = 500
+
+
+Minstep = 0
+Maxstep = 500000
+Nloopmin = int(Minstep / dstep)
+Nloopmax = int(Maxstep / dstep)
+
+time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+print(np.shape(time),'\n',time[-1])
+
+#exit()
+
+#--------------------------------------------------------------------------------
+
+def read_struc(filepath):
+#    print(filepath)
+    skip = 1
+    with open(filepath,"r",encoding='utf-8') as f:
+        for j in range(skip):
+            next(f)
+        line = f.readline()
+        c0 = re.split(r'\s+|\s|, |,',line)
+        c = [ele for ele in c0 if ele.strip()]
+        print(c[0])
+        timestep = int(c[0])
+        
+        for j in range(skip):
+            next(f)
+        line = f.readline()
+        c0 = re.split(r'\s+|\s|, |,',line)
+        c = [ele for ele in c0 if ele.strip()]
+        print(c[0])
+        Ntotal = int(c[0])
+    
+        for j in range(skip):
+            next(f)    
+        line = f.readline()
+        c0 = re.split(r'\s+|\s|, |,',line)
+        c = [ele for ele in c0 if ele.strip()]
+        xlo = float(c[0])
+        xhi = float(c[1])
+        print(xlo,xhi)
+        line = f.readline()
+        c0 = re.split(r'\s+|\s|, |,',line)
+        c = [ele for ele in c0 if ele.strip()]
+        ylo = float(c[0])
+        yhi = float(c[1])
+        print(ylo,yhi)
+        line = f.readline()
+        c0 = re.split(r'\s+|\s|, |,',line)
+        c = [ele for ele in c0 if ele.strip()]
+        zlo = float(c[0])
+        zhi = float(c[1])
+        print(zlo,zhi)
+    return timestep, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi
+
+
+def read_coord(filelist, Nskip):        ## Calls read_struc(...)
+    print(filelist)
+    timestep_arr = []
+    coordinates = []
+    for filepath in filelist:
+        timestep, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi = read_struc(filepath)       ## All these values are expected to be the same other than the timestep for this analysis
+        timestep_arr.append(timestep)
+        coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=Nskip, max_rows=Ntotal, usecols = (0,1,2,3,4,5,9,10,11,12,13,14,15,16)))
+    return np.array(coordinates), np.array(timestep_arr), Ntotal, xlo, xhi, ylo, yhi, zlo, zhi
+
+
+def plot_cases(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+    nrows = 1
+    ncolumns = 1
+    xsize=1.6
+    ysize=3.2
+    print('before subplots')
+    plt.ioff()
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    print('before axes flatten')
+    axes=axes.flatten()
+    print('before tight layout')
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+    #print(axes)
+    colorlist = ['b', 'r', 'g','k']
+    linestylelist = ['--', '-.', ':','-']
+    markerlist = ['o', '^', 's', '*']
+    print('reached now plotting point')
+    if x_arr.ndim >1 and y_arr.ndim >1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim >1 and y_arr.ndim ==1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr, label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim ==1 and y_arr.ndim >1:
+        for i in range(len(y_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr, y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    else:
+        if 'markerindex' in kwargs:
+            j = kwargs['markerindex']
+        else:
+            j = 0        
+        axes[0].plot(x_arr, y_arr, label=label_arr, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    if 'ncount' in kwargs:
+        Ncount = kwargs['ncount']
+        for i in range(len(x_arr)):
+            Ncount_temp = Ncount[i,Ncount[i]>0]
+            x_arr_temp = x_arr[i,Ncount[i]>0]
+            average = np.sum(x_arr[i]*Ncount[i])/np.sum(Ncount[i])
+            print(f'\n The average for {label_arr[i]} in {fname} is {average} \n')
+                      
+
+    if 'xlimit' in kwargs:
+        print('x axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimit'])
+    if 'ylimit' in kwargs:
+        print('y axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimit'])
+
+    if 'xlimithi' in kwargs:
+        print('x hi axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimithi'])
+    if 'ylimithi' in kwargs:
+        print('y hi axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimithi']) 
+    if 'xlimitlo' in kwargs:
+        print('x lo axis is limited')
+        axes[0].set_xlim(left=kwargs['xlimitlo'])
+    if 'ylimitlo' in kwargs:
+        print('y lo axis is limited')
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+
+    if 'xaxis' in kwargs:
+        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='y=0')
+    if 'yaxis' in kwargs:
+        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='x=0')
+    print('reached axes labelling point')
+    axes[0].set_ylabel(ylabel, fontsize=8)
+    axes[0].legend(loc='upper center', fontsize=7)
+    axes[0].adjustable='datalim'
+    axes[0].set_aspect('auto')
+    axes[0].tick_params(axis='both', which='major', labelsize=7)
+    axes[0].set_aspect('auto')
+    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
+    axes[0].set_xlabel(xlabel, fontsize=8)
+#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+      
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
+    
+    plt.ioff()
+    print('reached file saving point')
+    fnamepdf = fname + '.pdf'
+    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    fnamesvg = fname + '.svg'
+    fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
+    plt.close()  
+ 
+
+def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Calls read_coord(...) and plot_cases(...)
+    coordinates_arr, timestep_arr, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi = read_coord(filelist, Nskip)
+    z_bin_thickness = (zhi-zlo)/hisbins
+    z_bins = np.linspace(zlo+z_bin_thickness/2, zhi-z_bin_thickness/2, hisbins)
+    O_dist = []
+    Hf_dist = []
+    Ta_dist = []
+    print('\nshape of coordinate_arr=', np.shape(coordinates_arr), '\nlength of coordinate_arr=', len(coordinates_arr))
+    for i in range(len(coordinates_arr[:])):
+        coordinates = coordinates_arr[i]
+        coordinates = coordinates[coordinates[:, 5].argsort()]
+#        print(coordinates[:,5])
+
+        Hfatoms = coordinates[coordinates[:, 1]==2]
+        Taatoms = coordinates[np.logical_or(coordinates[:, 1]==4, np.logical_or(coordinates[:, 1]==6, coordinates[:, 1]==10))]
+#       print(np.shape(Taatoms),Taatoms[:,5])
+        Oatoms = coordinates[np.logical_or(coordinates[:, 1]==1, np.logical_or(coordinates[:, 1]==3, np.logical_or(coordinates[:, 1]==5, coordinates[:, 1]==9)))]
+        
+        Hf_dist.append(np.histogram(Hfatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+#        print(np.shape(Hf_dist))
+        O_dist.append(np.histogram(Oatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+        Ta_dist.append(np.histogram(Taatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+    Hf_dist = np.array(Hf_dist)
+    Ta_dist = np.array(Ta_dist)
+    O_dist = np.array(O_dist)
+    M_dist = Hf_dist + Ta_dist
+    all_dist = M_dist + O_dist
+    
+    O_stoich = 3.5*O_dist[1]/all_dist[1]
+    Ta_stoich = 3.5*Ta_dist[1]/all_dist[1]
+    Hf_stoich = 3.5*Hf_dist[1]/all_dist[1]
+    stoich = np.array([Hf_stoich, O_stoich, Ta_stoich])
+    label_arr2 = np.array([f'a (of Hf$_a$)',f'b (of O$_b$)',f'c (of Ta$_c$)'])
+    
+    
+    O_stoich_in = 3.5*O_dist[0]/all_dist[0]
+    Ta_stoich_in = 3.5*Ta_dist[0]/all_dist[0]
+    Hf_stoich_in = 3.5*Hf_dist[0]/all_dist[0]  
+    stoich_in = np.array([Hf_stoich_in, O_stoich_in, Ta_stoich_in])
+    
+    
+    figuresize = [2.5,5]
+
+    fname = analysisname  + '_' + 'stoichiometry' + '_' + f'{hisbins}'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(stoich, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    #, xlimit = 3.5
+    print('stoichiometry plotted')
+    
+    
+    fname = analysisname  + '_' + 'initial_stoichiometry' + '_' + f'{hisbins}'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(stoich_in, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    #, xlimit = 3.5
+    print('stoichiometry plotted')
+    
+    
+    fname = analysisname + '_' + 'M'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(M_dist, z_bins, label_arr, 'Metal atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)  
+    
+    fname = analysisname + '_' + 'Hf'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(Hf_dist, z_bins, label_arr, 'Hf atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70) 
+    
+    fname = analysisname + '_' + 'Ta'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(Ta_dist, z_bins, label_arr, 'Ta atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)
+    
+    fname = analysisname + '_' + 'O'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(O_dist, z_bins, label_arr, 'O atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    
+    
+
+def plot_atomic_charges(filelist,label_arr,Nskip,hisbins,analysisname):     ## Calls read_coord(...) and plot_cases(...)
+    coordinates_arr, timestep_arr, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi = read_coord(filelist, Nskip)
+    z_bin_thickness = (zhi-zlo)/hisbins
+    z_bins = np.linspace(zlo+z_bin_thickness/2, zhi-z_bin_thickness/2, hisbins)
+    O_charge_dist = []
+    Hf_charge_dist = []
+    Ta_charge_dist = []
+    all_charge_dist = []
+    
+    Hf_dist = []
+    Ta_dist = []
+    O_dist = []
+
+    print('\nshape of coordinate_arr=', np.shape(coordinates_arr), '\nlength of coordinate_arr=', len(coordinates_arr))
+    for i in range(len(coordinates_arr[:])):
+        coordinates = coordinates_arr[i]
+        coordinates = coordinates[coordinates[:, 5].argsort()]
+#        print(coordinates[:,5])
+
+        Hfatoms = coordinates[coordinates[:, 1]==2]
+        Taatoms = coordinates[np.logical_or(coordinates[:, 1]==4, np.logical_or(coordinates[:, 1]==6, coordinates[:, 1]==10))]
+#       print(np.shape(Taatoms),Taatoms[:,5])
+        Oatoms = coordinates[np.logical_or(coordinates[:, 1]==1, np.logical_or(coordinates[:, 1]==3, np.logical_or(coordinates[:, 1]==5, coordinates[:, 1]==9)))]
+        
+        Hf_dist.append(np.histogram(Hfatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+        O_dist.append(np.histogram(Oatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+        Ta_dist.append(np.histogram(Taatoms[:,5],bins=hisbins,range=(zlo,zhi))[0])
+        
+        all_charge_dist.append(np.histogram(coordinates[:,5],bins=hisbins,range=(zlo,zhi), weights = coordinates[:,2])[0])
+        Hf_charge_dist.append(np.histogram(Hfatoms[:,5],bins=hisbins,range=(zlo,zhi), weights = Hfatoms[:,2])[0])
+#        print(np.shape(Hf_dist))
+        O_charge_dist.append(np.histogram(Oatoms[:,5],bins=hisbins,range=(zlo,zhi), weights = Oatoms[:,2])[0])
+        Ta_charge_dist.append(np.histogram(Taatoms[:,5],bins=hisbins,range=(zlo,zhi), weights = Taatoms[:,2])[0])
+    
+    Hf_dist = np.array(Hf_dist)
+    Ta_dist = np.array(Ta_dist)
+    O_dist = np.array(O_dist)
+    M_dist = Hf_dist + Ta_dist
+    all_dist = M_dist + O_dist
+    
+    
+    all_charge_dist = np.array(all_charge_dist) 
+    Hf_charge_dist = np.array(Hf_charge_dist)
+    Ta_charge_dist = np.array(Ta_charge_dist)
+    M_charge_dist = Hf_charge_dist + Ta_charge_dist
+    O_charge_dist = np.array(O_charge_dist)
+    
+    all_mean_charge_dist = all_charge_dist/all_dist
+    Hf_mean_charge_dist = Hf_charge_dist/Hf_dist
+    Ta_mean_charge_dist = Ta_charge_dist/Ta_dist
+    M_mean_charge_dist = M_charge_dist/M_dist
+    O_mean_charge_dist = O_charge_dist/O_dist
+
+    figuresize = [2.5,5]
+
+
+    fname = analysisname + '_' + 'all'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(all_charge_dist, z_bins, label_arr, 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+
+    fname = analysisname + '_' + 'M'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(M_mean_charge_dist, z_bins, label_arr, 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+
+    fname = analysisname + '_' + 'O'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(O_mean_charge_dist, z_bins, label_arr, 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+   
+
+    fname =  'final' + '_' + analysisname + '_' + 'all'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(all_charge_dist[1], z_bins, label_arr[1], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
+
+   
+    fname =  'initial' + '_' + analysisname + '_' + 'all'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(all_charge_dist[0], z_bins, label_arr[0], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+
+    fname =  'initial' + '_' + analysisname + '_' + 'M'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(M_mean_charge_dist[0], z_bins, label_arr[0], 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+
+
+    fname = 'initial' + '_' + analysisname + '_' + 'O'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(O_mean_charge_dist[0], z_bins, label_arr[0], 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    
+    
+def read_disp(filepath, Nloopmin, Nloopmax, Nrepeat=0):
+    print(filepath)
+    tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
+    #print(tmp)
+    Nchunks = tmp[1].astype(int)
+#    print(Nchunks) 
+    thermo = []
+    for n in range(Nloopmin,Nloopmax+1):
+      #step_time.append([n*dstep,n*dstep*ts])
+      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-Nloopmin)*(Nchunks+4), max_rows=Nchunks)
+      thermo.append(tmp)
+#      print(n)
+      #if n == 0:
+        #print(np.shape(thermo),'\n',thermo[-1])   
+    #print(np.shape(thermo),'\n',thermo[-1]) 
+    return thermo
+    #step_time = np.array(step_time)
+    
+def disp_plot(filelist,datatype,dataindex, Nchunks):
+    thermoAll = []
+    elements = []
+    for filename in filelist:
+        elements.append(filename[:2])
+        thermoAll.append(read_disp(filename, Nloopmin, Nloopmax))
+    thermoAll = np.array(thermoAll)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
+                                                                    ## 4th index corresponds to the type of data (z, lateral displacement...)
+    print(elements)
+    print(np.shape(thermoAll))
+
+    dataindexname = ['abs total disp','density - mass', 'temp (K)', 'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)']
+
+    nrows = Nchunks
+    ncolumns = 4
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(ncolumns*3,nrows*0.65))
+    #axes=axes.flatten()
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+
+    for j in range(ncolumns):
+        for i in range(nrows):
+          axes[nrows-1-i,j].plot(time, thermoAll[j,:,i,dataindex], label=f'{elements[j]} of region {i+1}', color = 'blue')
+          if  j == 0:
+            axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
+          axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
+          axes[nrows-1-i,j].adjustable='datalim'
+          axes[nrows-1-i,j].set_aspect('auto')
+          axes[nrows-1-i,j].tick_params(axis='both', which='major', labelsize=6)
+          axes[nrows-1-i,j].set_aspect('auto')
+          #axes[nrows-1-i,j].set_xticklabels(ax.get_xticks(), fontsize=6)
+          if nrows-1-i != nrows-1:
+            axes[nrows-1-i,j].set_xticklabels(())
+
+        axes[nrows-1,j].set_xlabel('Timestep (ps)', fontsize=8)
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+    figname= datatype + '-' + dataindexname[dataindex] #+'.pdf'
+        
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
+    fig.savefig(figname, bbox_inches='tight', format='svg')#,dpi=300)#, )
+    plt.close()
+
+def compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0):      # Nrepeat is how many times the first timestep is repeated in data file
+    thermoAll = []
+    for filename in filelist:
+        thermoAll.append(read_disp(filename, Nloopmin, Nloopmax, Nrepeat))      ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
+                                                                                ## 4th index corresponds to the type of data (z, lateral displacement...)
+    displacements = np.array(thermoAll) 
+    print('\nshape of thermoAll array=', np.shape(thermoAll), '\nlength of thermoAll array=', len(thermoAll))
+    
+    zdisp = []
+    lateraldisp = []
+    binposition = []
+    Ncount = []                      
+    
+    thermoAll = np.array(thermoAll)
+    
+    for i in range(len(displacements)):
+        zdisp_temp = thermoAll[i,-1,:,-3]
+        lateraldisp_temp = thermoAll[i,-1,:,-2]
+        binposition_temp = thermoAll[i,-1,:,1]
+        Ncount_temp = thermoAll[i,-1,:,2]                                 
+        
+        zdisp.append(zdisp_temp)
+        lateraldisp.append(lateraldisp_temp)
+        binposition.append(binposition_temp)
+        Ncount.append(Ncount_temp)                          
+        
+    zdisp = np.array(zdisp)
+    lateraldisp = np.array(lateraldisp)
+    binposition = np.array(binposition)
+    Ncount = np.array(Ncount)                         
+    
+    #print(zdisp)
+    figuresize = [2.5,5]
+    
+    fname = analysisname + '_' + 'z'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(zdisp, binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1], yaxis = 0) 
+    fname = analysisname + '_' + 'z_magnitude'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(np.abs(zdisp), binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1]) 
+    
+    fname = analysisname + '_' + 'lateral'
+    for i in label_arr:
+        fname = fname + '_' + i
+
+    plot_cases(lateraldisp, binposition, label_arr, 'lateral displacement (A)','z position (A)',fname, figuresize[0], figuresize[1]) 
+    
+
+def plot_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+    nrows = 1
+    ncolumns = 1
+    xsize=1.6
+    ysize=3.2
+    print('before subplots')
+    plt.ioff()
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    print('before axes flatten')
+    axes=axes.flatten()
+    print('before tight layout')
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+    #print(axes)
+    colorlist = ['b', 'r', 'g','k']
+    linestylelist = ['--', '-.', ':','-']
+    markerlist = ['o', '^', 's', '*']
+    print('reached now plotting point')
+    if x_arr.ndim >1 and y_arr.ndim >1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim >1 and y_arr.ndim ==1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr, label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim ==1 and y_arr.ndim >1:
+        for i in range(len(y_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr, y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    else:
+        if 'markerindex' in kwargs:
+            j = kwargs['markerindex']
+        else:
+            j = 0        
+        axes[0].plot(x_arr, y_arr, label=label_arr, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
+
+    if 'xlimit' in kwargs:
+        print('x axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimit'])
+    if 'ylimit' in kwargs:
+        print('y axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimit'])
+
+    if 'xlimithi' in kwargs:
+        print('x hi axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimithi'])
+    if 'ylimithi' in kwargs:
+        print('y hi axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimithi']) 
+    if 'xlimitlo' in kwargs:
+        print('x lo axis is limited')
+        axes[0].set_xlim(left=kwargs['xlimitlo'])
+    if 'ylimitlo' in kwargs:
+        print('y lo axis is limited')
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+
+    if 'xaxis' in kwargs:
+        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
+    if 'yaxis' in kwargs:
+        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
+    print('reached axes labelling point')
+    axes[0].set_ylabel(ylabel, fontsize=8)
+    axes[0].legend(loc='upper center', fontsize=7)
+    axes[0].adjustable='datalim'
+    axes[0].set_aspect('auto')
+    axes[0].tick_params(axis='both', which='major', labelsize=7)
+    axes[0].set_aspect('auto')
+    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
+    axes[0].set_xlabel(xlabel, fontsize=8)
+#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+      
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
+    
+    plt.ioff()
+    print('reached file saving point')
+    fnamepdf = fname + '.pdf'
+    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    fnamesvg = fname + '.svg'
+    fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
+    plt.close()  
+ 
+
+def scatter_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+    nrows = 1
+    ncolumns = 1
+    xsize=1.6
+    ysize=3.2
+    print('before subplots')
+    plt.ioff()
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    print('before axes flatten')
+    axes=axes.flatten()
+    print('before tight layout')
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+    #print(axes)
+    colorlist = ['b', 'r', 'g','k']
+    linestylelist = ['--', '-.', ':','-']
+    markerlist = ['o', '^', 's', '*']
+    print('reached now plotting point')
+    if x_arr.ndim >1 and y_arr.ndim >1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr[i], y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim >1 and y_arr.ndim ==1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr[i], y_arr, label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim ==1 and y_arr.ndim >1:
+        for i in range(len(y_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr, y_arr[i], label=label_arr[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    else:
+        if 'markerindex' in kwargs:
+            j = kwargs['markerindex']
+        else:
+            j = 0        
+        axes[0].scatter(x_arr, y_arr, label=label_arr, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
+
+    if 'xlimit' in kwargs:
+        print('x axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimit'])
+    if 'ylimit' in kwargs:
+        print('y axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimit'])
+
+    if 'xlimithi' in kwargs:
+        print('x hi axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimithi'])
+    if 'ylimithi' in kwargs:
+        print('y hi axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimithi']) 
+    if 'xlimitlo' in kwargs:
+        print('x lo axis is limited')
+        axes[0].set_xlim(left=kwargs['xlimitlo'])
+    if 'ylimitlo' in kwargs:
+        print('y lo axis is limited')
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+
+    if 'xaxis' in kwargs:
+        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
+    if 'yaxis' in kwargs:
+        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
+    print('reached axes labelling point')
+    axes[0].set_ylabel(ylabel, fontsize=8)
+    axes[0].legend(loc='upper center', fontsize=7)
+    axes[0].adjustable='datalim'
+    axes[0].set_aspect('auto')
+    axes[0].tick_params(axis='both', which='major', labelsize=7)
+    axes[0].set_aspect('auto')
+    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
+    axes[0].set_xlabel(xlabel, fontsize=8)
+#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+      
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
+    
+    plt.ioff()
+    print('reached file saving point')
+    fnamepdf = fname + '.pdf'
+    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    fnamesvg = fname + '.svg'
+    fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
+    plt.close()  
+ 
+
+def cluster_analysis(filepath, thickness = 21):
+    pipeline1 = import_file(filepath) 
+    pipeline2 = import_file(filepath)     
+    pipeline_fil = import_file(filepath) 
+    pipeline_fil_up = import_file(filepath)
+    #pipeline_cmo = import_file(filepath) 
+    coord1 = pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    select_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10 || ParticleType==9 ) && Position.Z < 28 '))
+    cluster_metal1 = pipeline1.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
+    select_no_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
+    delete_no_metal1 = pipeline1.modifiers.append(om.DeleteSelectedModifier())
+    data1 = pipeline1.compute()
+    xyz1 = np.array(data1.particles['Position'])
+    
+    coord2 = pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    select_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28 '))
+    cluster_metal2 = pipeline2.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
+    select_no_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=2'))
+    delete_no_metal2 = pipeline2.modifiers.append(om.DeleteSelectedModifier())
+    data2 = pipeline2.compute()
+    xyz2 = np.array(data2.particles['Position'])
+    
+    z1_min, z1_max = np.min(xyz1[:,2]), np.max(xyz1[:,2])
+    print(np.shape(xyz1),len(xyz2))
+    if len(xyz2)!=0:
+        z2_min, z2_max = np.min(xyz2[:,2]), np.max(xyz2[:,2])
+    
+    if z1_min < 5 and z1_max > 23:
+        connection = 1
+        upper_filament = xyz1
+        lower_filament = xyz1
+        separation = 0
+        gap = 0
+    else:
+        connection = 0
+        if z1_min < 5:
+            upper_filament = xyz1
+            lower_filament = xyz2
+        else:
+            upper_filament = xyz2
+            lower_filament = xyz1
+        separation = float('inf')
+        closest_pair = (None, None)
+        for point1 in xyz1:
+            for point2 in xyz2:
+                distance = np.linalg.norm(point1 - point2)
+                if distance < separation:
+                    separation = distance
+                    closest_pair = (point1, point2)
+                    gap = abs(point1[2] - point2[2])
+        separation -= 3.9
+
+    coord_fil = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    select_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6)'))
+    cluster_fil = pipeline_fil.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
+    select_no_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
+    delete_no_fil = pipeline_fil.modifiers.append(om.DeleteSelectedModifier())
+    rdf_mod = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 3.9, number_of_bins = 200))
+    data_fil = pipeline_fil.compute()
+    
+    xyz_fil_down = np.array(data_fil.particles['Position'])
+    fil_height = np.max(xyz_fil_down[:,2])
+    rdf_down = data_fil.tables['coordination-rdf'].xy()  
+    fil_size_down = data_fil.particles.count
+    
+    coord_fil_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    select_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==8 && Coordination<6) || ( ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28))'))
+    cluster_fil_up = pipeline_fil_up.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
+    select_no_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
+    delete_no_fil_up = pipeline_fil_up.modifiers.append(om.DeleteSelectedModifier())
+    rdf_mod_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 3.9, number_of_bins = 200))
+    data_fil_up = pipeline_fil_up.compute()
+    
+    xyz_fil_up = np.array(data_fil_up.particles['Position'])
+    fil_depth = np.min(xyz_fil_up[:,2])
+    rdf_up = data_fil_up.tables['coordination-rdf'].xy()  
+    fil_size_up = data_fil_up.particles.count
+    
+    
+    return connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, separation, gap
+    
+    
+    #select_metallic_cmo = pipeline_cmo.modifiers.append(ExpressionSelectionModifier(expression = 'ParticleType==10 || ParticleType==9'))
+    #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
+    #data_cmo = pipeline_cmo.compute()
+    
+def track_filament(filelist, analysisname):
+    connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, gap, separation = [],[],[],[], [], [], [], [], []
+    for filepath in filelist:
+        connection_temp, fil_size_down_temp, fil_height_temp, rdf_down_temp, fil_size_up_temp, fil_depth_temp, rdf_up_temp, separation_temp, gap_temp = cluster_analysis(filepath)
+        fil_size_down.append(fil_size_down_temp)
+        fil_size_up.append(fil_size_up_temp)
+        connection.append(connection_temp)
+        fil_height.append(fil_height_temp)
+        fil_depth.append(fil_depth_temp)
+        rdf_down.append(rdf_down_temp)
+        rdf_up.append(rdf_up_temp)
+        gap.append(gap_temp)
+        separation.append(separation_temp)
+        
+    connection = np.array(connection)
+    gap = np.array(gap)
+    separation = np.array(separation)
+    fil_size_down = np.array(fil_size_down)
+    fil_size_up = np.array(fil_size_up)
+    fil_height = np.array(fil_height)
+    fil_depth = np.array(fil_depth)
+    rdf_down = np.array(rdf_down)
+    rdf_up = np.array(rdf_up)
+    print('shape of connections array',np.shape(np.array(connection))[0])
+    time_step = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
+    
+    time_switch = time_step * ts * dstep
+    
+    #figuresize = [2.5,5]
+    
+    max_height = 21
+    
+    ln = 0.1
+    mrkr = 5
+    alph = 0.55 
+
+    
+    on_frequency = np.sum(connection==1)/len(connection)
+    plt.plot(time_switch, connection, alpha = alph, linewidth = ln, markersize=mrkr)
+    plt.scatter(time_switch, connection, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'filament is in connected state {on_frequency*100: .2f}% of the time')
+    plt.xlabel('Time (ps)')
+    plt.ylabel('Filament connectivity state (1: connected, 0: broken)')
+    plt.title('Filament connectivity state (1: connected, 0: broken)')
+    plt.legend()
+    fname = analysisname + 'OnOff' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
+    plt.plot(time_switch, gap, alpha = alph, linewidth = ln, markersize=mrkr)
+    plt.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
+    plt.xlabel('Time (ps)')
+    plt.ylabel('Filament gap (A)')
+    plt.title('Filament gap')
+    plt.legend()
+#    plt.ylim(heightmin,heightmax)
+    fname = analysisname + 'fil_gap' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    average_filament_separation, sd_separation = np.mean(separation), np.std(separation)
+    plt.plot(time_switch, separation, alpha = alph, linewidth = ln, markersize=mrkr)
+    plt.scatter(time_switch, separation, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
+    plt.xlabel('Time (ps)')
+    plt.ylabel('Filament separation (A)')
+    plt.title('Filament separation')
+    plt.legend(fontsize=8)
+#    plt.ylim(heightmin,heightmax)
+    fname = analysisname + 'fil_separation' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    ###### filament gap & # of conductive atoms
+    
+    fig, ax1 = plt.subplots()
+    
+    color = 'tab:red'
+    average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
+    gap_max = 8.5
+    gap_min = -0.5
+    
+    ax1.set_xlabel('Time (ps)')
+    ax1.set_ylabel('Filament gap (A)', color=color)
+    ax1.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.set_ylim(gap_min,gap_max)
+   
+   
+    ax2 = ax1.twinx()
+    
+    sizemax_down = 350
+    sizemin_down = 0
+    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
+    color = 'tab:blue'
+    
+    ax2.set_ylabel('# of vacancies in filament (A.U.)', color=color)
+    ax2.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.set_ylim(sizemin_down,sizemax_down)
+    
+    plt.title('Gap & no. of conductive atoms in Filament')
+    fig.tight_layout()
+    ax1.legend(loc = 'upper right', framealpha = 0.8)
+    ax2.legend(loc = 'lower right', framealpha = 0.8)
+    fname = analysisname + 'fil_state' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    ###### filament lower
+    
+    fig, ax1 = plt.subplots()
+    
+    heightmax = 25
+    heightmin = 3
+    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
+    color = 'tab:red'
+    
+    ax1.set_xlabel('Timestep (ps)')
+    ax1.set_ylabel('Filament length-lower end (A)', color=color)
+    ax1.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.set_ylim(heightmin,heightmax)
+    plt.legend(loc = 'upper right', framealpha = 0.75)
+    
+    
+    ax2 = ax1.twinx()
+    
+    sizemax_down = 350
+    sizemin_down = 0
+    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
+    color = 'tab:blue'
+    
+    ax2.set_ylabel('# of vacancies in filament-lower end (A.U.)', color=color)
+    ax2.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.set_ylim(sizemin_down,sizemax_down)
+    
+    plt.title('Filament lower part near cathode')
+    fig.tight_layout()
+    plt.legend(loc = 'lower right', framealpha = 0.75)
+    fname = analysisname + 'fil_lower' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    ###### filament upper
+      
+    depthmax = 25
+    depthmin = 3
+    
+    sizemax_up = 700
+    sizemin_up = 400
+       
+    fig, ax1 = plt.subplots()
+    
+    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
+    color = 'tab:red'
+    
+    ax1.set_xlabel('Timestep (ps)')
+    ax1.set_ylabel('Filament length-upper end (A)', color=color)
+    ax1.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
+    ax1.tick_params(axis='y', labelcolor=color)
+    plt.legend(loc = 'upper right', framealpha = 0.75)
+#    ax1.set_ylim(heightmin,heightmax)
+    
+    
+    ax2 = ax1.twinx()
+    
+
+    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
+    color = 'tab:blue'
+    
+    ax2.set_ylabel('# of vacancies in filament-upper end (A.U.)', color=color)
+    ax2.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr,  marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    ax2.tick_params(axis='y', labelcolor=color)
+#    ax2.set_ylim(sizemin_down,sizemax_down)
+    
+    plt.title('Filament upper part near anode')
+    fig.tight_layout()
+    plt.legend(loc = 'lower right', framealpha = 0.75)
+    fname = analysisname + 'upper' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    ###############
+    
+    heightmax = 25
+    heightmin = 3
+    
+    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
+    plt.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
+    plt.xlabel('Timestep (ps)')
+    plt.ylabel('Filament length-lower end (A)')
+    plt.title('Filament length-lower end)')
+    plt.legend()
+    plt.ylim(heightmin,heightmax)
+    fname = analysisname + 'fil_height' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    
+    depthmax = 25
+    depthmin = 3
+    
+    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
+    plt.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
+    plt.xlabel('Timestep (ps)')
+    plt.ylabel('Filament length-upper end (A)')
+    plt.title('Filament length-upper end')
+    plt.legend()
+#    plt.ylim(depthmin,depthmax)
+    fname = analysisname + 'fil_depth' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    
+    sizemax_up = 700
+    sizemin_up = 400
+    
+    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
+    plt.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    plt.xlabel('Timestep (ps)')
+    plt.ylabel('# of vacancies in filament-upper end (A.U.)')
+    plt.title('# of vacancies in filament-upper end')
+#    plt.ylim(sizemin_up,sizemax_up)
+    plt.legend()
+    fname = analysisname + 'fil_size_up' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+    
+    
+    sizemax_down = 350
+    sizemin_down = 0
+    
+    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
+    plt.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    plt.xlabel('Timestep (ps)')
+    plt.ylabel('# of vacancies in filament-lower end (A.U.)')
+    plt.title('# of vacancies in filament-lower end (A.U.)')
+    plt.ylim(sizemin_down,sizemax_down)
+    plt.legend()
+    fname = analysisname + 'fil_size_down' + '.pdf'
+    plt.savefig(fname)
+    plt.close()
+    
+#    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
+#    plt.xlabel('Timestep')
+#    plt.ylabel('RDF')
+#    plt.title('RDF')
+#    fname = analysisname + 'rdf' + '.pdf'
+#    plt.savefig(fname)
+#    plt.close()
+
+    
+    #plot_cases_filament(time, np.array(connection), label_arr, 'Timestep','Filament connection',analysisname, figuresize[0], figuresize[1], yaxis = 0) 
+    
+    #return connection, fil_size_down, fil_height, rdf_down
+    
+
+Nskip_coord = 9   
+hisbins = 15
+
+analysisname = 'track_'
+path = "*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+
+track_filament(filelist, analysisname)
+
+    
+
+
+exit()
+
+analysisname = f'local_{hisbins}'
+path = "local2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+#print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+
+
+path = "*Hfmobilestc1.dat"
+analysisname = f'displacements_temp_Hf'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+path = "*Omobilestc1.dat"
+analysisname = f'displacements_temp_O'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+path = "*Tamobilestc1.dat"
+analysisname = f'displacements_temp_Ta'
+                          
+                          
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+      
+Nskip_coord = 9   
+hisbins = 15
+
+analysisname = f'local_{hisbins}'
+path = "local2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+exit()
+
+path = "*Hfmobilestc1.dat"
+analysisname = f'displacements_temp_Hf'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+path = "*Omobilestc1.dat"
+analysisname = f'displacements_temp_O'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+path = "*Tamobilestc1.dat"
+analysisname = f'displacements_temp_Ta'
+                          
+                          
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['300 K','900 K', '1300 K']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+analysisname = f'uniform_charge_{hisbins}'
+path = "uniform2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname) 
+
+path = "*mobilestc1.dat"
+analysisname = f'displacements_atom_type'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['Hf','O', 'Ta']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+    
+exit()    
+
+path = "*mobilestc1.dat"
+analysisname = f'displacements_atom_type'
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['Hf','O', 'Ta']
+compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
+
+exit()
+
+Nskip_coord = 9   
+hisbins = 80
+
+analysisname = f'local_charge_{hisbins}'
+path = "local*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+ 
+analysisname = f'uniform_{hisbins}'
+path = "uniform*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+
+analysisname = f'local_{hisbins}'
+path = "local*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+analysisname = f'uniform_charge_{hisbins}'
+path = "uniform*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+
+exit()
+Nchunks = 12
+
+
+path = "*mobilestc1.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer1'
+dataindex = -2
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc1.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer1'
+dataindex = -3
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc1.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer1'
+dataindex = -5
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc1.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer1'
+dataindex = -6
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+
+exit()
+Nchunks = 9
+
+
+path = "*mobilestc2.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer2'
+dataindex = -2
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc2.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer2'
+dataindex = -3
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc2.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer2'
+dataindex = -5
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+path = "*mobilestc2.dat"
+filelist = glob.glob(path)
+print(filelist,filelist[0][:2])
+datatype = 'layer2'
+dataindex = -6
+disp_plot(filelist,datatype,dataindex, Nchunks)
+
+
+ 
+
+
+exit()
+
+analysisname = f'local_charge_{hisbins}'
+path = "local2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+exit()   
+
+analysisname = f'local_{hisbins}'
+path = "local2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+analysisname = f'local_charge_{hisbins}'
+path = "local2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
+
+analysisname = f'uniform_{hisbins}'
+path = "uniform2*.lammpstrj"
+filelist_unsorted = glob.glob(path)
+filelist = sorted(filelist_unsorted)
+print(analysisname,filelist)
+label_arr = ['initial','final']
+plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)   
+
