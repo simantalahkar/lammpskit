@@ -4,9 +4,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import re
 import glob
+import os
 from ovito.io import import_file  
 import ovito.modifiers as om
-# from ovito.modifiers import *  
 # import scipy.constants as scicon
 
 plt.rcParams['axes.titlesize'] = 10
@@ -19,23 +19,12 @@ plt.rcParams['legend.fontsize'] = 10
 
 #   ### Variables for time series plots 
 #--------------------------------------------------------------------------------
-ts = 0.001
-dstep = 500
-
-
-Minstep = 0
-Maxstep = 500000
-Nloopmin = int(Minstep / dstep)
-Nloopmax = int(Maxstep / dstep)
-
-time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
-print(np.shape(time),'\n',time[-1])
-
-#exit()
 
 #--------------------------------------------------------------------------------
 
 def read_struc(filepath):
+    """Reads the structure file and returns the 
+    timestep, total number of atoms, and the box dimensions."""
 #    print(filepath)
     skip = 1
     with open(filepath,"r",encoding='utf-8') as f:
@@ -77,9 +66,14 @@ def read_struc(filepath):
         print(zlo,zhi)
     return timestep, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi
 
-
 def read_coord(filelist, Nskip):        ## Calls read_struc(...)
+    """Reads the structure files and returns the 
+    simulation cell parameters along with coordinates 
+    and timestep array."""
+    
     print(filelist)
+    if not filelist:
+        raise ValueError("filelist is empty. No files to process.")
     timestep_arr = []
     coordinates = []
     for filepath in filelist:
@@ -88,8 +82,9 @@ def read_coord(filelist, Nskip):        ## Calls read_struc(...)
         coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=Nskip, max_rows=Ntotal, usecols = (0,1,2,3,4,5,9,10,11,12,13,14,15,16)))
     return np.array(coordinates), np.array(timestep_arr), Ntotal, xlo, xhi, ylo, yhi, zlo, zhi
 
-
-def plot_cases(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+def plot_cases(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize,savedir=os.getcwd(), **kwargs):  
+    """Plots the cases with the given x and y arrays, 
+    labels, and saves the figure.""" 
     nrows = 1
     ncolumns = 1
     xsize=1.6
@@ -186,13 +181,17 @@ def plot_cases(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **k
     plt.ioff()
     print('reached file saving point')
     fnamepdf = fname + '.pdf'
-    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fnamepdf)
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     fnamesvg = fname + '.svg'
-    fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
+    savepath = os.path.join(savedir, fnamesvg)
+    fig.savefig(savepath, bbox_inches='tight', format='svg')
     plt.close()  
  
-
-def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Calls read_coord(...) and plot_cases(...)
+def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname,savedir=os.getcwd()):     ## Calls read_coord(...) and plot_cases(...)
+    """Reads the coordinates from the filelist, calculates the atomic distributions,
+    and plots the distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi = read_coord(filelist, Nskip)
     z_bin_thickness = (zhi-zlo)/hisbins
     z_bins = np.linspace(zlo+z_bin_thickness/2, zhi-z_bin_thickness/2, hisbins)
@@ -220,16 +219,21 @@ def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Call
     M_dist = Hf_dist + Ta_dist
     all_dist = M_dist + O_dist
     
-    O_stoich = 3.5*O_dist[1]/all_dist[1]
-    Ta_stoich = 3.5*Ta_dist[1]/all_dist[1]
-    Hf_stoich = 3.5*Hf_dist[1]/all_dist[1]
+    #print(O_dist,Ta_dist,Hf_dist,M_dist,all_dist)
+
+    all_dist_divide = all_dist
+    all_dist_divide[all_dist_divide ==0]=1
+
+    O_stoich = 3.5*O_dist[1]/all_dist_divide[1]
+    Ta_stoich = 3.5*Ta_dist[1]/all_dist_divide[1]
+    Hf_stoich = 3.5*Hf_dist[1]/all_dist_divide[1]
     stoich = np.array([Hf_stoich, O_stoich, Ta_stoich])
     label_arr2 = np.array([f'a (of Hf$_a$)',f'b (of O$_b$)',f'c (of Ta$_c$)'])
     
     
-    O_stoich_in = 3.5*O_dist[0]/all_dist[0]
-    Ta_stoich_in = 3.5*Ta_dist[0]/all_dist[0]
-    Hf_stoich_in = 3.5*Hf_dist[0]/all_dist[0]  
+    O_stoich_in = 3.5*O_dist[0]/all_dist_divide[0]
+    Ta_stoich_in = 3.5*Ta_dist[0]/all_dist_divide[0]
+    Hf_stoich_in = 3.5*Hf_dist[0]/all_dist_divide[0]  
     stoich_in = np.array([Hf_stoich_in, O_stoich_in, Ta_stoich_in])
     
     
@@ -239,7 +243,7 @@ def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Call
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(stoich, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    #, xlimit = 3.5
+    plot_cases(stoich, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -247,7 +251,7 @@ def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Call
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(stoich_in, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    #, xlimit = 3.5
+    plot_cases(stoich_in, z_bins, label_arr2, 'Atoms # ratio','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -255,28 +259,29 @@ def plot_atomic_dist(filelist,label_arr,Nskip,hisbins,analysisname):     ## Call
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(M_dist, z_bins, label_arr, 'Metal atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)  
+    plot_cases(M_dist, z_bins, label_arr, 'Metal atoms #','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70)  
     
     fname = analysisname + '_' + 'Hf'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(Hf_dist, z_bins, label_arr, 'Hf atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70) 
+    plot_cases(Hf_dist, z_bins, label_arr, 'Hf atoms #','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70) 
     
     fname = analysisname + '_' + 'Ta'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(Ta_dist, z_bins, label_arr, 'Ta atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)
+    plot_cases(Ta_dist, z_bins, label_arr, 'Ta atoms #','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70)
     
     fname = analysisname + '_' + 'O'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(O_dist, z_bins, label_arr, 'O atoms #','z position (A)',fname, figuresize[0], figuresize[1], ylimit = 70)    
+    plot_cases(O_dist, z_bins, label_arr, 'O atoms #','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimit = 70)    
     
-
-def plot_atomic_charges(filelist,label_arr,Nskip,hisbins,analysisname):     ## Calls read_coord(...) and plot_cases(...)
+def plot_atomic_charges(filelist,label_arr,Nskip,hisbins,analysisname,savedir=os.getcwd()):     ## Calls read_coord(...) and plot_cases(...)
+    """Reads the coordinates from the filelist, calculates the atomic charge distributions,
+    and plots the charge distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, Ntotal, xlo, xhi, ylo, yhi, zlo, zhi = read_coord(filelist, Nskip)
     z_bin_thickness = (zhi-zlo)/hisbins
     z_bins = np.linspace(zlo+z_bin_thickness/2, zhi-z_bin_thickness/2, hisbins)
@@ -322,12 +327,23 @@ def plot_atomic_charges(filelist,label_arr,Nskip,hisbins,analysisname):     ## C
     Ta_charge_dist = np.array(Ta_charge_dist)
     M_charge_dist = Hf_charge_dist + Ta_charge_dist
     O_charge_dist = np.array(O_charge_dist)
-    
-    all_mean_charge_dist = all_charge_dist/all_dist
-    Hf_mean_charge_dist = Hf_charge_dist/Hf_dist
-    Ta_mean_charge_dist = Ta_charge_dist/Ta_dist
-    M_mean_charge_dist = M_charge_dist/M_dist
-    O_mean_charge_dist = O_charge_dist/O_dist
+
+    all_dist_divide = all_dist
+    all_dist_divide[all_dist_divide ==0]=1
+    Hf_dist_divide = Hf_dist
+    Hf_dist_divide[Hf_dist_divide ==0]=1
+    Ta_dist_divide = Ta_dist
+    Ta_dist_divide[Ta_dist_divide ==0]=1
+    M_dist_divide = M_dist
+    M_dist_divide[M_dist_divide ==0]=1
+    O_dist_divide = O_dist
+    O_dist_divide[O_dist_divide ==0]=1
+
+    all_mean_charge_dist = all_charge_dist/all_dist_divide
+    Hf_mean_charge_dist = Hf_charge_dist/Hf_dist_divide
+    Ta_mean_charge_dist = Ta_charge_dist/Ta_dist_divide
+    M_mean_charge_dist = M_charge_dist/M_dist_divide
+    O_mean_charge_dist = O_charge_dist/O_dist_divide
 
     figuresize = [2.5,5]
 
@@ -336,57 +352,59 @@ def plot_atomic_charges(filelist,label_arr,Nskip,hisbins,analysisname):     ## C
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(all_charge_dist, z_bins, label_arr, 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    plot_cases(all_charge_dist, z_bins, label_arr, 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     fname = analysisname + '_' + 'M'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(M_mean_charge_dist, z_bins, label_arr, 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    plot_cases(M_mean_charge_dist, z_bins, label_arr, 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
     fname = analysisname + '_' + 'O'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(O_mean_charge_dist, z_bins, label_arr, 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    plot_cases(O_mean_charge_dist, z_bins, label_arr, 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
    
 
     fname =  'final' + '_' + analysisname + '_' + 'all'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(all_charge_dist[1], z_bins, label_arr[1], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
+    plot_cases(all_charge_dist[1], z_bins, label_arr[1], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
 
    
     fname =  'initial' + '_' + analysisname + '_' + 'all'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(all_charge_dist[0], z_bins, label_arr[0], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    plot_cases(all_charge_dist[0], z_bins, label_arr[0], 'Net charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     fname =  'initial' + '_' + analysisname + '_' + 'M'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(M_mean_charge_dist[0], z_bins, label_arr[0], 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    plot_cases(M_mean_charge_dist[0], z_bins, label_arr[0], 'Metal atoms mean charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
 
     fname = 'initial' + '_' + analysisname + '_' + 'O'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(O_mean_charge_dist[0], z_bins, label_arr[0], 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
-    
+    plot_cases(O_mean_charge_dist[0], z_bins, label_arr[0], 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
     
 def read_disp(filepath, Nloopmin, Nloopmax, Nrepeat=0):
+    """Reads the displacement data from the binwise averaged output data file 
+    and returns the displacement data for the specified loops."""
     print(filepath)
     tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
     #print(tmp)
     Nchunks = tmp[1].astype(int)
-#    print(Nchunks) 
+    #print(Nchunks,Nloopmin,Nloopmax) 
     thermo = []
     for n in range(Nloopmin,Nloopmax+1):
       #step_time.append([n*dstep,n*dstep*ts])
+      #print(Nchunks,Nloopmin,Nloopmax,n) 
       tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-Nloopmin)*(Nchunks+4), max_rows=Nchunks)
       thermo.append(tmp)
 #      print(n)
@@ -396,7 +414,12 @@ def read_disp(filepath, Nloopmin, Nloopmax, Nrepeat=0):
     return thermo
     #step_time = np.array(step_time)
     
-def disp_plot(filelist,datatype,dataindex, Nchunks):
+def disp_plot(filelist,datatype,dataindex, Nchunks,savedir=os.getcwd()):     ## Calls read_disp(...)
+    """Reads the averaged thermodynamic output data for each case 
+    from the correspinging files in a filelist, and plots the timeseries displacements 
+    (one of the output data types selected by the dataindex as the 4th index) averaged 
+    in groups (as the 3rd index) according to z-position of the atoms in the model
+    for the data row indices (1st index) corresponding to each case read from a file."""
     thermoAll = []
     elements = []
     for filename in filelist:
@@ -434,14 +457,22 @@ def disp_plot(filelist,datatype,dataindex, Nchunks):
         axes[nrows-1,j].set_xlabel('Timestep (ps)', fontsize=8)
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
 
-    figname= datatype + '-' + dataindexname[dataindex] #+'.pdf'
+    fname= datatype + '-' + dataindexname[dataindex] #+'.pdf'
         
     #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
     #plt.show()
-    fig.savefig(figname, bbox_inches='tight', format='svg')#,dpi=300)#, )
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
     plt.close()
 
-def compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0):      # Nrepeat is how many times the first timestep is repeated in data file
+def compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0,savedir=os.getcwd()):     ## Calls read_disp(...) and plot cases(...)
+    """Reads the averaged thermodynamic output data for each case
+    from the correspinginging files in a filelist, and plots the final displacements
+    (z and lateral displacements) versus the z-bin groups positions 
+    for the data row indices (1st index) corresponding to each case read from a file."""
+
+    # Nrepeat is how many times the first timestep is repeated in data file
     thermoAll = []
     for filename in filelist:
         thermoAll.append(read_disp(filename, Nloopmin, Nloopmax, Nrepeat))      ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
@@ -479,21 +510,22 @@ def compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(zdisp, binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1], yaxis = 0) 
+    plot_cases(zdisp, binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir, yaxis = 0) 
     fname = analysisname + '_' + 'z_magnitude'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(np.abs(zdisp), binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1]) 
+    plot_cases(np.abs(zdisp), binposition, label_arr, 'z displacement (A)','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir) 
     
     fname = analysisname + '_' + 'lateral'
     for i in label_arr:
         fname = fname + '_' + i
 
-    plot_cases(lateraldisp, binposition, label_arr, 'lateral displacement (A)','z position (A)',fname, figuresize[0], figuresize[1]) 
-    
+    plot_cases(lateraldisp, binposition, label_arr, 'lateral displacement (A)','z position (A)',fname, figuresize[0], figuresize[1], savedir=savedir) 
 
-def plot_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+def plot_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize,savedir=os.getcwd(), **kwargs):   
+    """Plots the cases with the given x and y arrays,
+    labels, and saves the figure."""
     nrows = 1
     ncolumns = 1
     xsize=1.6
@@ -582,13 +614,16 @@ def plot_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, y
     plt.ioff()
     print('reached file saving point')
     fnamepdf = fname + '.pdf'
-    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    savepath = os.path.join(savedir, fnamepdf)
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     fnamesvg = fname + '.svg'
-    fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
+    savepath = os.path.join(savedir, fnamesvg)
+    fig.savefig(savepath, bbox_inches='tight', format='svg')
     plt.close()  
  
-
-def scatter_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize, **kwargs):   
+def scatter_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize, ysize,savedir=os.getcwd(), **kwargs):   
+    """Scatter plots the cases with the given x and y arrays,
+    labels, and saves the figure."""
     nrows = 1
     ncolumns = 1
     xsize=1.6
@@ -677,13 +712,19 @@ def scatter_cases_filament(x_arr, y_arr, label_arr, xlabel, ylabel, fname, xsize
     plt.ioff()
     print('reached file saving point')
     fnamepdf = fname + '.pdf'
-    fig.savefig(fnamepdf, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fnamepdf)
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     fnamesvg = fname + '.svg'
+    savepath = os.path.join(savedir, fnamesvg)
     fig.savefig(fnamesvg, bbox_inches='tight', format='svg')
     plt.close()  
  
-
 def cluster_analysis(filepath, thickness = 21):
+    """Performs cluster analysis on the given file:
+    computes the coordination number, selects metallic atoms, clusters them,
+    deletes the non-filamentary atoms, separates the top and bottom part of filament,
+    analyzes filament connectivities and rdf of filamentary atoms."""
     pipeline1 = import_file(filepath) 
     pipeline2 = import_file(filepath)     
     pipeline_fil = import_file(filepath) 
@@ -769,7 +810,10 @@ def cluster_analysis(filepath, thickness = 21):
     #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     #data_cmo = pipeline_cmo.compute()
     
-def track_filament(filelist, analysisname):
+def track_filament(filelist, analysisname,savedir=os.getcwd()):     ## Calls cluster_analysis(...)
+    """Tracks and plots the evolution of the filament connectivity state, 
+    gap and separation over time for each timeseries trajectory file in the filelist, 
+    and plots the key results."""
     connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, gap, separation = [],[],[],[], [], [], [], [], []
     for filepath in filelist:
         connection_temp, fil_size_down_temp, fil_height_temp, rdf_down_temp, fil_size_up_temp, fil_depth_temp, rdf_up_temp, separation_temp, gap_temp = cluster_analysis(filepath)
@@ -814,7 +858,9 @@ def track_filament(filelist, analysisname):
     plt.title('Filament connectivity state (1: connected, 0: broken)')
     plt.legend()
     fname = analysisname + 'OnOff' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -827,7 +873,9 @@ def track_filament(filelist, analysisname):
     plt.legend()
 #    plt.ylim(heightmin,heightmax)
     fname = analysisname + 'fil_gap' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     average_filament_separation, sd_separation = np.mean(separation), np.std(separation)
@@ -839,7 +887,9 @@ def track_filament(filelist, analysisname):
     plt.legend(fontsize=8)
 #    plt.ylim(heightmin,heightmax)
     fname = analysisname + 'fil_separation' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -876,7 +926,9 @@ def track_filament(filelist, analysisname):
     ax1.legend(loc = 'upper right', framealpha = 0.8)
     ax2.legend(loc = 'lower right', framealpha = 0.8)
     fname = analysisname + 'fil_state' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -913,7 +965,9 @@ def track_filament(filelist, analysisname):
     fig.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     fname = analysisname + 'fil_lower' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -953,7 +1007,9 @@ def track_filament(filelist, analysisname):
     fig.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     fname = analysisname + 'upper' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -970,7 +1026,9 @@ def track_filament(filelist, analysisname):
     plt.legend()
     plt.ylim(heightmin,heightmax)
     fname = analysisname + 'fil_height' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -986,7 +1044,9 @@ def track_filament(filelist, analysisname):
     plt.legend()
 #    plt.ylim(depthmin,depthmax)
     fname = analysisname + 'fil_depth' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -1002,7 +1062,9 @@ def track_filament(filelist, analysisname):
 #    plt.ylim(sizemin_up,sizemax_up)
     plt.legend()
     fname = analysisname + 'fil_size_up' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
     
     
@@ -1018,10 +1080,11 @@ def track_filament(filelist, analysisname):
     plt.ylim(sizemin_down,sizemax_down)
     plt.legend()
     fname = analysisname + 'fil_size_down' + '.pdf'
-    plt.savefig(fname)
+    os.makedirs(savedir, exist_ok=True)
+    savepath = os.path.join(savedir, fname)
+    plt.savefig(savepath)
     plt.close()
-    
-#    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
+    #    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
 #    plt.xlabel('Timestep')
 #    plt.ylabel('RDF')
 #    plt.title('RDF')
@@ -1035,266 +1098,131 @@ def track_filament(filelist, analysisname):
     #return connection, fil_size_down, fil_height, rdf_down
     
 
-Nskip_coord = 9   
-hisbins = 15
+if __name__ == "__main__":
 
-analysisname = 'track_'
-path = "*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
+    saveoutput =  os.path.join("..", "..", "output", "ecellmodel")
 
-track_filament(filelist, analysisname)
+    ## The following code block generates plots that track the evolution of the 
+    # filament connectivity state, gap, and separation over time for each 
+    # timeseries trajectory file in the filelist.
+
+    ## Simulation parameters corresponding to the respective raw data
+    ts = 0.001
+    dstep = 500
+
+    Minstep = 0
+    Maxstep = 500000
+    Nloopmin = int(Minstep / dstep)
+    Nloopmax = int(Maxstep / dstep)
+
+    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    print(np.shape(time),'\n',time[-1])
+    ###################################
+
+    path = os.path.join("..", "..", "data","ecellmodel", "processed","trajectory_series", "*.lammpstrj")
+    analysisname = 'track_'
+    # path = "*.lammpstrj"
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print('The path is ',path)
+    print(analysisname,filelist)
+
+    track_filament(filelist, analysisname,savedir=saveoutput)
+
+    ## The following code block generates plots of atomic distributions
+    # and compares the displacements of Hf, O, and Ta for different temperatures
+
+    ## Simulation parameters corresponding to the respective raw data
+    ts = 0.0002
+    dstep = 5000
+
+    Minstep = 0
+    Maxstep = 2500000
+    Nloopmin = int(Minstep / dstep)
+    Nloopmax = int(Maxstep / dstep)
+
+    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    print(np.shape(time),'\n',time[-1])
+    Nskip_coord = 9   
+    hisbins = 15
+    ###################################
+
+    analysisname = f'temp_{hisbins}'
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "temp*.lammpstrj")
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['300 K','900 K', '1300 K']
+    plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname,savedir=saveoutput)
+
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Hfmobilestc1.dat")
+    analysisname = f'displacements_temp_Hf'
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['300 K','900 K', '1300 K']
+    compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0,savedir=saveoutput)
+
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Omobilestc1.dat")
+    analysisname = f'displacements_temp_O'
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['300 K','900 K', '1300 K']
+    compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0,savedir=saveoutput)
+
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Tamobilestc1.dat")
+    analysisname = f'displacements_temp_Ta'
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['300 K','900 K', '1300 K']
+    compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0,savedir=saveoutput)
 
     
+    ## The following code block generates plots of atomic and charge distributions 
+    # and compares the displacements of Hf, O, and Ta for different temperatures   
+        ## Simulation parameters corresponding to the respective raw data
+    ts = 0.0002
+    dstep = 5000
+
+    Minstep = 0
+    Maxstep = 2500000
+    Nloopmin = int(Minstep / dstep)
+    Nloopmax = int(Maxstep / dstep)
+
+    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    print(np.shape(time),'\n',time[-1])
+    Nskip_coord = 9   
+    hisbins = 15
+    ###################################
+
+    analysisname = f'local_{hisbins}'
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "local2*.lammpstrj")
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['initial','final']
+    plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname,savedir=saveoutput)
+
+    path = os.path.join("..", "..", "data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
+    analysisname = f'displacements_atom_type'
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['Hf','O', 'Ta']
+    compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0,savedir=saveoutput)
+
+
+    analysisname = f'local_charge_{hisbins}'
+    path =  os.path.join("..", "..", "data","ecellmodel", "raw", "local2*.lammpstrj")
+    filelist_unsorted = glob.glob(path)
+    filelist = sorted(filelist_unsorted)
+    print(analysisname,filelist)
+    label_arr = ['initial','final']
+    plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname,savedir=saveoutput)
 
 
 exit()
 
-analysisname = f'local_{hisbins}'
-path = "local2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-#print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-
-
-path = "*Hfmobilestc1.dat"
-analysisname = f'displacements_temp_Hf'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-path = "*Omobilestc1.dat"
-analysisname = f'displacements_temp_O'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-path = "*Tamobilestc1.dat"
-analysisname = f'displacements_temp_Ta'
-                          
-                          
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-      
-Nskip_coord = 9   
-hisbins = 15
-
-analysisname = f'local_{hisbins}'
-path = "local2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-exit()
-
-path = "*Hfmobilestc1.dat"
-analysisname = f'displacements_temp_Hf'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-path = "*Omobilestc1.dat"
-analysisname = f'displacements_temp_O'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-path = "*Tamobilestc1.dat"
-analysisname = f'displacements_temp_Ta'
-                          
-                          
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['300 K','900 K', '1300 K']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-analysisname = f'uniform_charge_{hisbins}'
-path = "uniform2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname) 
-
-path = "*mobilestc1.dat"
-analysisname = f'displacements_atom_type'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['Hf','O', 'Ta']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-    
-exit()    
-
-path = "*mobilestc1.dat"
-analysisname = f'displacements_atom_type'
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['Hf','O', 'Ta']
-compare_disp(filelist, Nloopmin, Nloopmax, label_arr, analysisname, Nrepeat=0)
-
-exit()
-
-Nskip_coord = 9   
-hisbins = 80
-
-analysisname = f'local_charge_{hisbins}'
-path = "local*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
- 
-analysisname = f'uniform_{hisbins}'
-path = "uniform*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-
-analysisname = f'local_{hisbins}'
-path = "local*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-analysisname = f'uniform_charge_{hisbins}'
-path = "uniform*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-
-exit()
-Nchunks = 12
-
-
-path = "*mobilestc1.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer1'
-dataindex = -2
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc1.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer1'
-dataindex = -3
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc1.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer1'
-dataindex = -5
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc1.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer1'
-dataindex = -6
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-
-exit()
-Nchunks = 9
-
-
-path = "*mobilestc2.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer2'
-dataindex = -2
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc2.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer2'
-dataindex = -3
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc2.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer2'
-dataindex = -5
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-path = "*mobilestc2.dat"
-filelist = glob.glob(path)
-print(filelist,filelist[0][:2])
-datatype = 'layer2'
-dataindex = -6
-disp_plot(filelist,datatype,dataindex, Nchunks)
-
-
- 
-
-
-exit()
-
-analysisname = f'local_charge_{hisbins}'
-path = "local2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-exit()   
-
-analysisname = f'local_{hisbins}'
-path = "local2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-analysisname = f'local_charge_{hisbins}'
-path = "local2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_charges(filelist,label_arr,Nskip_coord,hisbins,analysisname)
-
-analysisname = f'uniform_{hisbins}'
-path = "uniform2*.lammpstrj"
-filelist_unsorted = glob.glob(path)
-filelist = sorted(filelist_unsorted)
-print(analysisname,filelist)
-label_arr = ['initial','final']
-plot_atomic_dist(filelist,label_arr,Nskip_coord,hisbins,analysisname)   
 

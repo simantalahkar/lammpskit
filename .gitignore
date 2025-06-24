@@ -11,6 +11,6 @@ wheels/
 
 # Folders and files to be completed
 # docs/
-# outputs/
+outputs/
 # examples/
 main.py
