@@ -82,7 +82,7 @@ def read_coordinates(file_list, skip_rows):        ## Calls read_structure_info(
         coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols = (0,1,2,3,4,5,9,10,11,12,13,14,15,16)))
     return np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
 
-def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,OUTPUT_DIR=os.getcwd(), **kwargs):  
+def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):  
     """Plots the cases with the given x and y arrays, 
     labels, and saves the figure.""" 
     nrows = 1
@@ -181,15 +181,15 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
     plt.ioff()
     print('reached file saving point')
     output_filename_pdf = output_filename + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename_pdf)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename_pdf)
     fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(OUTPUT_DIR, output_filename_svg)
+    savepath = os.path.join(output_dir, output_filename_svg)
     fig.savefig(savepath, bbox_inches='tight', format='svg')
     plt.close()  
  
-def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
+def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
     and plots the distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows)
@@ -243,7 +243,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70)    #, xlimit = 3.5
+    plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -251,7 +251,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70)    #, xlimit = 3.5
+    plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -259,27 +259,27 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70)  
+    plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)  
     
     output_filename = analysis_name + '_' + 'Hf'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70) 
+    plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70) 
     
     output_filename = analysis_name + '_' + 'Ta'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70)
+    plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)
     
     output_filename = analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimit = 70)    
+    plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    
     
-def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
+def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic charge distributions,
     and plots the charge distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows)
@@ -352,46 +352,46 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,an
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution, z_bin_centers, labels, 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    plot_multiple_cases(total_charge_distribution, z_bin_centers, labels, 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     output_filename = analysis_name + '_' + 'M'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_mean_charge_distribution, z_bin_centers, labels, 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    plot_multiple_cases(metal_mean_charge_distribution, z_bin_centers, labels, 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
     output_filename = analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(O_mean_charge_dist, z_bin_centers, labels, 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    plot_multiple_cases(O_mean_charge_dist, z_bin_centers, labels, 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
    
 
     output_filename =  'final' + '_' + analysis_name + '_' + 'all'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution[1], z_bin_centers, labels[1], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
+    plot_multiple_cases(total_charge_distribution[1], z_bin_centers, labels[1], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
 
    
     output_filename =  'initial' + '_' + analysis_name + '_' + 'all'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution[0], z_bin_centers, labels[0], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    plot_multiple_cases(total_charge_distribution[0], z_bin_centers, labels[0], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     output_filename =  'initial' + '_' + analysis_name + '_' + 'M'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_mean_charge_distribution[0], z_bin_centers, labels[0], 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    plot_multiple_cases(metal_mean_charge_distribution[0], z_bin_centers, labels[0], 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
 
     output_filename = 'initial' + '_' + analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
     
 def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     """Reads the displacement data from the binwise averaged output data file 
@@ -414,7 +414,7 @@ def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     return thermo
     #step_time = np.array(step_time)
     
-def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,OUTPUT_DIR=os.getcwd()):     ## Calls read_displacement_data(...)
+def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
     """Reads the averaged thermodynamic output data for each case 
     from the correspinging files in a file_list, and plots the timeseries displacements 
     (one of the output data types selected by the dataindex as the 4th index) averaged 
@@ -442,7 +442,7 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,OUTPUT_DI
 
     for j in range(ncolumns):
         for i in range(nrows):
-          axes[nrows-1-i,j].plot(time_array, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
+          axes[nrows-1-i,j].plot(time_points, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
           if  j == 0:
             axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
           axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
@@ -461,12 +461,12 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,OUTPUT_DI
         
     #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
     #plt.show()
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
     plt.close()
 
-def compare_displacements(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,OUTPUT_DIR=os.getcwd()):     ## Calls read_displacement_data(...) and plot cases(...)
+def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot cases(...)
     """Reads the averaged thermodynamic output data for each case
     from the correspinginging files in a file_list, and plots the final displacements
     (z and lateral displacements) versus the z-bin groups positions 
@@ -510,20 +510,20 @@ def compare_displacements(file_list, loop_start, loop_end, labels, analysis_name
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR, yaxis = 0) 
+    plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, yaxis = 0) 
     output_filename = analysis_name + '_' + 'z_magnitude'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR) 
+    plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
     
     output_filename = analysis_name + '_' + 'lateral'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], OUTPUT_DIR=OUTPUT_DIR) 
+    plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
 
-def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,OUTPUT_DIR=os.getcwd(), **kwargs):   
+def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
     """Plots the cases with the given x and y arrays,
     labels, and saves the figure."""
     nrows = 1
@@ -614,14 +614,14 @@ def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
     plt.ioff()
     print('reached file saving point')
     output_filename_pdf = output_filename + '.pdf'
-    savepath = os.path.join(OUTPUT_DIR, output_filename_pdf)
+    savepath = os.path.join(output_dir, output_filename_pdf)
     fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(OUTPUT_DIR, output_filename_svg)
+    savepath = os.path.join(output_dir, output_filename_svg)
     fig.savefig(savepath, bbox_inches='tight', format='svg')
     plt.close()  
  
-def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,OUTPUT_DIR=os.getcwd(), **kwargs):   
+def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
     """Scatter plots the cases with the given x and y arrays,
     labels, and saves the figure."""
     nrows = 1
@@ -712,11 +712,11 @@ def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename
     plt.ioff()
     print('reached file saving point')
     output_filename_pdf = output_filename + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename_pdf)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename_pdf)
     fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
     output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(OUTPUT_DIR, output_filename_svg)
+    savepath = os.path.join(output_dir, output_filename_svg)
     fig.savefig(output_filename_svg, bbox_inches='tight', format='svg')
     plt.close()  
  
@@ -810,7 +810,7 @@ def analyze_clusters(filepath, thickness = 21):
     #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     #data_cmo = pipeline_cmo.compute()
     
-def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,OUTPUT_DIR=os.getcwd()):     ## Calls analyze_clusters(...)
+def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,output_dir=os.getcwd()):     ## Calls analyze_clusters(...)
     """Tracks and plots the evolution of the filament connectivity state, 
     gap and separation over time for each timeseries trajectory file in the file_list, 
     and plots the key results."""
@@ -858,8 +858,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.title('Filament connectivity state (1: connected, 0: broken)')
     plt.legend()
     output_filename = analysis_name + 'OnOff' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -873,8 +873,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.legend()
 #    plt.ylim(heightmin,heightmax)
     output_filename = analysis_name + 'fil_gap' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -887,8 +887,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.legend(fontsize=8)
 #    plt.ylim(heightmin,heightmax)
     output_filename = analysis_name + 'fil_separation' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -926,8 +926,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     ax1.legend(loc = 'upper right', framealpha = 0.8)
     ax2.legend(loc = 'lower right', framealpha = 0.8)
     output_filename = analysis_name + 'fil_state' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -965,8 +965,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     fig.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     output_filename = analysis_name + 'fil_lower' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -1007,8 +1007,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     fig.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     output_filename = analysis_name + 'upper' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -1026,8 +1026,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.legend()
     plt.ylim(heightmin,heightmax)
     output_filename = analysis_name + 'fil_height' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -1044,8 +1044,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.legend()
 #    plt.ylim(depthmin,depthmax)
     output_filename = analysis_name + 'fil_depth' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -1062,8 +1062,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
 #    plt.ylim(sizemin_up,sizemax_up)
     plt.legend()
     output_filename = analysis_name + 'fil_size_up' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     
@@ -1080,8 +1080,8 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.ylim(sizemin_down,sizemax_down)
     plt.legend()
     output_filename = analysis_name + 'fil_size_down' + '.pdf'
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    savepath = os.path.join(OUTPUT_DIR, output_filename)
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     #    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
@@ -1093,12 +1093,12 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
 #    plt.close()
 
     
-    #plot_filament_cases(time_array, np.array(connection), labels, 'Timestep','Filament connection',analysis_name, figure_size[0], figure_size[1], yaxis = 0) 
+    #plot_filament_cases(time_points, np.array(connection), labels, 'Timestep','Filament connection',analysis_name, figure_size[0], figure_size[1], yaxis = 0) 
     
     #return connection, fil_size_down, fil_height, rdf_down
     
-def main():
-    saveoutput =  os.path.join("..", "..", "output", "ecellmodel")
+def run_analysis():
+    output_dir =  os.path.join("..", "..", "output", "ecellmodel")
 
     ## The following code block generates plots that track the evolution of the 
     # filament connectivity state, gap, and separation over time for each 
@@ -1113,8 +1113,8 @@ def main():
     loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
     loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
 
-    time_array = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_array),'\n',time_array[-1])
+    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
+    print(np.shape(time_points),'\n',time_points[-1])
     ###################################
 
     data_path = os.path.join("..", "..", "data","ecellmodel", "processed","trajectory_series", "*.lammpstrj")
@@ -1125,7 +1125,7 @@ def main():
     print('The data_path is ',data_path)
     print(analysis_name,file_list)
 
-    track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,OUTPUT_DIR=saveoutput)
+    track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,output_dir=output_dir)
 
     ## The following code block generates plots of atomic distributions
     # and compares the displacements of Hf, O, and Ta for different temperatures
@@ -1139,8 +1139,8 @@ def main():
     loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
     loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
 
-    time_array = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_array),'\n',time_array[-1])
+    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
+    print(np.shape(time_points),'\n',time_points[-1])
     SKIP_ROWS_COORD= 9   
     HISTOGRAM_BINS = 15
     ###################################
@@ -1151,7 +1151,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=saveoutput)
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
 
     data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Hfmobilestc1.dat")
     analysis_name = f'displacements_temp_Hf'
@@ -1159,7 +1159,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,OUTPUT_DIR=saveoutput)
+    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
 
     data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Omobilestc1.dat")
     analysis_name = f'displacements_temp_O'
@@ -1167,7 +1167,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,OUTPUT_DIR=saveoutput)
+    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
 
     data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Tamobilestc1.dat")
     analysis_name = f'displacements_temp_Ta'
@@ -1175,7 +1175,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,OUTPUT_DIR=saveoutput)
+    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
 
     
     ## The following code block generates plots of atomic and charge distributions 
@@ -1189,8 +1189,8 @@ def main():
     loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
     loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
 
-    time_array = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_array),'\n',time_array[-1])
+    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
+    print(np.shape(time_points),'\n',time_points[-1])
     SKIP_ROWS_COORD= 9   
     HISTOGRAM_BINS = 15
     ###################################
@@ -1201,7 +1201,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['initial','final']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=saveoutput)
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
 
     data_path = os.path.join("..", "..", "data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
     analysis_name = f'displacements_atom_type'
@@ -1209,7 +1209,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['Hf','O', 'Ta']
-    compare_displacements(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,OUTPUT_DIR=saveoutput)
+    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
 
 
     analysis_name = f'local_charge_{HISTOGRAM_BINS}'
@@ -1218,13 +1218,13 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['initial','final']
-    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=saveoutput)
+    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
 
     
     exit()
 
 if __name__ == "__main__":
-    main()
+    run_analysis()
 
 
 
