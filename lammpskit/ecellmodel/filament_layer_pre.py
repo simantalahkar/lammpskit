@@ -403,7 +403,7 @@ def read_displacement_data(filepath, loop_min, loop_max, repeat_count=0):
     #print(Nchunks,loop_min,loop_max) 
     thermo = []
     for n in range(loop_min,loop_max+1):
-      #step_time.append([n*dstep,n*dstep*ts])
+      #step_time.append([n*DUMP_INTERVAL_STEPS,n*DUMP_INTERVAL_STEPS*TIME_STEP])
       #print(Nchunks,loop_min,loop_max,n) 
       tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-loop_min)*(Nchunks+4), max_rows=Nchunks)
       thermo.append(tmp)
@@ -839,7 +839,7 @@ def track_filament_evolution(file_list, analysis_name,output_dir=os.getcwd()):  
     print('shape of connections array',np.shape(np.array(connection))[0])
     time_step = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
     
-    time_switch = time_step * ts * dstep
+    time_switch = time_step * TIME_STEP * DUMP_INTERVAL_STEPS
     
     #figuresize = [2.5,5]
     
@@ -1107,15 +1107,15 @@ if __name__ == "__main__":
     # timeseries trajectory file in the file_list.
 
     ## Simulation parameters corresponding to the respective raw data
-    ts = 0.001
-    dstep = 500
+    TIME_STEP = 0.001
+    DUMP_INTERVAL_STEPS = 500
 
-    Minstep = 0
-    Maxstep = 500000
-    loop_min = int(Minstep / dstep)
-    loop_max = int(Maxstep / dstep)
+    MIN_STEP = 0
+    MAX_STEP = 500000
+    loop_min = int(MIN_STEP / DUMP_INTERVAL_STEPS)
+    loop_max = int(MAX_STEP / DUMP_INTERVAL_STEPS)
 
-    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
+    time = np.linspace(loop_min*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     ###################################
 
@@ -1133,15 +1133,15 @@ if __name__ == "__main__":
     # and compares the displacements of Hf, O, and Ta for different temperatures
 
     ## Simulation parameters corresponding to the respective raw data
-    ts = 0.0002
-    dstep = 5000
+    TIME_STEP = 0.0002
+    DUMP_INTERVAL_STEPS = 5000
 
-    Minstep = 0
-    Maxstep = 2500000
-    loop_min = int(Minstep / dstep)
-    loop_max = int(Maxstep / dstep)
+    MIN_STEP = 0
+    MAX_STEP = 2500000
+    loop_min = int(MIN_STEP / DUMP_INTERVAL_STEPS)
+    loop_max = int(MAX_STEP / DUMP_INTERVAL_STEPS)
 
-    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
+    time = np.linspace(loop_min*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     skip_rows_coord = 9   
     histogram_bins = 15
@@ -1183,15 +1183,15 @@ if __name__ == "__main__":
     ## The following code block generates plots of atomic and charge distributions 
     # and compares the displacements of Hf, O, and Ta for different temperatures   
         ## Simulation parameters corresponding to the respective raw data
-    ts = 0.0002
-    dstep = 5000
+    TIME_STEP = 0.0002
+    DUMP_INTERVAL_STEPS = 5000
 
-    Minstep = 0
-    Maxstep = 2500000
-    loop_min = int(Minstep / dstep)
-    loop_max = int(Maxstep / dstep)
+    MIN_STEP = 0
+    MAX_STEP = 2500000
+    loop_min = int(MIN_STEP / DUMP_INTERVAL_STEPS)
+    loop_max = int(MAX_STEP / DUMP_INTERVAL_STEPS)
 
-    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
+    time = np.linspace(loop_min*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max*DUMP_INTERVAL_STEPS*TIME_STEP,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     skip_rows_coord = 9   
     histogram_bins = 15
