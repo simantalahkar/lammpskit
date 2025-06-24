@@ -810,7 +810,7 @@ def analyze_clusters(filepath, thickness = 21):
     #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     #data_cmo = pipeline_cmo.compute()
     
-def track_filament_evolution(file_list, analysis_name,OUTPUT_DIR=os.getcwd()):     ## Calls analyze_clusters(...)
+def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,OUTPUT_DIR=os.getcwd()):     ## Calls analyze_clusters(...)
     """Tracks and plots the evolution of the filament connectivity state, 
     gap and separation over time for each timeseries trajectory file in the file_list, 
     and plots the key results."""
@@ -1097,9 +1097,7 @@ def track_filament_evolution(file_list, analysis_name,OUTPUT_DIR=os.getcwd()):  
     
     #return connection, fil_size_down, fil_height, rdf_down
     
-
-if __name__ == "__main__":
-
+def main():
     saveoutput =  os.path.join("..", "..", "output", "ecellmodel")
 
     ## The following code block generates plots that track the evolution of the 
@@ -1127,7 +1125,7 @@ if __name__ == "__main__":
     print('The data_path is ',data_path)
     print(analysis_name,file_list)
 
-    track_filament_evolution(file_list, analysis_name,OUTPUT_DIR=saveoutput)
+    track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,OUTPUT_DIR=saveoutput)
 
     ## The following code block generates plots of atomic distributions
     # and compares the displacements of Hf, O, and Ta for different temperatures
@@ -1222,7 +1220,12 @@ if __name__ == "__main__":
     labels = ['initial','final']
     plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,OUTPUT_DIR=saveoutput)
 
+    
+    exit()
 
-exit()
+if __name__ == "__main__":
+    main()
+
+
 
 
