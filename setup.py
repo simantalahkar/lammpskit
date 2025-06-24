@@ -29,3 +29,6 @@ setup(
     entry_points={
         "console_scripts": [
             "lammpskit=lammpskit.cli:main",
+        ],
+    },
+)
