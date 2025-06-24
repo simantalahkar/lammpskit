@@ -1,9 +1,13 @@
 [project]
 name = "lammpskit"
 version = "0.1.0"
-description = "Add your description here"
+description = "Toolkit for MD simulations and analysis with LAMMPS."
 readme = "README.md"
 requires-python = ">=3.12"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    { name = "Simanta Lahkar", email = "simantalahkar@hotmail.com" }
+]
 dependencies = []
 
 [dependency-groups]
@@ -14,3 +18,8 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/simantalahkar/lammpskit"
+Documentation = "https://github.com/simantalahkar/lammpskit#readme"
+Source = "https://github.com/simantalahkar/lammpskit"
