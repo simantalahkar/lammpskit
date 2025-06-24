@@ -393,19 +393,19 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,histogram_bins,an
 
     plot_multiple_cases(O_mean_charge_dist[0], z_bins, labels[0], 'O mean charge','z position (A)',fname, figuresize[0], figuresize[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
     
-def read_displacement_data(filepath, Nloopmin, Nloopmax, Nrepeat=0):
+def read_displacement_data(filepath, loop_min, loop_max, repeat_count=0):
     """Reads the displacement data from the binwise averaged output data file 
     and returns the displacement data for the specified loops."""
     print(filepath)
     tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
     #print(tmp)
     Nchunks = tmp[1].astype(int)
-    #print(Nchunks,Nloopmin,Nloopmax) 
+    #print(Nchunks,loop_min,loop_max) 
     thermo = []
-    for n in range(Nloopmin,Nloopmax+1):
+    for n in range(loop_min,loop_max+1):
       #step_time.append([n*dstep,n*dstep*ts])
-      #print(Nchunks,Nloopmin,Nloopmax,n) 
-      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-Nloopmin)*(Nchunks+4), max_rows=Nchunks)
+      #print(Nchunks,loop_min,loop_max,n) 
+      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-loop_min)*(Nchunks+4), max_rows=Nchunks)
       thermo.append(tmp)
 #      print(n)
       #if n == 0:
@@ -424,7 +424,7 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
     elements = []
     for filename in file_list:
         elements.append(filename[:2])
-        thermoAll.append(read_displacement_data(filename, Nloopmin, Nloopmax))
+        thermoAll.append(read_displacement_data(filename, loop_min, loop_max))
     thermoAll = np.array(thermoAll)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
                                                                     ## 4th index corresponds to the type of data (z, lateral displacement...)
     print(elements)
@@ -466,16 +466,16 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
     fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
     plt.close()
 
-def compare_displacements(file_list, Nloopmin, Nloopmax, labels, analysis_name, Nrepeat=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot cases(...)
+def compare_displacements(file_list, loop_min, loop_max, labels, analysis_name, repeat_count=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot cases(...)
     """Reads the averaged thermodynamic output data for each case
     from the correspinginging files in a file_list, and plots the final displacements
     (z and lateral displacements) versus the z-bin groups positions 
     for the data row indices (1st index) corresponding to each case read from a file."""
 
-    # Nrepeat is how many times the first timestep is repeated in data file
+    # repeat_count is how many times the first timestep is repeated in data file
     thermoAll = []
     for filename in file_list:
-        thermoAll.append(read_displacement_data(filename, Nloopmin, Nloopmax, Nrepeat))      ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
+        thermoAll.append(read_displacement_data(filename, loop_min, loop_max, repeat_count))      ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
                                                                                 ## 4th index corresponds to the type of data (z, lateral displacement...)
     displacements = np.array(thermoAll) 
     print('\nshape of thermoAll array=', np.shape(thermoAll), '\nlength of thermoAll array=', len(thermoAll))
@@ -1112,10 +1112,10 @@ if __name__ == "__main__":
 
     Minstep = 0
     Maxstep = 500000
-    Nloopmin = int(Minstep / dstep)
-    Nloopmax = int(Maxstep / dstep)
+    loop_min = int(Minstep / dstep)
+    loop_max = int(Maxstep / dstep)
 
-    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     ###################################
 
@@ -1138,10 +1138,10 @@ if __name__ == "__main__":
 
     Minstep = 0
     Maxstep = 2500000
-    Nloopmin = int(Minstep / dstep)
-    Nloopmax = int(Maxstep / dstep)
+    loop_min = int(Minstep / dstep)
+    loop_max = int(Maxstep / dstep)
 
-    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     skip_rows_coord = 9   
     histogram_bins = 15
@@ -1161,7 +1161,7 @@ if __name__ == "__main__":
     file_list = sorted(file_list_unsorted)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, Nloopmin, Nloopmax, labels, analysis_name, Nrepeat=0,output_dir=saveoutput)
+    compare_displacements(file_list, loop_min, loop_max, labels, analysis_name, repeat_count=0,output_dir=saveoutput)
 
     path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Omobilestc1.dat")
     analysis_name = f'displacements_temp_O'
@@ -1169,7 +1169,7 @@ if __name__ == "__main__":
     file_list = sorted(file_list_unsorted)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, Nloopmin, Nloopmax, labels, analysis_name, Nrepeat=0,output_dir=saveoutput)
+    compare_displacements(file_list, loop_min, loop_max, labels, analysis_name, repeat_count=0,output_dir=saveoutput)
 
     path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Tamobilestc1.dat")
     analysis_name = f'displacements_temp_Ta'
@@ -1177,7 +1177,7 @@ if __name__ == "__main__":
     file_list = sorted(file_list_unsorted)
     print(analysis_name,file_list)
     labels = ['300 K','900 K', '1300 K']
-    compare_displacements(file_list, Nloopmin, Nloopmax, labels, analysis_name, Nrepeat=0,output_dir=saveoutput)
+    compare_displacements(file_list, loop_min, loop_max, labels, analysis_name, repeat_count=0,output_dir=saveoutput)
 
     
     ## The following code block generates plots of atomic and charge distributions 
@@ -1188,10 +1188,10 @@ if __name__ == "__main__":
 
     Minstep = 0
     Maxstep = 2500000
-    Nloopmin = int(Minstep / dstep)
-    Nloopmax = int(Maxstep / dstep)
+    loop_min = int(Minstep / dstep)
+    loop_max = int(Maxstep / dstep)
 
-    time = np.linspace(Nloopmin*dstep*ts,Nloopmax*dstep*ts,Nloopmax-Nloopmin+1)
+    time = np.linspace(loop_min*dstep*ts,loop_max*dstep*ts,loop_max-loop_min+1)
     print(np.shape(time),'\n',time[-1])
     skip_rows_coord = 9   
     histogram_bins = 15
@@ -1211,7 +1211,7 @@ if __name__ == "__main__":
     file_list = sorted(file_list_unsorted)
     print(analysis_name,file_list)
     labels = ['Hf','O', 'Ta']
-    compare_displacements(file_list, Nloopmin, Nloopmax, labels, analysis_name, Nrepeat=0,output_dir=saveoutput)
+    compare_displacements(file_list, loop_min, loop_max, labels, analysis_name, repeat_count=0,output_dir=saveoutput)
 
 
     analysis_name = f'local_charge_{histogram_bins}'
