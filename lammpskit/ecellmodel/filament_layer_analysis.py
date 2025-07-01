@@ -9,11 +9,11 @@ from ovito.io import import_file
 import ovito.modifiers as om
 # import scipy.constants as scicon
 
-plt.rcParams['axes.titlesize'] = 10
-plt.rcParams['axes.labelsize'] = 10
-plt.rcParams['xtick.labelsize'] = 10
-plt.rcParams['ytick.labelsize'] = 10
-plt.rcParams['legend.fontsize'] = 10
+plt.rcParams['axes.titlesize'] = 8
+plt.rcParams['axes.labelsize'] = 8
+plt.rcParams['xtick.labelsize'] = 8
+plt.rcParams['ytick.labelsize'] = 8
+plt.rcParams['legend.fontsize'] = 8
 
 # mpl.rcParams['pdf.fonttype'] = 42  #this would allow us to edit the fonts in acrobat illustrator
 
@@ -21,6 +21,8 @@ plt.rcParams['legend.fontsize'] = 10
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
+
+COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
 
 def read_structure_info(filepath):
     """Reads the structure file and returns the 
@@ -66,7 +68,7 @@ def read_structure_info(filepath):
         print(zlo,zhi)
     return timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
 
-def read_coordinates(file_list, skip_rows):        ## Calls read_structure_info(...)
+def read_coordinates(file_list, skip_rows, columns_to_read):        ## Calls read_structure_info(...)
     """Reads the structure files and returns the 
     simulation cell parameters along with coordinates 
     and timestep array."""
@@ -79,7 +81,7 @@ def read_coordinates(file_list, skip_rows):        ## Calls read_structure_info(
     for filepath in file_list:
         timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_structure_info(filepath)       ## All these values are expected to be the same other than the timestep for this analysis
         timestep_arr.append(timestep)
-        coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols = (0,1,2,3,4,5,9,10,11,12,13,14,15,16)))
+        coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols = (0,1,2,3,4,5,9,10,11,12)))#,13,14,15,16)))
     return np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
 
 def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):  
@@ -192,7 +194,7 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
 def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
     and plots the distributions for O, Hf, Ta, and all M atoms."""
-    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows)
+    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
     z_bin_width = (zhi-zlo)/HISTOGRAM_BINS
     z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, HISTOGRAM_BINS)
     oxygen_distribution = []
@@ -243,7 +245,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    #, xlimit = 3.5
+    plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -251,7 +253,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    #, xlimit = 3.5
+    plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -259,30 +261,30 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)  
+    plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)  
     
     output_filename = analysis_name + '_' + 'Hf'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70) 
+    plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45) 
     
     output_filename = analysis_name + '_' + 'Ta'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)
+    plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)
     
     output_filename = analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 70)    
+    plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    
     
 def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic charge distributions,
     and plots the charge distributions for O, Hf, Ta, and all M atoms."""
-    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows)
+    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
     z_bin_width = (zhi-zlo)/HISTOGRAM_BINS
     z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, HISTOGRAM_BINS)
     oxygen_charge_distribution = []
