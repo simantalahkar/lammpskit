@@ -84,6 +84,27 @@ def read_coordinates(file_list, skip_rows, columns_to_read):        ## Calls rea
         coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols = (0,1,2,3,4,5,9,10,11,12)))#,13,14,15,16)))
     return np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
 
+def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
+    """Reads the displacement data from the binwise averaged output data file 
+    and returns the displacement data for the specified loops."""
+    print(filepath)
+    tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
+    #print(tmp)
+    Nchunks = tmp[1].astype(int)
+    #print(Nchunks,loop_start,loop_end) 
+    thermo = []
+    for n in range(loop_start,loop_end+1):
+      #step_time.append([n*DUMP_INTERVAL_STEPS,n*DUMP_INTERVAL_STEPS*TIME_STEP])
+      #print(Nchunks,loop_start,loop_end,n) 
+      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-loop_start)*(Nchunks+4), max_rows=Nchunks)
+      thermo.append(tmp)
+#      print(n)
+      #if n == 0:
+        #print(np.shape(thermo),'\n',thermo[-1])   
+    #print(np.shape(thermo),'\n',thermo[-1]) 
+    return thermo
+    #step_time = np.array(step_time)
+    
 def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):  
     """Plots the cases with the given x and y arrays, 
     labels, and saves the figure.""" 
@@ -395,27 +416,6 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,an
 
     plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
     
-def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
-    """Reads the displacement data from the binwise averaged output data file 
-    and returns the displacement data for the specified loops."""
-    print(filepath)
-    tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
-    #print(tmp)
-    Nchunks = tmp[1].astype(int)
-    #print(Nchunks,loop_start,loop_end) 
-    thermo = []
-    for n in range(loop_start,loop_end+1):
-      #step_time.append([n*DUMP_INTERVAL_STEPS,n*DUMP_INTERVAL_STEPS*TIME_STEP])
-      #print(Nchunks,loop_start,loop_end,n) 
-      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-loop_start)*(Nchunks+4), max_rows=Nchunks)
-      thermo.append(tmp)
-#      print(n)
-      #if n == 0:
-        #print(np.shape(thermo),'\n',thermo[-1])   
-    #print(np.shape(thermo),'\n',thermo[-1]) 
-    return thermo
-    #step_time = np.array(step_time)
-    
 def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
     """Reads the averaged thermodynamic output data for each case 
     from the correspinging files in a file_list, and plots the timeseries displacements 
@@ -525,203 +525,6 @@ def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analys
 
     plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
 
-def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
-    """Plots the cases with the given x and y arrays,
-    labels, and saves the figure."""
-    nrows = 1
-    ncolumns = 1
-    xsize=1.6
-    ysize=3.2
-    print('before subplots')
-    plt.ioff()
-    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
-    print('before axes flatten')
-    axes=axes.flatten()
-    print('before tight layout')
-    fig.tight_layout()
-    #plt.rcParams['xtick.labelsize'] = 6
-    #plt.rcParams['ytick.labelsize'] = 6
-    #print(axes)
-    colorlist = ['b', 'r', 'g','k']
-    linestylelist = ['--', '-.', ':','-']
-    markerlist = ['o', '^', 's', '*']
-    print('reached now plotting point')
-    if x_arr.ndim >1 and y_arr.ndim >1:
-        for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr[i], y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim >1 and y_arr.ndim ==1:
-        for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr[i], y_arr, label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim ==1 and y_arr.ndim >1:
-        for i in range(len(y_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr, y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    else:
-        if 'markerindex' in kwargs:
-            j = kwargs['markerindex']
-        else:
-            j = 0        
-        axes[0].plot(x_arr, y_arr, label=labels, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
-
-    if 'xlimit' in kwargs:
-        print('x axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimit'])
-    if 'ylimit' in kwargs:
-        print('y axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimit'])
-
-    if 'xlimithi' in kwargs:
-        print('x hi axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimithi'])
-    if 'ylimithi' in kwargs:
-        print('y hi axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimithi']) 
-    if 'xlimitlo' in kwargs:
-        print('x lo axis is limited')
-        axes[0].set_xlim(left=kwargs['xlimitlo'])
-    if 'ylimitlo' in kwargs:
-        print('y lo axis is limited')
-        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
-
-    if 'xaxis' in kwargs:
-        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
-    if 'yaxis' in kwargs:
-        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
-    print('reached axes labelling point')
-    axes[0].set_ylabel(ylabel, fontsize=8)
-    axes[0].legend(loc='upper center', fontsize=7)
-    axes[0].adjustable='datalim'
-    axes[0].set_aspect('auto')
-    axes[0].tick_params(axis='both', which='major', labelsize=7)
-    axes[0].set_aspect('auto')
-    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
-    axes[0].set_xlabel(xlabel, fontsize=8)
-#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
-
-      
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
-    #plt.show()
-    
-    plt.ioff()
-    print('reached file saving point')
-    output_filename_pdf = output_filename + '.pdf'
-    savepath = os.path.join(output_dir, output_filename_pdf)
-    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
-    output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(output_dir, output_filename_svg)
-    fig.savefig(savepath, bbox_inches='tight', format='svg')
-    plt.close()  
- 
-def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
-    """Scatter plots the cases with the given x and y arrays,
-    labels, and saves the figure."""
-    nrows = 1
-    ncolumns = 1
-    xsize=1.6
-    ysize=3.2
-    print('before subplots')
-    plt.ioff()
-    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
-    print('before axes flatten')
-    axes=axes.flatten()
-    print('before tight layout')
-    fig.tight_layout()
-    #plt.rcParams['xtick.labelsize'] = 6
-    #plt.rcParams['ytick.labelsize'] = 6
-    #print(axes)
-    colorlist = ['b', 'r', 'g','k']
-    linestylelist = ['--', '-.', ':','-']
-    markerlist = ['o', '^', 's', '*']
-    print('reached now plotting point')
-    if x_arr.ndim >1 and y_arr.ndim >1:
-        for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].scatter(x_arr[i], y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim >1 and y_arr.ndim ==1:
-        for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].scatter(x_arr[i], y_arr, label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim ==1 and y_arr.ndim >1:
-        for i in range(len(y_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].scatter(x_arr, y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    else:
-        if 'markerindex' in kwargs:
-            j = kwargs['markerindex']
-        else:
-            j = 0        
-        axes[0].scatter(x_arr, y_arr, label=labels, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
-
-    if 'xlimit' in kwargs:
-        print('x axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimit'])
-    if 'ylimit' in kwargs:
-        print('y axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimit'])
-
-    if 'xlimithi' in kwargs:
-        print('x hi axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimithi'])
-    if 'ylimithi' in kwargs:
-        print('y hi axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimithi']) 
-    if 'xlimitlo' in kwargs:
-        print('x lo axis is limited')
-        axes[0].set_xlim(left=kwargs['xlimitlo'])
-    if 'ylimitlo' in kwargs:
-        print('y lo axis is limited')
-        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
-
-    if 'xaxis' in kwargs:
-        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
-    if 'yaxis' in kwargs:
-        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
-    print('reached axes labelling point')
-    axes[0].set_ylabel(ylabel, fontsize=8)
-    axes[0].legend(loc='upper center', fontsize=7)
-    axes[0].adjustable='datalim'
-    axes[0].set_aspect('auto')
-    axes[0].tick_params(axis='both', which='major', labelsize=7)
-    axes[0].set_aspect('auto')
-    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
-    axes[0].set_xlabel(xlabel, fontsize=8)
-#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
-
-      
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
-    #plt.show()
-    
-    plt.ioff()
-    print('reached file saving point')
-    output_filename_pdf = output_filename + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename_pdf)
-    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
-    output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(output_dir, output_filename_svg)
-    fig.savefig(output_filename_svg, bbox_inches='tight', format='svg')
-    plt.close()  
- 
 def analyze_clusters(filepath, thickness = 21):
     """Performs cluster analysis on the given file:
     computes the coordination number, selects metallic atoms, clusters them,
@@ -1087,18 +890,204 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     plt.savefig(savepath)
     plt.close()
     #    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
-#    plt.xlabel('Timestep')
-#    plt.ylabel('RDF')
-#    plt.title('RDF')
-#    output_filename = analysis_name + 'rdf' + '.pdf'
-#    plt.savefig(output_filename)
-#    plt.close()
+   
+def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
+    """Plots the cases with the given x and y arrays,
+    labels, and saves the figure."""
+    nrows = 1
+    ncolumns = 1
+    xsize=1.6
+    ysize=3.2
+    print('before subplots')
+    plt.ioff()
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    print('before axes flatten')
+    axes=axes.flatten()
+    print('before tight layout')
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+    #print(axes)
+    colorlist = ['b', 'r', 'g','k']
+    linestylelist = ['--', '-.', ':','-']
+    markerlist = ['o', '^', 's', '*']
+    print('reached now plotting point')
+    if x_arr.ndim >1 and y_arr.ndim >1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim >1 and y_arr.ndim ==1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr[i], y_arr, label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim ==1 and y_arr.ndim >1:
+        for i in range(len(y_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].plot(x_arr, y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    else:
+        if 'markerindex' in kwargs:
+            j = kwargs['markerindex']
+        else:
+            j = 0        
+        axes[0].plot(x_arr, y_arr, label=labels, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
 
+    if 'xlimit' in kwargs:
+        print('x axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimit'])
+    if 'ylimit' in kwargs:
+        print('y axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimit'])
+
+    if 'xlimithi' in kwargs:
+        print('x hi axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimithi'])
+    if 'ylimithi' in kwargs:
+        print('y hi axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimithi']) 
+    if 'xlimitlo' in kwargs:
+        print('x lo axis is limited')
+        axes[0].set_xlim(left=kwargs['xlimitlo'])
+    if 'ylimitlo' in kwargs:
+        print('y lo axis is limited')
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+
+    if 'xaxis' in kwargs:
+        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
+    if 'yaxis' in kwargs:
+        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
+    print('reached axes labelling point')
+    axes[0].set_ylabel(ylabel, fontsize=8)
+    axes[0].legend(loc='upper center', fontsize=7)
+    axes[0].adjustable='datalim'
+    axes[0].set_aspect('auto')
+    axes[0].tick_params(axis='both', which='major', labelsize=7)
+    axes[0].set_aspect('auto')
+    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
+    axes[0].set_xlabel(xlabel, fontsize=8)
+#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+      
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
     
-    #plot_filament_cases(time_points, np.array(connection), labels, 'Timestep','Filament connection',analysis_name, figure_size[0], figure_size[1], yaxis = 0) 
+    plt.ioff()
+    print('reached file saving point')
+    output_filename_pdf = output_filename + '.pdf'
+    savepath = os.path.join(output_dir, output_filename_pdf)
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    output_filename_svg = output_filename + '.svg'
+    savepath = os.path.join(output_dir, output_filename_svg)
+    fig.savefig(savepath, bbox_inches='tight', format='svg')
+    plt.close()  
+ 
+def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
+    """Scatter plots the cases with the given x and y arrays,
+    labels, and saves the figure."""
+    nrows = 1
+    ncolumns = 1
+    xsize=1.6
+    ysize=3.2
+    print('before subplots')
+    plt.ioff()
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    print('before axes flatten')
+    axes=axes.flatten()
+    print('before tight layout')
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+    #print(axes)
+    colorlist = ['b', 'r', 'g','k']
+    linestylelist = ['--', '-.', ':','-']
+    markerlist = ['o', '^', 's', '*']
+    print('reached now plotting point')
+    if x_arr.ndim >1 and y_arr.ndim >1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr[i], y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim >1 and y_arr.ndim ==1:
+        for i in range(len(x_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr[i], y_arr, label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    elif x_arr.ndim ==1 and y_arr.ndim >1:
+        for i in range(len(y_arr)):
+            if 'markerindex' in kwargs:
+                j = kwargs['markerindex']
+            else:
+                j = i
+            axes[0].scatter(x_arr, y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+    else:
+        if 'markerindex' in kwargs:
+            j = kwargs['markerindex']
+        else:
+            j = 0        
+        axes[0].scatter(x_arr, y_arr, label=labels, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=1, linewidth = 0.2, alpha = 0.75)
+
+    if 'xlimit' in kwargs:
+        print('x axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimit'])
+    if 'ylimit' in kwargs:
+        print('y axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimit'])
+
+    if 'xlimithi' in kwargs:
+        print('x hi axis is limited')
+        axes[0].set_xlim(right=kwargs['xlimithi'])
+    if 'ylimithi' in kwargs:
+        print('y hi axis is limited')
+        axes[0].set_ylim(top=kwargs['ylimithi']) 
+    if 'xlimitlo' in kwargs:
+        print('x lo axis is limited')
+        axes[0].set_xlim(left=kwargs['xlimitlo'])
+    if 'ylimitlo' in kwargs:
+        print('y lo axis is limited')
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+
+    if 'xaxis' in kwargs:
+        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='y=0')
+    if 'yaxis' in kwargs:
+        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=0.1, label='x=0')
+    print('reached axes labelling point')
+    axes[0].set_ylabel(ylabel, fontsize=8)
+    axes[0].legend(loc='upper center', fontsize=7)
+    axes[0].adjustable='datalim'
+    axes[0].set_aspect('auto')
+    axes[0].tick_params(axis='both', which='major', labelsize=7)
+    axes[0].set_aspect('auto')
+    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
+    axes[0].set_xlabel(xlabel, fontsize=8)
+#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+      
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
     
-    #return connection, fil_size_down, fil_height, rdf_down
-    
+    plt.ioff()
+    print('reached file saving point')
+    output_filename_pdf = output_filename + '.pdf'
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename_pdf)
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    output_filename_svg = output_filename + '.svg'
+    savepath = os.path.join(output_dir, output_filename_svg)
+    fig.savefig(output_filename_svg, bbox_inches='tight', format='svg')
+    plt.close()  
+ 
 def run_analysis():
     output_dir =  os.path.join("..", "..", "output", "ecellmodel")
 
@@ -1226,11 +1215,111 @@ def run_analysis():
     plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
 
     
+    analysis_name = f'local_charge_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "local2*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['initial','final']
+    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    data_path = os.path.join("..", "..","data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
+    analysis_name = f'displacements_atom_type'
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['Hf','O', 'Ta']
+    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
+
+    ## The following code block generates plots of atomic and charge distributions 
+    # and compares the displacements of Hf, O, and Ta for different temperatures   
+        ## Simulation parameters corresponding to the respective raw data
+    TIME_STEP = 0.001
+    DUMP_INTERVAL_STEPS = 500
+
+    MIN_SIM_STEP = 0
+    MAX_SIM_STEP = 500000
+
+    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
+    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
+
+    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
+    print(np.shape(time_points),'\n',time_points[-1])
+    SKIP_ROWS_COORD= 9   
+    HISTOGRAM_BINS = 15
+    ###################################
+
+    analysis_name = f'forming_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]forming*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['relaxed','formed']
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    #####################################
+    # Following code block corresponds to analysis on new data files
+    #####################################
+    #####################################
+
+    ## The following code block generates plots of atomic and charge distributions 
+# and compares the displacements of Hf, O, and Ta for different temperatures  
+#  
+## Simulation parameters corresponding to the respective raw data
+###################################
+
+    TIME_STEP = 0.001
+    DUMP_INTERVAL_STEPS = 500
+
+    MIN_SIM_STEP = 0
+    MAX_SIM_STEP = 500000
+
+    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
+    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
+
+    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
+    print(np.shape(time_points),'\n',time_points[-1])
+    SKIP_ROWS_COORD= 9   
+    HISTOGRAM_BINS = 15
+    ###################################
+
+    analysis_name = f'forming_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]forming*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['relaxed0V','formed2V']
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    analysis_name = f'post_forming_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]formed*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['formed2V','formed0V']
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    analysis_name = f'set_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]set*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['formed0V','set-0.1V']
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    analysis_name = f'break_{HISTOGRAM_BINS}'
+    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]break*.lammpstrj")
+    unsorted_file_list = glob.glob(data_path)
+    file_list = sorted(unsorted_file_list)
+    print(analysis_name,file_list)
+    labels = ['set-0.1V','break-0.5V']
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+
+    
     exit()
 
 if __name__ == "__main__":
     run_analysis()
-
 
 
 
