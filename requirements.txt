@@ -13,9 +13,12 @@ iniconfig==2.1.0
 jaraco.classes==3.4.0
 jaraco.context==6.0.1
 jaraco.functools==4.2.1
+Jinja2==3.1.6
 keyring==25.6.0
 kiwisolver==1.4.8
+-e git+https://github.com/simantalahkar/lammpskit.git@e5e199efc8e337fc4f1b813a81c3e4d0432f5672#egg=lammpskit
 markdown-it-py==3.0.0
+MarkupSafe==3.0.2
 matplotlib==3.10.3
 mdurl==0.1.2
 more-itertools==10.7.0
@@ -31,6 +34,7 @@ pyproject_hooks==1.2.0
 PySide6_Essentials==6.9.1
 pytest==8.4.1
 pytest-cov==6.2.1
+pytest-mpl==0.17.0
 python-dateutil==2.9.0.post0
 pywin32-ctypes==0.2.3
 readme_renderer==44.0

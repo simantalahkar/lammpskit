@@ -1102,6 +1102,9 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
 def run_analysis():
     output_dir =  os.path.join("..", "..", "output", "ecellmodel")
 
+    global COLUMNS_TO_READ
+    COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12,13,14,15,16) 
+
     ## The following code block generates plots that track the evolution of the 
     # filament connectivity state, gap, and separation over time for each 
     # timeseries trajectory file in the file_list.

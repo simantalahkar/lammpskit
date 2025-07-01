@@ -17,6 +17,13 @@ setup(
         "matplotlib>=3.10.3",
         "ovito>=3.12.4"
     ],
+    extras_require={
+        "dev": [
+            "pytest>=8.4.1",
+            "pytest-cov>=6.2.1",
+            "pytest-mpl>=0.17.0",
+        ]
+    },
     python_requires=">=3.12",
     classifiers=[
         "Programming Language :: Python :: 3",
