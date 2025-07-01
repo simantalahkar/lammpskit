@@ -3,7 +3,37 @@ import tempfile
 import numpy as np
 from lammpskit.ecellmodel.filament_layer_analysis import read_structure_info
 from lammpskit.ecellmodel.filament_layer_analysis import read_coordinates
+from lammpskit.ecellmodel.filament_layer_analysis import read_displacement_data
 
+def test_read_displacement_data_minimal():
+    # Create a minimal fake displacement data file
+    content = """\
+# header1
+# header2
+# header3
+0 2
+1.0 3.0
+2.0 4.0
+# header1
+# header2
+# header3
+0 2
+1.0 6.0
+2.0 8.0
+# end loop 2
+"""
+    with tempfile.NamedTemporaryFile('w+', delete=False) as tmp:
+        tmp.write(content)
+        tmp.flush()
+        tmp_path = tmp.name
+
+    # loop_start=0, loop_end=1, so two loops, Nchunks=2
+    result = read_displacement_data(tmp_path, loop_start=0, loop_end=1)
+    assert len(result) == 2
+    assert np.allclose(result[0], [[1.0, 3.0], [2.0, 4.0]])
+    assert np.allclose(result[1], [[1.0, 6.0], [2.0, 8.0]])
+
+    os.remove(tmp_path)
 
 def test_read_structure_info_minimal():
     # Create a minimal .lammpstrj file with 13 columns in the atom section
@@ -41,7 +71,6 @@ ITEM: ATOMS id type q x y z ix iy iz vx vy vz c_eng
     assert np.isclose(zhi, 50.0)
 
     os.remove(tmp_path)
-
 
 def test_read_coordinates_minimal():
     content1 = """\
@@ -95,4 +124,6 @@ ITEM: ATOMS id type q x y z ix iy iz vx vy vz c_eng
 
     for f in files:
         os.remove(f)
+
+
 
