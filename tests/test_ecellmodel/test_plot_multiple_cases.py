@@ -35,3 +35,126 @@ def test_plot_multiple_cases_single_1d(tmp_path):
     # return plt.gcf()
 
     return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_multi_2d(tmp_path):
+    # Synthetic data: two cases
+    x = np.linspace(0, 10, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    x_arr = np.stack([x, x])  # shape (2, 20)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_multi_2d"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_2d_x_1d_y(tmp_path):
+    # Synthetic data: two x cases, one y
+    x1 = np.linspace(0, 10, 20)
+    x2 = np.linspace(1, 11, 20)
+    y = np.sin(np.linspace(0, 10, 20))
+    x_arr = np.stack([x1, x2])  # shape (2, 20)
+    labels = ["x1", "x2"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_2d_x_1d_y"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(x_arr, y, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_1d_x_2d_y(tmp_path):
+    # Synthetic data: one x, two y cases
+    x = np.linspace(0, 10, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_1d_x_2d_y"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(x, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_with_kwargs(tmp_path):
+    # Synthetic data: two cases
+    x = np.linspace(0, 10, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    x_arr = np.stack([x, x])  # shape (2, 20)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_kwargs"
+    xsize, ysize = 2, 2
+
+    # Test with axis limits and markerindex
+    fig = plot_multiple_cases(
+        x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,
+        output_dir=tmp_path,
+        xlimit=(2, 8),
+        ylimit=(-1, 1),
+        markerindex=1
+    )
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_with_xaxis_yaxis(tmp_path):
+    # Synthetic data: two cases
+    x = np.linspace(-5, 5, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    x_arr = np.stack([x, x])  # shape (2, 20)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_xaxis_yaxis"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(
+        x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,
+        output_dir=tmp_path,
+        xaxis=0.5,   # horizontal line at y=0.5
+        yaxis=-2     # vertical line at x=-2
+    )
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_with_limit_kwargs(tmp_path):
+    # Synthetic data: two cases
+    x = np.linspace(-5, 5, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    x_arr = np.stack([x, x])  # shape (2, 20)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_limit_kwargs"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(
+        x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,
+        output_dir=tmp_path,
+        xlimithi=3,
+        xlimitlo=-3,
+        ylimithi=1,
+        ylimitlo=-1
+    )
+    return fig
+
+
+
+

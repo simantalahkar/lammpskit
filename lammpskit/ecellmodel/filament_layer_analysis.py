@@ -226,10 +226,10 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
 
     if 'xlimit' in kwargs:
         print('x axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimit'])
+        axes[0].set_xlim(kwargs['xlimit'])
     if 'ylimit' in kwargs:
         print('y axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimit'])
+        axes[0].set_ylim(kwargs['ylimit'])
 
     if 'xlimithi' in kwargs:
         print('x hi axis is limited')
