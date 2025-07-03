@@ -27,46 +27,81 @@ COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
 def read_structure_info(filepath):
     """Reads the structure file and returns the 
     timestep, total number of atoms, and the box dimensions."""
-#    print(filepath)
     skip = 1
-    with open(filepath,"r",encoding='utf-8') as f:
-        for j in range(skip):
-            next(f)
-        line = f.readline()
-        c0 = re.split(r'\s+|\s|, |,',line)
-        c = [ele for ele in c0 if ele.strip()]
-        print(c[0])
-        timestep = int(c[0])
+    try:
+        with open(filepath, "r", encoding='utf-8') as f:
+            for j in range(skip):
+                try:
+                    next(f)
+                except StopIteration:
+                    raise StopIteration(f"File is empty: {filepath}")
+            line = f.readline()
+            if line == "":
+                raise EOFError(f"Missing data for Timestep: {filepath}")
+            c0 = re.split(r'\s+|\s|, |,', line)
+            c = [ele for ele in c0 if ele.strip()]
+            try:
+                timestep = int(c[0])
+            except (IndexError, ValueError):
+                raise ValueError(f"Malformed timestep line in file: {filepath} (got: {line.strip()})")
+            
+            for j in range(skip):
+                try:
+                    next(f)
+                except StopIteration:
+                    raise StopIteration(f"Missing section for total atoms: {filepath}")
+            line = f.readline()
+            if line == "":
+                raise EOFError(f"Missing data for total atoms: {filepath}")
+            c0 = re.split(r'\s+|\s|, |,', line)
+            c = [ele for ele in c0 if ele.strip()]
+            try:
+                total_atoms = int(c[0])
+            except (IndexError, ValueError):
+                raise ValueError(f"Malformed total atoms line in file: {filepath} (got: {line.strip()})")
         
-        for j in range(skip):
-            next(f)
-        line = f.readline()
-        c0 = re.split(r'\s+|\s|, |,',line)
-        c = [ele for ele in c0 if ele.strip()]
-        print(c[0])
-        total_atoms = int(c[0])
-    
-        for j in range(skip):
-            next(f)    
-        line = f.readline()
-        c0 = re.split(r'\s+|\s|, |,',line)
-        c = [ele for ele in c0 if ele.strip()]
-        xlo = float(c[0])
-        xhi = float(c[1])
-        print(xlo,xhi)
-        line = f.readline()
-        c0 = re.split(r'\s+|\s|, |,',line)
-        c = [ele for ele in c0 if ele.strip()]
-        ylo = float(c[0])
-        yhi = float(c[1])
-        print(ylo,yhi)
-        line = f.readline()
-        c0 = re.split(r'\s+|\s|, |,',line)
-        c = [ele for ele in c0 if ele.strip()]
-        zlo = float(c[0])
-        zhi = float(c[1])
-        print(zlo,zhi)
-    return timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
+            for j in range(skip):
+                try:
+                    next(f)
+                except StopIteration:
+                    raise StopIteration(f"Missing section for box bounds: {filepath}")
+            line = f.readline()
+            if line == "":
+                raise EOFError(f"Missing data for x bounds: {filepath}")
+            c0 = re.split(r'\s+|\s|, |,', line)
+            c = [ele for ele in c0 if ele.strip()]
+            try:
+                xlo = float(c[0])
+                xhi = float(c[1])
+            except (IndexError, ValueError):
+                raise ValueError(f"Malformed x bounds line in file: {filepath} (got: {line.strip()})")
+            
+            line = f.readline()
+            if line == "":
+                raise EOFError(f"Missing data for y bounds: {filepath}")
+            c0 = re.split(r'\s+|\s|, |,', line)
+            c = [ele for ele in c0 if ele.strip()]
+            try:
+                ylo = float(c[0])
+                yhi = float(c[1])
+            except (IndexError, ValueError):
+                raise ValueError(f"Malformed y bounds line in file: {filepath} (got: {line.strip()})")
+            
+            line = f.readline()
+            if line == "":
+                raise EOFError(f"Missing data for z bounds: {filepath}")
+            c0 = re.split(r'\s+|\s|, |,', line)
+            c = [ele for ele in c0 if ele.strip()]
+            try:
+                zlo = float(c[0])
+                zhi = float(c[1])
+            except (IndexError, ValueError):
+                raise ValueError(f"Malformed z bounds line in file: {filepath} (got: {line.strip()})")
+        return timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {filepath}")
+    except OSError as e:
+        raise OSError(f"Error opening file {filepath}: {e}")
 
 def read_coordinates(file_list, skip_rows, columns_to_read):        ## Calls read_structure_info(...)
     """Reads the structure files and returns the 
@@ -81,23 +116,50 @@ def read_coordinates(file_list, skip_rows, columns_to_read):        ## Calls rea
     for filepath in file_list:
         timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_structure_info(filepath)       ## All these values are expected to be the same other than the timestep for this analysis
         timestep_arr.append(timestep)
-        coordinates.append(np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols = (0,1,2,3,4,5,9,10,11,12)))#,13,14,15,16)))
+        try:
+            coords = np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols=columns_to_read)
+        except ValueError as e:
+            raise ValueError(f"Column index out of range or Non-float atomic data in file: {filepath} (error: {e})\n (column indices provided to read = {columns_to_read})")
+        if coords.shape[0] != total_atoms:
+            raise EOFError(f"File {filepath} has fewer atom lines ({coords.shape[0]}) than expected ({total_atoms})")
+        coordinates.append(coords)
     return np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
 
 def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     """Reads the displacement data from the binwise averaged output data file 
     and returns the displacement data for the specified loops."""
     print(filepath)
-    tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+    if loop_start > loop_end:
+        raise ValueError(f"loop_start ({loop_start}) is greater than loop_end ({loop_end})")
+    try:
+        tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
+    except ValueError:
+        raise TypeError("Malformed Nchunks line in file: {filepath}")
+    
     #print(tmp)
-    Nchunks = tmp[1].astype(int)
+    try:
+        Nchunks = tmp[1].astype(int)
+    except (IndexError, ValueError) as e:
+        if isinstance(e, IndexError):
+            raise EOFError(f"Missing Nchunks line in file: {filepath}") from e
+        elif isinstance(e, ValueError):
+            raise TypeError("Malformed Nchunks line in file: {filepath}") from e
+
+    
     #print(Nchunks,loop_start,loop_end) 
     thermo = []
     for n in range(loop_start,loop_end+1):
       #step_time.append([n*DUMP_INTERVAL_STEPS,n*DUMP_INTERVAL_STEPS*TIME_STEP])
       #print(Nchunks,loop_start,loop_end,n) 
-      tmp = np.loadtxt(filepath, comments='#', skiprows=3+1+(n-loop_start)*(Nchunks+4), max_rows=Nchunks)
-      thermo.append(tmp)
+        try:
+            chunk = np.loadtxt(filepath, comments='#', skiprows=3 + 1 + (n - loop_start) * (Nchunks + 4), max_rows=Nchunks)
+        except ValueError:
+            raise EOFError(f"Missing or malformed chunk data for loop {n} in file: {filepath}")
+        if chunk.shape[0] != Nchunks:
+            raise EOFError(f"Not enough data for chunk {n} in file: {filepath}")
+        thermo.append(chunk)
 #      print(n)
       #if n == 0:
         #print(np.shape(thermo),'\n',thermo[-1])   
