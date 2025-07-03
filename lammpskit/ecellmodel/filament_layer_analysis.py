@@ -167,7 +167,7 @@ def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     return thermo
     #step_time = np.array(step_time)
     
-def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):  
+def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=os.getcwd(), **kwargs):  
     """Plots the cases with the given x and y arrays, 
     labels, and saves the figure.""" 
     nrows = 1
@@ -273,6 +273,7 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
     savepath = os.path.join(output_dir, output_filename_svg)
     fig.savefig(savepath, bbox_inches='tight', format='svg')
     plt.close()  
+    return fig  # Return the figure object for further use if needed
  
 def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
