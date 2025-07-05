@@ -275,12 +275,12 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
     plt.close()  
     return fig  # Return the figure object for further use if needed
  
-def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
+def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
     and plots the distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
-    z_bin_width = (zhi-zlo)/HISTOGRAM_BINS
-    z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, HISTOGRAM_BINS)
+    z_bin_width = (zhi-zlo)/z_bins
+    z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, z_bins)
     oxygen_distribution = []
     hafnium_distribution = []
     tantalum_distribution = []
@@ -295,10 +295,10 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
 #       print(np.shape(ta_atoms),ta_atoms[:,5])
         o_atoms = coordinates[np.logical_or(coordinates[:, 1]==1, np.logical_or(coordinates[:, 1]==3, np.logical_or(coordinates[:, 1]==5, coordinates[:, 1]==9)))]
         
-        hafnium_distribution.append(np.histogram(hf_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
+        hafnium_distribution.append(np.histogram(hf_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
 #        print(np.shape(hafnium_distribution))
-        oxygen_distribution.append(np.histogram(o_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
-        tantalum_distribution.append(np.histogram(ta_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
+        oxygen_distribution.append(np.histogram(o_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
+        tantalum_distribution.append(np.histogram(ta_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
     hafnium_distribution = np.array(hafnium_distribution)
     tantalum_distribution = np.array(tantalum_distribution)
     oxygen_distribution = np.array(oxygen_distribution)
@@ -325,7 +325,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     
     figure_size = [2.5,5]
 
-    output_filename = analysis_name  + '_' + 'stoichiometry' + '_' + f'{HISTOGRAM_BINS}'
+    output_filename = analysis_name  + '_' + 'stoichiometry' + '_' + f'{z_bins}'
     for i in labels:
         output_filename = output_filename + '_' + i
 
@@ -333,7 +333,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
     print('stoichiometry plotted')
     
     
-    output_filename = analysis_name  + '_' + 'initial_stoichiometry' + '_' + f'{HISTOGRAM_BINS}'
+    output_filename = analysis_name  + '_' + 'initial_stoichiometry' + '_' + f'{z_bins}'
     for i in labels:
         output_filename = output_filename + '_' + i
 
@@ -365,12 +365,12 @@ def plot_atomic_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_
 
     plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    
     
-def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
+def plot_atomic_charge_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic charge distributions,
     and plots the charge distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
-    z_bin_width = (zhi-zlo)/HISTOGRAM_BINS
-    z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, HISTOGRAM_BINS)
+    z_bin_width = (zhi-zlo)/z_bins
+    z_bin_centers = np.linspace(zlo+z_bin_width/2, zhi-z_bin_width/2, z_bins)
     oxygen_charge_distribution = []
     hafnium_charge_distribution = []
     tantalum_charge_distribution = []
@@ -391,15 +391,15 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,HISTOGRAM_BINS,an
 #       print(np.shape(ta_atoms),ta_atoms[:,5])
         o_atoms = coordinates[np.logical_or(coordinates[:, 1]==1, np.logical_or(coordinates[:, 1]==3, np.logical_or(coordinates[:, 1]==5, coordinates[:, 1]==9)))]
         
-        hafnium_distribution.append(np.histogram(hf_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
-        oxygen_distribution.append(np.histogram(o_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
-        tantalum_distribution.append(np.histogram(ta_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi))[0])
+        hafnium_distribution.append(np.histogram(hf_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
+        oxygen_distribution.append(np.histogram(o_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
+        tantalum_distribution.append(np.histogram(ta_atoms[:,5],bins=z_bins,range=(zlo,zhi))[0])
         
-        total_charge_distribution.append(np.histogram(coordinates[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi), weights = coordinates[:,2])[0])
-        hafnium_charge_distribution.append(np.histogram(hf_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi), weights = hf_atoms[:,2])[0])
+        total_charge_distribution.append(np.histogram(coordinates[:,5],bins=z_bins,range=(zlo,zhi), weights = coordinates[:,2])[0])
+        hafnium_charge_distribution.append(np.histogram(hf_atoms[:,5],bins=z_bins,range=(zlo,zhi), weights = hf_atoms[:,2])[0])
 #        print(np.shape(hafnium_distribution))
-        oxygen_charge_distribution.append(np.histogram(o_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi), weights = o_atoms[:,2])[0])
-        tantalum_charge_distribution.append(np.histogram(ta_atoms[:,5],bins=HISTOGRAM_BINS,range=(zlo,zhi), weights = ta_atoms[:,2])[0])
+        oxygen_charge_distribution.append(np.histogram(o_atoms[:,5],bins=z_bins,range=(zlo,zhi), weights = o_atoms[:,2])[0])
+        tantalum_charge_distribution.append(np.histogram(ta_atoms[:,5],bins=z_bins,range=(zlo,zhi), weights = ta_atoms[:,2])[0])
     
     hafnium_distribution = np.array(hafnium_distribution)
     tantalum_distribution = np.array(tantalum_distribution)
@@ -678,7 +678,7 @@ def analyze_clusters(filepath, thickness = 21):
     #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     #data_cmo = pipeline_cmo.compute()
     
-def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,output_dir=os.getcwd()):     ## Calls analyze_clusters(...)
+def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_steps,output_dir=os.getcwd()):     ## Calls analyze_clusters(...)
     """Tracks and plots the evolution of the filament connectivity state, 
     gap and separation over time for each timeseries trajectory file in the file_list, 
     and plots the key results."""
@@ -707,7 +707,7 @@ def track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_ST
     print('shape of connections array',np.shape(np.array(connection))[0])
     time_step = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
     
-    time_switch = time_step * TIME_STEP * DUMP_INTERVAL_STEPS
+    time_switch = time_step * time_step * dump_interval_steps
     
     #figure_size = [2.5,5]
     
