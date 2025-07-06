@@ -501,59 +501,7 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,z_bins,analysis_n
     }  # Return the figure objects for further use if needed 
 
 
-def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
-    """Reads the averaged thermodynamic output data for each case 
-    from the correspinging files in a file_list, and plots the timeseries displacements 
-    (one of the output data types selected by the dataindex as the 4th index) averaged 
-    in groups (as the 3rd index) according to z-position of the atoms in the model
-    for the data row indices (1st index) corresponding to each case read from a file."""
-    all_thermo_data = []
-    element_labels = []
-    for filename in file_list:
-        element_labels.append(filename[:2])
-        all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end))
-    all_thermo_data = np.array(all_thermo_data)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
-                                                                    ## 4th index corresponds to the type of data (z, lateral displacement...)
-    print(element_labels)
-    print(np.shape(all_thermo_data))
-
-    dataindexname = ['abs total disp','density - mass', 'temp (K)', 'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)']
-
-    nrows = Nchunks
-    ncolumns = 4
-    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(ncolumns*3,nrows*0.65))
-    #axes=axes.flatten()
-    fig.tight_layout()
-    #plt.rcParams['xtick.labelsize'] = 6
-    #plt.rcParams['ytick.labelsize'] = 6
-
-    for j in range(ncolumns):
-        for i in range(nrows):
-          axes[nrows-1-i,j].plot(time_points, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
-          if  j == 0:
-            axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
-          axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
-          axes[nrows-1-i,j].adjustable='datalim'
-          axes[nrows-1-i,j].set_aspect('auto')
-          axes[nrows-1-i,j].tick_params(axis='both', which='major', labelsize=6)
-          axes[nrows-1-i,j].set_aspect('auto')
-          #axes[nrows-1-i,j].set_xticklabels(ax.get_xticks(), fontsize=6)
-          if nrows-1-i != nrows-1:
-            axes[nrows-1-i,j].set_xticklabels(())
-
-        axes[nrows-1,j].set_xlabel('Timestep (ps)', fontsize=8)
-    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
-
-    output_filename= datatype + '-' + dataindexname[dataindex] #+'.pdf'
-        
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
-    #plt.show()
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
-    plt.close()
-
-def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot cases(...)
+def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot multiple cases(...)
     """Reads the averaged thermodynamic output data for each case
     from the correspinginging files in a file_list, and plots the final displacements
     (z and lateral displacements) versus the z-bin groups positions 
@@ -609,6 +557,7 @@ def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analys
         output_filename = output_filename + '_' + i
 
     plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
+
 
 def analyze_clusters(filepath, thickness = 21):
     """Performs cluster analysis on the given file:
@@ -741,27 +690,37 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
 
     
     on_frequency = np.sum(connection==1)/len(connection)
-    plt.plot(time_switch, connection, alpha = alph, linewidth = ln, markersize=mrkr)
-    plt.scatter(time_switch, connection, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'filament is in connected state {on_frequency*100: .2f}% of the time')
-    plt.xlabel('Time (ps)')
-    plt.ylabel('Filament connectivity state (1: connected, 0: broken)')
-    plt.title('Filament connectivity state (1: connected, 0: broken)')
-    plt.legend()
-    output_filename = analysis_name + 'OnOff' + '.pdf'
+    fig_conn, ax_conn = plt.subplots()
+    ax_conn.plot(time_switch, connection, alpha=alph, linewidth=ln, markersize=mrkr)
+    ax_conn.scatter(
+        time_switch,
+        connection,
+        alpha=alph,
+        linewidth=ln,
+        s=mrkr,
+        marker="^",
+        label=f"filament is in connected state {on_frequency*100: .2f}% of the time",
+    )
+    ax_conn.set_xlabel("Time (ps)")
+    ax_conn.set_ylabel("Filament connectivity state (1: connected, 0: broken)")
+    ax_conn.set_title("Filament connectivity state (1: connected, 0: broken)")
+    ax_conn.legend()
+    output_filename = analysis_name + "OnOff" + ".pdf"
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
-    plt.close()
+    plt.close(fig_conn)
     
     
     average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
-    plt.plot(time_switch, gap, alpha = alph, linewidth = ln, markersize=mrkr)
-    plt.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
-    plt.xlabel('Time (ps)')
-    plt.ylabel('Filament gap (A)')
-    plt.title('Filament gap')
-    plt.legend()
-#    plt.ylim(heightmin,heightmax)
+    fig_gap, ax_gap = plt.subplots()
+    ax_gap.plot(time_switch, gap, alpha=alph, linewidth=ln, markersize=mrkr)
+    ax_gap.scatter(time_switch, gap, alpha=alph, linewidth=ln, s=mrkr, marker='^', label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
+    ax_gap.set_xlabel('Time (ps)')
+    ax_gap.set_ylabel('Filament gap (A)')
+    ax_gap.set_title('Filament gap')
+    ax_gap.legend()
+    # ax_gap.set_ylim(heightmin, heightmax)  # Uncomment if you want to set y-limits
     output_filename = analysis_name + 'fil_gap' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
@@ -769,13 +728,15 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     plt.close()
     
     average_filament_separation, sd_separation = np.mean(separation), np.std(separation)
-    plt.plot(time_switch, separation, alpha = alph, linewidth = ln, markersize=mrkr)
-    plt.scatter(time_switch, separation, alpha = alph, linewidth = ln, s=mrkr, marker='^', label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
-    plt.xlabel('Time (ps)')
-    plt.ylabel('Filament separation (A)')
-    plt.title('Filament separation')
-    plt.legend(fontsize=8)
-#    plt.ylim(heightmin,heightmax)
+    fig_sep, ax_sep = plt.subplots()
+    ax_sep.plot(time_switch, separation, alpha=alph, linewidth=ln, markersize=mrkr)
+    ax_sep.scatter(time_switch, separation, alpha=alph, linewidth=ln, s=mrkr, marker='^',
+                   label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
+    ax_sep.set_xlabel('Time (ps)')
+    ax_sep.set_ylabel('Filament separation (A)')
+    ax_sep.set_title('Filament separation')
+    ax_sep.legend(fontsize=8)
+    # ax_sep.set_ylim(heightmin, heightmax)  # Uncomment if you want to set y-limits
     output_filename = analysis_name + 'fil_separation' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
@@ -785,36 +746,36 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     ###### filament gap & # of conductive atoms
     
-    fig, ax1 = plt.subplots()
+    fig_size_gap, ax1_size_gap = plt.subplots()
     
     color = 'tab:red'
     average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
     gap_max = 8.5
     gap_min = -0.5
     
-    ax1.set_xlabel('Time (ps)')
-    ax1.set_ylabel('Filament gap (A)', color=color)
-    ax1.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(gap_min,gap_max)
+    ax1_size_gap.set_xlabel('Time (ps)')
+    ax1_size_gap.set_ylabel('Filament gap (A)', color=color)
+    ax1_size_gap.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
+    ax1_size_gap.tick_params(axis='y', labelcolor=color)
+    ax1_size_gap.set_ylim(gap_min,gap_max)
    
    
-    ax2 = ax1.twinx()
+    ax2_size_gap = ax1_size_gap.twinx()
     
     sizemax_down = 350
     sizemin_down = 0
     average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     color = 'tab:blue'
     
-    ax2.set_ylabel('# of vacancies in filament (A.U.)', color=color)
-    ax2.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    ax2.tick_params(axis='y', labelcolor=color)
-    ax2.set_ylim(sizemin_down,sizemax_down)
+    ax2_size_gap.set_ylabel('# of vacancies in filament (A.U.)', color=color)
+    ax2_size_gap.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2_size_gap.tick_params(axis='y', labelcolor=color)
+    ax2_size_gap.set_ylim(sizemin_down,sizemax_down)
     
     plt.title('Gap & no. of conductive atoms in Filament')
-    fig.tight_layout()
-    ax1.legend(loc = 'upper right', framealpha = 0.8)
-    ax2.legend(loc = 'lower right', framealpha = 0.8)
+    fig_size_gap.tight_layout()
+    ax1_size_gap.legend(loc = 'upper right', framealpha = 0.8)
+    ax2_size_gap.legend(loc = 'lower right', framealpha = 0.8)
     output_filename = analysis_name + 'fil_state' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
@@ -824,35 +785,35 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     ###### filament lower
     
-    fig, ax1 = plt.subplots()
+    fig_lowfil, ax1_lowfil = plt.subplots()
     
     heightmax = 25
     heightmin = 3
     average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
     color = 'tab:red'
     
-    ax1.set_xlabel('Timestep (ps)')
-    ax1.set_ylabel('Filament length-lower end (A)', color=color)
-    ax1.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(heightmin,heightmax)
+    ax1_lowfil.set_xlabel('Timestep (ps)')
+    ax1_lowfil.set_ylabel('Filament length-lower end (A)', color=color)
+    ax1_lowfil.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
+    ax1_lowfil.tick_params(axis='y', labelcolor=color)
+    ax1_lowfil.set_ylim(heightmin,heightmax)
     plt.legend(loc = 'upper right', framealpha = 0.75)
     
     
-    ax2 = ax1.twinx()
+    ax2_lowfil = ax1_lowfil.twinx()
     
     sizemax_down = 350
     sizemin_down = 0
     average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     color = 'tab:blue'
     
-    ax2.set_ylabel('# of vacancies in filament-lower end (A.U.)', color=color)
-    ax2.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    ax2.tick_params(axis='y', labelcolor=color)
-    ax2.set_ylim(sizemin_down,sizemax_down)
+    ax2_lowfil.set_ylabel('# of vacancies in filament-lower end (A.U.)', color=color)
+    ax2_lowfil.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2_lowfil.tick_params(axis='y', labelcolor=color)
+    ax2_lowfil.set_ylim(sizemin_down,sizemax_down)
     
     plt.title('Filament lower part near cathode')
-    fig.tight_layout()
+    fig_lowfil.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     output_filename = analysis_name + 'fil_lower' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
@@ -869,32 +830,32 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     sizemax_up = 700
     sizemin_up = 400
        
-    fig, ax1 = plt.subplots()
+    fig_upfil, ax1_upfil = plt.subplots()
     
     average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
     color = 'tab:red'
     
-    ax1.set_xlabel('Timestep (ps)')
-    ax1.set_ylabel('Filament length-upper end (A)', color=color)
-    ax1.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
-    ax1.tick_params(axis='y', labelcolor=color)
+    ax1_upfil.set_xlabel('Timestep (ps)')
+    ax1_upfil.set_ylabel('Filament length-upper end (A)', color=color)
+    ax1_upfil.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
+    ax1_upfil.tick_params(axis='y', labelcolor=color)
     plt.legend(loc = 'upper right', framealpha = 0.75)
-#    ax1.set_ylim(heightmin,heightmax)
+#    ax1_upfil.set_ylim(heightmin,heightmax)
     
     
-    ax2 = ax1.twinx()
+    ax2_upfil = ax1_upfil.twinx()
     
 
     average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
     color = 'tab:blue'
     
-    ax2.set_ylabel('# of vacancies in filament-upper end (A.U.)', color=color)
-    ax2.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr,  marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
-    ax2.tick_params(axis='y', labelcolor=color)
-#    ax2.set_ylim(sizemin_down,sizemax_down)
+    ax2_upfil.set_ylabel('# of vacancies in filament-upper end (A.U.)', color=color)
+    ax2_upfil.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr,  marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    ax2_upfil.tick_params(axis='y', labelcolor=color)
+#    ax2_upfil.set_ylim(sizemin_down,sizemax_down)
     
     plt.title('Filament upper part near anode')
-    fig.tight_layout()
+    fig_upfil.tight_layout()
     plt.legend(loc = 'lower right', framealpha = 0.75)
     output_filename = analysis_name + 'upper' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
@@ -909,12 +870,13 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     heightmin = 3
     
     average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
-    plt.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
-    plt.xlabel('Timestep (ps)')
-    plt.ylabel('Filament length-lower end (A)')
-    plt.title('Filament length-lower end)')
-    plt.legend()
-    plt.ylim(heightmin,heightmax)
+    fig_height, ax_height = plt.subplots()
+    ax_height.scatter(time_switch, fil_height, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
+    ax_height.set_xlabel('Timestep (ps)')
+    ax_height.set_ylabel('Filament length-lower end (A)')
+    ax_height.set_title('Filament length-lower end')
+    ax_height.legend()
+    ax_height.set_ylim(heightmin, heightmax)
     output_filename = analysis_name + 'fil_height' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
@@ -927,30 +889,32 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     depthmin = 3
     
     average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
-    plt.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
-    plt.xlabel('Timestep (ps)')
-    plt.ylabel('Filament length-upper end (A)')
-    plt.title('Filament length-upper end')
-    plt.legend()
-#    plt.ylim(depthmin,depthmax)
+    fig_depth, ax_depth = plt.subplots()
+    ax_depth.scatter(time_switch, fil_depth, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
+    ax_depth.set_xlabel('Timestep (ps)')
+    ax_depth.set_ylabel('Filament length-upper end (A)')
+    ax_depth.set_title('Filament length-upper end')
+    ax_depth.legend()
+    # ax_depth.set_ylim(depthmin, depthmax)
     output_filename = analysis_name + 'fil_depth' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    
+
+    ###### filament size   
     sizemax_up = 700
     sizemin_up = 400
     
     average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
-    plt.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
-    plt.xlabel('Timestep (ps)')
-    plt.ylabel('# of vacancies in filament-upper end (A.U.)')
-    plt.title('# of vacancies in filament-upper end')
-#    plt.ylim(sizemin_up,sizemax_up)
-    plt.legend()
+    fig_size_up, ax_size_up = plt.subplots()
+    ax_size_up.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr,
+                       label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    ax_size_up.set_xlabel('Timestep (ps)')
+    ax_size_up.set_ylabel('# of vacancies in filament-upper end (A.U.)')
+    ax_size_up.set_title('# of vacancies in filament-upper end')
+    # ax_size_up.set_ylim(sizemin_up, sizemax_up)
+    ax_size_up.legend()
     output_filename = analysis_name + 'fil_size_up' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
@@ -958,24 +922,92 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     plt.close()
     
     
-    
     sizemax_down = 350
     sizemin_down = 0
     
     average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
-    plt.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    plt.xlabel('Timestep (ps)')
-    plt.ylabel('# of vacancies in filament-lower end (A.U.)')
-    plt.title('# of vacancies in filament-lower end (A.U.)')
-    plt.ylim(sizemin_down,sizemax_down)
-    plt.legend()
+    fig_size_down, ax_size_down = plt.subplots()
+    ax_size_down.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr,
+                        label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax_size_down.set_xlabel('Timestep (ps)')
+    ax_size_down.set_ylabel('# of vacancies in filament-lower end (A.U.)')
+    ax_size_down.set_title('# of vacancies in filament-lower end (A.U.)')
+    ax_size_down.set_ylim(sizemin_down, sizemax_down)
+    ax_size_down.legend()
     output_filename = analysis_name + 'fil_size_down' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
     #    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
-   
+
+    return {
+        "connection": fig_conn,
+        "gap": fig_gap,
+        "separation": fig_sep,
+        "filament_gap_and_size": fig_size_gap,
+        "filament_lower_part": fig_lowfil,
+        "filament_upper_part": fig_upfil,
+        "filament_height": fig_height,
+        "filament_depth": fig_depth,
+        "filament_size_up": fig_size_up,
+        "filament_size_down": fig_size_down
+    }  # Return the figure objects for further use if needed
+
+
+
+def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
+    """Reads the averaged thermodynamic output data for each case 
+    from the correspinging files in a file_list, and plots the timeseries displacements 
+    (one of the output data types selected by the dataindex as the 4th index) averaged 
+    in groups (as the 3rd index) according to z-position of the atoms in the model
+    for the data row indices (1st index) corresponding to each case read from a file."""
+    all_thermo_data = []
+    element_labels = []
+    for filename in file_list:
+        element_labels.append(filename[:2])
+        all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end))
+    all_thermo_data = np.array(all_thermo_data)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
+                                                                    ## 4th index corresponds to the type of data (z, lateral displacement...)
+    print(element_labels)
+    print(np.shape(all_thermo_data))
+
+    dataindexname = ['abs total disp','density - mass', 'temp (K)', 'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)']
+
+    nrows = Nchunks
+    ncolumns = 4
+    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(ncolumns*3,nrows*0.65))
+    #axes=axes.flatten()
+    fig.tight_layout()
+    #plt.rcParams['xtick.labelsize'] = 6
+    #plt.rcParams['ytick.labelsize'] = 6
+
+    for j in range(ncolumns):
+        for i in range(nrows):
+          axes[nrows-1-i,j].plot(time_points, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
+          if  j == 0:
+            axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
+          axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
+          axes[nrows-1-i,j].adjustable='datalim'
+          axes[nrows-1-i,j].set_aspect('auto')
+          axes[nrows-1-i,j].tick_params(axis='both', which='major', labelsize=6)
+          axes[nrows-1-i,j].set_aspect('auto')
+          #axes[nrows-1-i,j].set_xticklabels(ax.get_xticks(), fontsize=6)
+          if nrows-1-i != nrows-1:
+            axes[nrows-1-i,j].set_xticklabels(())
+
+        axes[nrows-1,j].set_xlabel('Timestep (ps)', fontsize=8)
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+
+    output_filename= datatype + '-' + dataindexname[dataindex] #+'.pdf'
+        
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.show()
+    os.makedirs(output_dir, exist_ok=True)
+    savepath = os.path.join(output_dir, output_filename)
+    fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
+    plt.close()
+
 def plot_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,output_dir=os.getcwd(), **kwargs):   
     """Plots the cases with the given x and y arrays,
     labels, and saves the figure."""
@@ -1173,6 +1205,7 @@ def scatter_filament_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename
     fig.savefig(output_filename_svg, bbox_inches='tight', format='svg')
     plt.close()  
  
+
 def run_analysis():
     output_dir =  os.path.join("..", "..", "output", "ecellmodel")
 
