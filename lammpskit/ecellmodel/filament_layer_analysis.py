@@ -575,6 +575,8 @@ def analyze_clusters(filepath, thickness = 21):
     select_no_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
     delete_no_metal1 = pipeline1.modifiers.append(om.DeleteSelectedModifier())
     data1 = pipeline1.compute()
+    timestep = data1.attributes['Timestep']
+
     xyz1 = np.array(data1.particles['Position'])
     
     coord2 = pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
@@ -642,7 +644,7 @@ def analyze_clusters(filepath, thickness = 21):
     fil_size_up = data_fil_up.particles.count
     
     
-    return connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, separation, gap
+    return timestep, connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, separation, gap
     
     
     #select_metallic_cmo = pipeline_cmo.modifiers.append(ExpressionSelectionModifier(expression = 'ParticleType==10 || ParticleType==9'))
@@ -653,9 +655,9 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     """Tracks and plots the evolution of the filament connectivity state, 
     gap and separation over time for each timeseries trajectory file in the file_list, 
     and plots the key results."""
-    connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, gap, separation = [],[],[],[], [], [], [], [], []
+    step_arr, connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, gap, separation = [], [],[],[],[], [], [], [], [], []
     for filepath in file_list:
-        connection_temp, fil_size_down_temp, fil_height_temp, rdf_down_temp, fil_size_up_temp, fil_depth_temp, rdf_up_temp, separation_temp, gap_temp = analyze_clusters(filepath)
+        step_temp, connection_temp, fil_size_down_temp, fil_height_temp, rdf_down_temp, fil_size_up_temp, fil_depth_temp, rdf_up_temp, separation_temp, gap_temp = analyze_clusters(filepath)
         fil_size_down.append(fil_size_down_temp)
         fil_size_up.append(fil_size_up_temp)
         connection.append(connection_temp)
@@ -665,7 +667,10 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
         rdf_up.append(rdf_up_temp)
         gap.append(gap_temp)
         separation.append(separation_temp)
+        step_arr.append(step_temp) 
+
         
+    step_arr = np.array(step_arr)
     connection = np.array(connection)
     gap = np.array(gap)
     separation = np.array(separation)
@@ -676,9 +681,9 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     rdf_down = np.array(rdf_down)
     rdf_up = np.array(rdf_up)
     print('shape of connections array',np.shape(np.array(connection))[0])
-    time_step = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
+    #step_arr = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
     
-    time_switch = time_step * time_step * dump_interval_steps
+    time_switch = step_arr * time_step * dump_interval_steps
     
     #figure_size = [2.5,5]
     
