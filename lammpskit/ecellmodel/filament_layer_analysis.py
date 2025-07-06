@@ -167,6 +167,7 @@ def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     return thermo
     #step_time = np.array(step_time)
     
+
 def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=os.getcwd(), **kwargs):  
     """Plots the cases with the given x and y arrays, 
     labels, and saves the figure.""" 
@@ -275,7 +276,7 @@ def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, x
     plt.close()  
     return fig  # Return the figure object for further use if needed
  
-def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
+def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd(),**kwargs):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
     and plots the distributions for O, Hf, Ta, and all M atoms."""
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
@@ -310,14 +311,14 @@ def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,out
     total_distribution_divide = total_distribution
     total_distribution_divide[total_distribution_divide ==0]=1
 
-    O_stoich = 3.5*oxygen_distribution[1]/total_distribution_divide[1]
-    Ta_stoich = 3.5*tantalum_distribution[1]/total_distribution_divide[1]
-    Hf_stoich = 3.5*hafnium_distribution[1]/total_distribution_divide[1]
+    O_stoich = 3.5*oxygen_distribution[-1]/total_distribution_divide[-1] #this is for the last trajectory file supplied in the list
+    Ta_stoich = 3.5*tantalum_distribution[-1]/total_distribution_divide[-1]
+    Hf_stoich = 3.5*hafnium_distribution[-1]/total_distribution_divide[-1]
     stoichiometry = np.array([Hf_stoich, O_stoich, Ta_stoich])
     proportion_labels = np.array([f'a (of Hf$_a$)',f'b (of O$_b$)',f'c (of Ta$_c$)'])
     
     
-    O_stoich_in = 3.5*oxygen_distribution[0]/total_distribution_divide[0]
+    O_stoich_in = 3.5*oxygen_distribution[0]/total_distribution_divide[0] #this is for the first trajectory file supplied in the list => comparison makes sense if more than 1 files supplied, else self comparison
     Ta_stoich_in = 3.5*tantalum_distribution[0]/total_distribution_divide[0]
     Hf_stoich_in = 3.5*hafnium_distribution[0]/total_distribution_divide[0]  
     initial_stoichiometry = np.array([Hf_stoich_in, O_stoich_in, Ta_stoich_in])
@@ -329,7 +330,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,out
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    #, xlimit = 3.5
+    fig_stoich = plot_multiple_cases(stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir,**kwargs)    #, ylimit = [0,45]
     print('stoichiometry plotted')
     
     
@@ -337,7 +338,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,out
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    #, xlimit = 3.5
+    fig_init_stoich = plot_multiple_cases(initial_stoichiometry, z_bin_centers, proportion_labels, 'Atoms # ratio','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)    #, xlimit = 3.5
     print('stoichiometry plotted')
     
     
@@ -345,26 +346,36 @@ def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,out
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)  
+    fig_metal = plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)  
     
     output_filename = analysis_name + '_' + 'Hf'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45) 
+    fig_hf = plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs) 
     
     output_filename = analysis_name + '_' + 'Ta'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)
+    fig_ta = plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
     
     output_filename = analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimit = 45)    
+    fig_o = plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)    
+
     
+    return {
+        "stoichiometry": fig_stoich,
+        "initial_stoichiometry": fig_init_stoich,
+        "metal": fig_metal,
+        "Hf": fig_hf,
+        "Ta": fig_ta,
+        "O": fig_o,
+    }  # Return the figure objects for further use if needed 
+
 def plot_atomic_charge_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd()):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic charge distributions,
     and plots the charge distributions for O, Hf, Ta, and all M atoms."""
@@ -438,47 +449,58 @@ def plot_atomic_charge_distribution(file_list,labels,skip_rows,z_bins,analysis_n
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution, z_bin_centers, labels, 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    fig_net = plot_multiple_cases(total_charge_distribution, z_bin_centers, labels, 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     output_filename = analysis_name + '_' + 'M'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_mean_charge_distribution, z_bin_centers, labels, 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    fig_metal = plot_multiple_cases(metal_mean_charge_distribution, z_bin_centers, labels, 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
     output_filename = analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(O_mean_charge_dist, z_bin_centers, labels, 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    fig_o = plot_multiple_cases(O_mean_charge_dist, z_bin_centers, labels, 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
    
 
     output_filename =  'final' + '_' + analysis_name + '_' + 'all'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution[1], z_bin_centers, labels[1], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
+    fig_net_end = plot_multiple_cases(total_charge_distribution[-1], z_bin_centers, labels[-1], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0, markerindex = 1)
 
    
     output_filename =  'initial' + '_' + analysis_name + '_' + 'all'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(total_charge_distribution[0], z_bin_centers, labels[0], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
+    fig_net_start = plot_multiple_cases(total_charge_distribution[0], z_bin_centers, labels[0], 'Net charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 15, xlimitlo = -20, yaxis=0)
 
     output_filename =  'initial' + '_' + analysis_name + '_' + 'M'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(metal_mean_charge_distribution[0], z_bin_centers, labels[0], 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
+    fig_metal_start = plot_multiple_cases(metal_mean_charge_distribution[0], z_bin_centers, labels[0], 'Metal atoms mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimitlo = 0.7, xlimithi = 1.2)  
 
 
     output_filename = 'initial' + '_' + analysis_name + '_' + 'O'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
+    fig_o_start = plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi = 70, xlimithi = 0, xlimitlo = -0.7)   
     
+    return {
+        "net_charge": fig_net,
+        "initial_net_charge": fig_net_start,
+        "final_net_charge": fig_net_end,
+        "metal_charge": fig_metal,
+        "initial_metal_charge": fig_metal_start,
+        "oxygen_charge": fig_o,
+        "initial_oxygen_charge": fig_o_start,
+    }  # Return the figure objects for further use if needed 
+
+
 def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
     """Reads the averaged thermodynamic output data for each case 
     from the correspinging files in a file_list, and plots the timeseries displacements 

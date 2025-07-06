@@ -132,6 +132,30 @@ def test_plot_multiple_cases_with_xaxis_yaxis(tmp_path):
     return fig
 
 @pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+def test_plot_multiple_cases_with_limit_hilo_kwargs(tmp_path):
+    # Synthetic data: two cases
+    x = np.linspace(-5, 5, 20)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    x_arr = np.stack([x, x])  # shape (2, 20)
+    y_arr = np.stack([y1, y2])  # shape (2, 20)
+    labels = ["sin(x)", "cos(x)"]
+    xlabel = "x"
+    ylabel = "y"
+    output_filename = "test_limit_hilo_kwargs"
+    xsize, ysize = 2, 2
+
+    fig = plot_multiple_cases(
+        x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,
+        output_dir=tmp_path,
+        xlimithi=3,
+        xlimitlo=-3,
+        ylimithi=1,
+        ylimitlo=-1
+    )
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
 def test_plot_multiple_cases_with_limit_kwargs(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(-5, 5, 20)
@@ -148,13 +172,9 @@ def test_plot_multiple_cases_with_limit_kwargs(tmp_path):
     fig = plot_multiple_cases(
         x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize,
         output_dir=tmp_path,
-        xlimithi=3,
-        xlimitlo=-3,
-        ylimithi=1,
-        ylimitlo=-1
+        xlimit=[-3,3],
+        ylimit=[-1,1]
     )
     return fig
-
-
 
 
