@@ -17,22 +17,6 @@
 # Chunk-averaged data for fix fmobileHfstc1 and group mobileHf
 # Timestep Number-of-chunks Total-count
 # Chunk Coord1 Ncount v_vdisprms density/mass temp c_cdisp[3] v_vdispxy v_vdispxyvec
-0 12 600
-  1 -7.5 0 0 0 0 0 0 0
-  2 -2.5 0 0 0 0 0 0 0
-  3 2.5 72 0 6.83916 327.999 0 0 0
-  4 7.5 106 0 10.0688 296.947 0 0 0
-  5 12.5 103 0 9.78379 275.414 0 0 0
-  6 17.5 102 0 9.6888 296.097 0 0 0
-  7 22.5 109 0 10.3537 272.435 0 0 0
-  8 27.5 97 0 9.21386 294.571 0 0 0
-  9 32.5 11 0 1.04487 436.336 0 0 0
-  10 37.5 0 0 0 0 0 0 0
-  11 42.5 0 0 0 0 0 0 0
-  12 47.5 0 0 0 0 0 0 0
-# Chunk-averaged data for fix fmobileHfstc1 and group mobileHf
-# Timestep Number-of-chunks Total-count
-# Chunk Coord1 Ncount v_vdisprms density/mass temp c_cdisp[3] v_vdispxy v_vdispxyvec
 5000 12 600
   1 -7.5 0 0 0 0 0 0 0
   2 -2.5 0 0 0 0 0 0 0

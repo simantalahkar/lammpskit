@@ -545,18 +545,25 @@ def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analys
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, yaxis = 0) 
+    fig_z = plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, yaxis = 0) 
+    
     output_filename = analysis_name + '_' + 'z_magnitude'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
+    fig_zmag = plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
     
     output_filename = analysis_name + '_' + 'lateral'
     for i in labels:
         output_filename = output_filename + '_' + i
 
-    plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
+    fig_lateral = plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
+
+    return {
+        "z_displacement": fig_z,
+        "z_magnitude": fig_zmag,
+        "lateral_displacement": fig_lateral,
+    }  # Return the figure objects for further use if needed
 
 
 def analyze_clusters(filepath, thickness = 21):
