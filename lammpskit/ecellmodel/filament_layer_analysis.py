@@ -1020,6 +1020,10 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
     fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
     plt.close()
 
+    return {
+        "displacement_timeseries": fig,
+    }  # Return the figure object for further use if needed
+
 
 def run_analysis():
     output_dir =  os.path.join("..", "..", "output", "ecellmodel")
