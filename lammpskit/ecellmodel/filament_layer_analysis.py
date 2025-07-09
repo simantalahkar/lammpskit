@@ -576,7 +576,7 @@ def analyze_clusters(filepath, thickness = 21):
     pipeline_fil = import_file(filepath) 
     pipeline_fil_up = import_file(filepath)
     #pipeline_cmo = import_file(filepath) 
-    coord1 = pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    coord1 = pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
     select_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10 || ParticleType==9 ) && Position.Z < 28 '))
     cluster_metal1 = pipeline1.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     select_no_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
@@ -586,7 +586,7 @@ def analyze_clusters(filepath, thickness = 21):
 
     xyz1 = np.array(data1.particles['Position'])
     
-    coord2 = pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    coord2 = pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
     select_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28 '))
     cluster_metal2 = pipeline2.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     select_no_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=2'))
@@ -624,7 +624,7 @@ def analyze_clusters(filepath, thickness = 21):
                     gap = abs(point1[2] - point2[2])
         separation -= 3.9
 
-    coord_fil = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    coord_fil = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
     select_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6)'))
     cluster_fil = pipeline_fil.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     select_no_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
@@ -637,7 +637,7 @@ def analyze_clusters(filepath, thickness = 21):
     rdf_down = data_fil.tables['coordination-rdf'].xy()  
     fil_size_down = data_fil.particles.count
     
-    coord_fil_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.8, number_of_bins = 200))
+    coord_fil_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
     select_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==8 && Coordination<6) || ( ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28))'))
     cluster_fil_up = pipeline_fil_up.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
     select_no_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
