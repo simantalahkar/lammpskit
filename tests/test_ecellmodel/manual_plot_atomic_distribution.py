@@ -1,3 +1,28 @@
+import numpy as np
+import pytest
+import tempfile
+from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
+
+filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/malformed-3set-0.1V.500000.lammpstrj"
+with pytest.raises(ValueError) as excinfo:    
+    result = analyze_clusters(filepath)
+assert "Malformed or unreadable file for OVITO" in str(excinfo.value)
+
+exit()
+
+# Create a temporary file with invalid content
+with tempfile.NamedTemporaryFile("w", suffix=".lammpstrj", delete=True) as tmp:
+    print('test')
+    tmp.write("this is not a valid LAMMPS trajectory file\n")
+    tmp.flush()
+    with pytest.raises(ValueError) as excinfo:
+        print('test')
+        analyze_clusters(tmp.name)
+        print('test')
+    assert "Malformed or unreadable file for OVITO" in str(excinfo.value)
+
+exit()
+
 import os
 import glob
 import pytest

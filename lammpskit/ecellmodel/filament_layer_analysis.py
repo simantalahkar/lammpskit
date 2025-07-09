@@ -573,10 +573,13 @@ def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=2
     analyzes filament connectivities and rdf of filamentary atoms."""
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
-    pipeline1 = import_file(filepath) 
-    pipeline2 = import_file(filepath)     
-    pipeline_fil = import_file(filepath) 
-    pipeline_fil_up = import_file(filepath)
+    try:
+        pipeline1 = import_file(filepath)
+        pipeline2 = import_file(filepath)
+        pipeline_fil = import_file(filepath)
+        pipeline_fil_up = import_file(filepath)
+    except Exception as e:
+        raise ValueError(f"Malformed or unreadable file for OVITO: {filepath} (error: {e})")
     #pipeline_cmo = import_file(filepath) 
     coord1 = pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
     select_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10 || ParticleType==9 ) && Position.Z < 28 '))
@@ -584,6 +587,9 @@ def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=2
     select_no_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
     delete_no_metal1 = pipeline1.modifiers.append(om.DeleteSelectedModifier())
     data1 = pipeline1.compute()
+    if data1.particles.count == 0:
+        raise ValueError(f"No clusters found in file: {filepath}")
+
     timestep = data1.attributes['Timestep']
 
     xyz1 = np.array(data1.particles['Position'])
@@ -646,7 +652,8 @@ def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=2
     delete_no_fil_up = pipeline_fil_up.modifiers.append(om.DeleteSelectedModifier())
     rdf_mod_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 3.9, number_of_bins = 200))
     data_fil_up = pipeline_fil_up.compute()
-    
+   
+
     xyz_fil_up = np.array(data_fil_up.particles['Position'])
     fil_depth = np.min(xyz_fil_up[:,2])
     rdf_up = data_fil_up.tables['coordination-rdf'].xy()  

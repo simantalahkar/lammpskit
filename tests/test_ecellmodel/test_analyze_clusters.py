@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import tempfile
 from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
 
 def test_analyze_clusters_output_values():
@@ -29,6 +30,20 @@ def test_analyze_clusters_missing_file():
         analyze_clusters(missing_path)
     assert "File not found" in str(excinfo.value)
 
+def test_analyze_clusters_malformed_file():
+    # Create a temporary file with invalid content
+    filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/malformed-0.1V.500000.lammpstrj"
+    with pytest.raises(ValueError) as excinfo:    
+        result = analyze_clusters(filepath)
+    assert "Malformed or unreadable file for OVITO" in str(excinfo.value)
+
+def test_analyze_clusters_no_clusters():
+    # This file should be a valid LAMMPS trajectory file with no atoms,
+    # or only atoms that do not match the selection criteria.
+    filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/no_clusters-0.1V.500000.lammpstrj"
+    with pytest.raises(ValueError) as excinfo:
+        analyze_clusters(filepath)
+    assert "No clusters found in file" in str(excinfo.value)
 
 
 
