@@ -566,7 +566,7 @@ def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analys
     }  # Return the figure objects for further use if needed
 
 
-def analyze_clusters(filepath, thickness = 21):
+def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=23, thickness = 21):
     """Performs cluster analysis on the given file:
     computes the coordination number, selects metallic atoms, clusters them,
     deletes the non-filamentary atoms, separates the top and bottom part of filament,
@@ -599,7 +599,7 @@ def analyze_clusters(filepath, thickness = 21):
     if len(xyz2)!=0:
         z2_min, z2_max = np.min(xyz2[:,2]), np.max(xyz2[:,2])
     
-    if z1_min < 5 and z1_max > 23:
+    if z1_min < z_filament_lower_limit and z1_max > z_filament_upper_limit:
         connection = 1
         upper_filament = xyz1
         lower_filament = xyz1
@@ -607,7 +607,7 @@ def analyze_clusters(filepath, thickness = 21):
         gap = 0
     else:
         connection = 0
-        if z1_min < 5:
+        if z1_min < z_filament_lower_limit:
             upper_filament = xyz1
             lower_filament = xyz2
         else:
