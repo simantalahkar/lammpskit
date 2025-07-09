@@ -968,7 +968,7 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
 
 
 
-def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
+def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks, loop_start, loop_end, output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
     """Reads the averaged thermodynamic output data for each case 
     from the correspinging files in a file_list, and plots the timeseries displacements 
     (one of the output data types selected by the dataindex as the 4th index) averaged 
@@ -976,13 +976,19 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
     for the data row indices (1st index) corresponding to each case read from a file."""
     all_thermo_data = []
     element_labels = []
+    print(file_list)
     for filename in file_list:
         element_labels.append(filename[:2])
         all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end))
     all_thermo_data = np.array(all_thermo_data)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
                                                                     ## 4th index corresponds to the type of data (z, lateral displacement...)
+    #print(filename)
     print(element_labels)
     print(np.shape(all_thermo_data))
+    
+    dump_steps = np.linspace(0,loop_end-1,100)
+    print('dump_steps=',dump_steps)
+    
 
     dataindexname = ['abs total disp','density - mass', 'temp (K)', 'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)']
 
@@ -996,7 +1002,7 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
 
     for j in range(ncolumns):
         for i in range(nrows):
-          axes[nrows-1-i,j].plot(time_points, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
+          axes[nrows-1-i,j].plot(dump_steps, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
           if  j == 0:
             axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
           axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
@@ -1008,7 +1014,7 @@ def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks,output_di
           if nrows-1-i != nrows-1:
             axes[nrows-1-i,j].set_xticklabels(())
 
-        axes[nrows-1,j].set_xlabel('Timestep (ps)', fontsize=8)
+        axes[nrows-1,j].set_xlabel('Dump steps', fontsize=8)
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
 
     output_filename= datatype + '-' + dataindexname[dataindex] #+'.pdf'
