@@ -15,4 +15,6 @@ outputs/
 # examples/
 main.py
 supporting_docs/
+examples/
+data/
 
