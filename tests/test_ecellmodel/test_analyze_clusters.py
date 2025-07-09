@@ -22,3 +22,13 @@ def test_analyze_clusters_output_values():
     assert rdf_up.ndim == 2 and rdf_up.shape[0] > 0 and rdf_up.shape[1] > 0
     assert separation == 0
     assert gap == 0
+
+def test_analyze_clusters_missing_file():
+    missing_path = "tests/test_ecellmodel/test_data/data_for_layer_analysis/nonexistent_file.lammpstrj"
+    with pytest.raises(FileNotFoundError) as excinfo:
+        analyze_clusters(missing_path)
+    assert "File not found" in str(excinfo.value)
+
+
+
+

@@ -571,6 +571,8 @@ def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=2
     computes the coordination number, selects metallic atoms, clusters them,
     deletes the non-filamentary atoms, separates the top and bottom part of filament,
     analyzes filament connectivities and rdf of filamentary atoms."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
     pipeline1 = import_file(filepath) 
     pipeline2 = import_file(filepath)     
     pipeline_fil = import_file(filepath) 
