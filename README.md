@@ -39,7 +39,7 @@ import lammpskit
 lammpskit.plot_atomic_distribution(...)
 ```
 
-See the [examples](examples/) and function docstrings for more details.
+See function docstrings for more details.
 
 ## License
 
