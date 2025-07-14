@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-import tempfile
 from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
 
 def test_analyze_clusters_output_values():
