@@ -1,0 +1,62 @@
+language: python
+python:
+  - "3.12"
+
+services:
+  - docker
+
+env:
+  global:
+    - IMAGE_NAME=simantalahkar/lammpskit
+
+jobs:
+  include:
+    - stage: test
+      script:
+        # Build Docker image
+        - docker build -t $IMAGE_NAME:build .
+
+        # Run container with tests folder mounted as a volume
+        - docker run -d --name test_container -v $PWD/tests:/app/tests $IMAGE_NAME:build bash
+
+        # Create baseline directory inside the container
+        - docker exec test_container mkdir -p /app/tests/baseline
+
+        # Install pytest and pytest-mpl inside container
+        - docker exec test_container pip install pytest pytest-mpl
+
+        # Generate baseline images for pytest-mpl
+        - docker exec test_container pytest --mpl-generate-path=/app/tests/baseline /app/tests
+
+        # Run tests with baseline images
+        - docker exec test_container pytest --mpl --mpl-baseline-path=/app/tests/baseline /app/tests
+
+        # Remove container after tests
+        - docker rm -f test_container
+
+    - stage: deploy
+      if: branch = main OR tag IS present
+      script:
+        # Extract version from setup.py
+        - VERSION=$(grep version setup.py | sed "s/.*version=['\"]\([^'\"]*\)['\"].*/\1/")
+        - LATEST_TAG=$(git describe --tags --abbrev=0 || echo "0.0.0")
+        - |
+          if [ "$VERSION" = "${LATEST_TAG#v}" ]; then
+            echo "Version $VERSION already released. Skipping deploy."
+            exit 0
+          else
+            echo "New version detected: $VERSION"
+          fi
+
+        # Build and publish Python package to PyPI
+        - pip install --no-cache-dir setuptools wheel twine build numpy>=2.3.1 matplotlib>=3.10.3 ovito>=3.12.4
+        - pip install --no-cache-dir -r requirements.txt
+        - python -m build
+        - twine upload dist/* -u __token__ -p $PYPI_TOKEN
+
+        # Build, tag, and push Docker image
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker build -t $IMAGE_NAME:$VERSION .
+        - docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
+        - docker push $IMAGE_NAME:$VERSION
+        - docker push $IMAGE_NAME:latest

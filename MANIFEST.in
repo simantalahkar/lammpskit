@@ -2,7 +2,9 @@ include README.md
 include LICENSE
 include setup.py
 include requirements.txt
+include requirements-dev.txt
 include pyproject.toml
+include CHANGELOG.md
 
 recursive-include docs *
 

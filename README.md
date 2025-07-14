@@ -54,7 +54,8 @@ pip install .[dev]
 - setuptools
 - twine
 
-## Installation
+
+## Installation (PyPI)
 
 For end users (runtime):
 ```sh
@@ -169,6 +170,70 @@ pip install .[dev]
 pytest
 ```
 Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
+
+
+## Docker Image
+
+An official Docker image for **lammpskit** is available on [Docker Hub](https://hub.docker.com/r/simantalahkar/lammpskit).
+Using the Docker container provides a portable, reproducible environment for running lammpskit anywhere Docker is supported.
+
+### Benefits
+
+- Portable and reproducible environment
+- All dependencies pre-installed
+- Easy to use on any system with Docker
+
+### How to Use
+
+1. **Install Docker** on your system.  
+   See [Get Docker](https://docs.docker.com/get-docker/) for instructions.
+
+2. **Pull the latest image:**
+   ```sh
+   docker pull simantalahkar/lammpskit:latest
+   ```
+   Or pull a specific version:
+   ```sh
+   docker pull simantalahkar/lammpskit:0.2.1
+   ```
+
+3. **Run the container with your local data mounted as a volume:**
+   ```sh
+   docker run -it -v /path/to/your/data:/data simantalahkar/lammpskit:latest
+   ```
+   This starts a bash shell in the container. Your local data is accessible at `/data`.
+
+4. **Use the installed Python package:**
+   ```sh
+   python
+   >>> import lammpskit
+   # ...your analysis code...
+   ```
+
+5. **Copy custom scripts or files into the container (from another terminal):**
+   ```sh
+   docker cp /path/to/local/script.py <container_id>:/home/lammpsuser/
+   ```
+   You can also install additional Python packages inside the container:
+   ```sh
+   pip install <package-name>
+   ```
+
+6. **Exit the container after analysis:**
+   ```sh
+   exit
+   ```
+   The container will remain on your system for future use.  
+   To re-enter the container:
+   ```sh
+   docker start <container_id>
+   docker exec -it <container_id> bash
+   ```
+   To delete the container completely:
+   ```sh
+   docker rm <container_id>
+   ```
+
 
 ## Changelog
 
