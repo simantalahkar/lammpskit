@@ -1,14 +1,14 @@
 
+
+import os
+import glob
+import re
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import re
-import glob
-import os
 from ovito.io import import_file
 import ovito.modifiers as om
-# import scipy.constants as scicon
 from typing import Any, Dict, List, Optional
 
 plt.rcParams['axes.titlesize'] = 8
