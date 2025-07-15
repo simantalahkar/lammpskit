@@ -971,11 +971,11 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     ###### filament upper
       
-    depthmax = 25
-    depthmin = 3
+    # depthmax = 25  # Unused variable, candidate for removal
+    # depthmin = 3   # Unused variable, candidate for removal
     
-    sizemax_up = 700
-    sizemin_up = 400
+    # sizemax_up = 700  # Unused variable, candidate for removal
+    # sizemin_up = 400  # Unused variable, candidate for removal
        
     fig_upfil, ax1_upfil = plt.subplots()
     
@@ -1013,8 +1013,8 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     ###############
     
-    heightmax = 25
-    heightmin = 3
+    # heightmax = 25  # Unused variable, candidate for removal
+    # heightmin = 3   # Unused variable, candidate for removal
     
     average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
     fig_height, ax_height = plt.subplots()
@@ -1032,8 +1032,8 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     
     
-    depthmax = 25
-    depthmin = 3
+    # depthmax = 25  # Unused variable, candidate for removal
+    # depthmin = 3   # Unused variable, candidate for removal
     
     average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
     fig_depth, ax_depth = plt.subplots()
@@ -1050,8 +1050,8 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     plt.close()
 
     ###### filament size   
-    sizemax_up = 700
-    sizemin_up = 400
+    # sizemax_up = 700  # Unused variable, candidate for removal
+    # sizemin_up = 400  # Unused variable, candidate for removal
     
     average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
     fig_size_up, ax_size_up = plt.subplots()
@@ -1069,8 +1069,8 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     plt.close()
     
     
-    sizemax_down = 350
-    sizemin_down = 0
+    # sizemax_down = 350  # Unused variable, candidate for removal
+    # sizemin_down = 0    # Unused variable, candidate for removal
     
     average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     fig_size_down, ax_size_down = plt.subplots()
