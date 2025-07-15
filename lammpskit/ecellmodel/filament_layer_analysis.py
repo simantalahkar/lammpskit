@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -5,9 +6,10 @@ import matplotlib.pyplot as plt
 import re
 import glob
 import os
-from ovito.io import import_file  
+from ovito.io import import_file
 import ovito.modifiers as om
 # import scipy.constants as scicon
+from typing import Any, Dict, List, Optional
 
 plt.rcParams['axes.titlesize'] = 8
 plt.rcParams['axes.labelsize'] = 8
@@ -42,7 +44,7 @@ Refactored for modularity, maintainability, and Sphinx documentation.
 # =========================
 # Data Reading Functions
 # =========================
-from typing import Any, Dict, List, Tuple, Optional, Union
+
 
 def read_lammps_data(filename: str) -> Dict[str, Any]:
     """
@@ -439,7 +441,7 @@ def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,out
     Ta_stoich = 3.5*tantalum_distribution[-1]/total_distribution_divide[-1]
     Hf_stoich = 3.5*hafnium_distribution[-1]/total_distribution_divide[-1]
     stoichiometry = np.array([Hf_stoich, O_stoich, Ta_stoich])
-    proportion_labels = np.array([f'a (of Hf$_a$)',f'b (of O$_b$)',f'c (of Ta$_c$)'])
+    proportion_labels = np.array(['a (of Hf$_a$)', 'b (of O$_b$)', 'c (of Ta$_c$)'])
     
     
     O_stoich_in = 3.5*oxygen_distribution[0]/total_distribution_divide[0] #this is for the first trajectory file supplied in the list => comparison makes sense if more than 1 files supplied, else self comparison
@@ -827,7 +829,7 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     
     #figure_size = [2.5,5]
     
-    max_height = 21
+    # max_height = 21  # Unused variable, candidate for removal
     
     ln = 0.1
     mrkr = 5
