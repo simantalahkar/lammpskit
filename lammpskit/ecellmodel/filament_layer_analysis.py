@@ -126,6 +126,9 @@ def main_analysis(filename: str, save_plot: bool = False, plot_path: Optional[st
     plot_path : str, optional
         Path to save the plot if save_plot is True.
     """
+    # =========================
+    # Main orchestration logic for analysis workflow
+    # =========================
     # Read data
     data = read_lammps_data(filename)
     # Analyze layers
@@ -135,6 +138,7 @@ def main_analysis(filename: str, save_plot: bool = False, plot_path: Optional[st
         plot_filament_layers(layers, save_path=plot_path)
     else:
         plot_filament_layers(layers)
+    # TODO: Expand orchestration to handle additional analysis and plotting modules in future modularization.
 
 # =========================
 # Legacy/Redundant Code (Candidates for deprecation)
