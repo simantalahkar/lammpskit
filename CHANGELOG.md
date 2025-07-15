@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## [0.2.2] - 2025-07-15
+
+### Changed
+- Updated version number in project files for new release.
+- Added absolute link to CHANGELOG.md in README for PyPI compatibility.
+- Improved README documentation for Docker usage and project instructions.
+
+### Fixed
+- Minor documentation and deployment workflow improvements.
+
+---
+
+## [0.2.1] - 2025-07-14
+
+### Added
+- Added `.travis.yml` for automated testing and deployment of Docker image and PyPI package using Travis CI.
+- README updated to include Docker image usage and deployment instructions.
+
+### Changed
+- Renamed `.travis.yml` correctly for CI integration.
+- Updated project files for CI/CD compatibility.
+
+---
+
+
 ## [0.2.0] - 2025-07-14
 ## lammpskit/ecellmodel/filament_layer_analysis.py
 
