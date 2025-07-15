@@ -237,7 +237,7 @@ Using the Docker container provides a portable, reproducible environment for run
 
 ## Changelog
 
-See the [CHANGELOG.md](./CHANGELOG.md) for a detailed list of changes and updates.
+See the [CHANGELOG.md](https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md) for a detailed list of changes and updates.
 
 ## Citation
 
