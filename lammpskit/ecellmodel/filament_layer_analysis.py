@@ -17,7 +17,131 @@ plt.rcParams['legend.fontsize'] = 8
 
 # mpl.rcParams['pdf.fonttype'] = 42  #this would allow us to edit the fonts in acrobat illustrator
 
-#   ### Variables for time series plots 
+"""
+filament_layer_analysis.py
+
+Module for post-processing and analyzing LAMMPS molecular dynamics simulation data.
+
+This file contains functions for:
+- Reading LAMMPS output data
+- Analyzing filament layers and clusters
+- Plotting results using matplotlib
+- Orchestrating analysis workflows
+
+Refactored for modularity, maintainability, and Sphinx documentation.
+"""
+
+# =========================
+# Global Configuration (To be centralized)
+# =========================
+# TODO: Identify and move global settings here for future modularization
+# Example:
+# DEFAULT_PLOT_STYLE = 'ggplot'
+# DATA_DIR = 'data/'
+
+# =========================
+# Data Reading Functions
+# =========================
+from typing import Any, Dict, List, Tuple, Optional, Union
+
+def read_lammps_data(filename: str) -> Dict[str, Any]:
+    """
+    Reads a LAMMPS data file and returns structured data.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the LAMMPS data file.
+
+    Returns
+    -------
+    data : dict
+        Parsed data from the file.
+    """
+    # TODO: Implement actual reading logic based on file format
+    # Example: parse columns, handle headers, etc.
+    data = {}
+    # ...parsing logic...
+    return data
+
+# =========================
+# Analysis Functions
+# =========================
+def analyze_filament_layers(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Analyzes filament layers from structured data.
+
+    Parameters
+    ----------
+    data : dict
+        Structured data from LAMMPS output.
+
+    Returns
+    -------
+    layers : list of dict
+        Analysis results for each filament layer.
+    """
+    layers = []
+    # TODO: Implement analysis logic
+    # Example: identify layers, compute properties
+    return layers
+
+# =========================
+# Plotting Functions
+# =========================
+def plot_filament_layers(layers: List[Dict[str, Any]], save_path: Optional[str] = None) -> None:
+    """
+    Plots filament layers using matplotlib.
+
+    Parameters
+    ----------
+    layers : list of dict
+        Analysis results for each filament layer.
+    save_path : str, optional
+        If provided, saves the plot to this path.
+    """
+    fig, ax = plt.subplots()
+    # TODO: Implement plotting logic
+    # Example: plot layer positions, colors, etc.
+    if save_path:
+        plt.savefig(save_path)
+    else:
+        plt.show()
+
+# =========================
+# Orchestration Function
+# =========================
+def main_analysis(filename: str, save_plot: bool = False, plot_path: Optional[str] = None) -> None:
+    """
+    Orchestrates the analysis workflow for filament layers.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the LAMMPS data file.
+    save_plot : bool, optional
+        Whether to save the plot to disk.
+    plot_path : str, optional
+        Path to save the plot if save_plot is True.
+    """
+    # Read data
+    data = read_lammps_data(filename)
+    # Analyze layers
+    layers = analyze_filament_layers(data)
+    # Plot results
+    if save_plot:
+        plot_filament_layers(layers, save_path=plot_path)
+    else:
+        plot_filament_layers(layers)
+
+# =========================
+# Legacy/Redundant Code (Candidates for deprecation)
+# =========================
+# TODO: Mark unused or legacy functions for removal
+# Example:
+# def old_analysis_method(...):
+#     """Deprecated: Use analyze_filament_layers instead."""
+#     pass
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
