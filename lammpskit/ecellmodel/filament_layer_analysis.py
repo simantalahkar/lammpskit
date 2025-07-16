@@ -818,191 +818,317 @@ def plot_atomic_charge_distribution(
     }
 
 
-def plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=os.getcwd()):     ## Calls read_displacement_data(...) and plot multiple cases(...)
-    """Reads the averaged thermodynamic output data for each case
-    from the correspinginging files in a file_list, and plots the final displacements
-    (z and lateral displacements) versus the z-bin groups positions 
-    for the data row indices (1st index) corresponding to each case read from a file."""
+def plot_displacement_comparison(
+    file_list: list[str],
+    loop_start: int,
+    loop_end: int,
+    labels: list[str],
+    analysis_name: str,
+    repeat_count: int = 0,
+    output_dir: str = os.getcwd()
+) -> dict[str, plt.Figure]:
+    """
+    Reads the averaged thermodynamic output data for each case from the corresponding files in file_list,
+    and plots the final displacements (z and lateral displacements) versus the z-bin group positions
+    for the data row indices (1st index) corresponding to each case read from a file.
 
-    # repeat_count is how many times the first timestep is repeated in data file
-    all_thermo_data = []
+    Parameters
+    ----------
+    file_list : list of str
+        List of file paths to thermodynamic output data files.
+    loop_start : int
+        Starting loop index (inclusive).
+    loop_end : int
+        Ending loop index (inclusive).
+    labels : list of str
+        List of labels for each case.
+    analysis_name : str
+        Base name for output files.
+    repeat_count : int, optional
+        Number of times the first timestep is repeated in the data file (default: 0).
+    output_dir : str, optional
+        Directory to save output figures. Defaults to current working directory.
+
+    Returns
+    -------
+    dict
+        Dictionary of figure objects for each plot type.
+    """
+    # Read thermodynamic data for each file
+    all_thermo_data: list[list[np.ndarray]] = []
     for filename in file_list:
-        all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end, repeat_count))      ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
-                                                                                ## 4th index corresponds to the type of data (z, lateral displacement...)
-    displacements = np.array(all_thermo_data) 
-    print('\nshape of all_thermo_data array=', np.shape(all_thermo_data), '\nlength of all_thermo_data array=', len(all_thermo_data))
-    
-    zdisp = []
-    lateraldisp = []
-    binposition = []
-    atoms_per_bin_count = []                      
-    
+        all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end, repeat_count))
+
+    displacements = np.array(all_thermo_data)
+    print(f"\nshape of all_thermo_data array= {np.shape(all_thermo_data)}, length of all_thermo_data array= {len(all_thermo_data)}")
+
+    # Initialize arrays for plotting
+    zdisp: list[np.ndarray] = []
+    lateraldisp: list[np.ndarray] = []
+    binposition: list[np.ndarray] = []
+    atoms_per_bin_count: list[np.ndarray] = []
+
     all_thermo_data = np.array(all_thermo_data)
-    
     for i in range(len(displacements)):
-        zdisp_temp = all_thermo_data[i,-1,:,-3]
-        lateraldisp_temp = all_thermo_data[i,-1,:,-2]
-        binposition_temp = all_thermo_data[i,-1,:,1]
-        Ncount_temp = all_thermo_data[i,-1,:,2]                                 
-        
+        # Extract z displacement, lateral displacement, bin position, and atom count per bin
+        zdisp_temp = all_thermo_data[i, -1, :, -3]
+        lateraldisp_temp = all_thermo_data[i, -1, :, -2]
+        binposition_temp = all_thermo_data[i, -1, :, 1]
+        Ncount_temp = all_thermo_data[i, -1, :, 2]
+
         zdisp.append(zdisp_temp)
         lateraldisp.append(lateraldisp_temp)
         binposition.append(binposition_temp)
-        atoms_per_bin_count.append(Ncount_temp)                          
-        
+        atoms_per_bin_count.append(Ncount_temp)
+
+    # Convert lists to arrays
     zdisp = np.array(zdisp)
     lateraldisp = np.array(lateraldisp)
     binposition = np.array(binposition)
-    atoms_per_bin_count = np.array(atoms_per_bin_count)                         
-    
-    #print(zdisp)
-    figure_size = [2.5,5]
-    
-    output_filename = analysis_name + '_' + 'z'
-    for i in labels:
-        output_filename = output_filename + '_' + i
+    atoms_per_bin_count = np.array(atoms_per_bin_count)
 
-    fig_z = plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir, yaxis = 0) 
-    
-    output_filename = analysis_name + '_' + 'z_magnitude'
-    for i in labels:
-        output_filename = output_filename + '_' + i
+    figure_size = [2.5, 5]
 
-    fig_zmag = plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
-    
-    output_filename = analysis_name + '_' + 'lateral'
-    for i in labels:
-        output_filename = output_filename + '_' + i
+    # Plot z displacement
+    output_filename = f"{analysis_name}_z" + ''.join(f"_{i}" for i in labels)
+    fig_z = plot_multiple_cases(zdisp, binposition, labels, 'z displacement (A)', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, yaxis=0)
 
-    fig_lateral = plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)','z position (A)',output_filename, figure_size[0], figure_size[1], output_dir=output_dir) 
+    # Plot z displacement magnitude
+    output_filename = f"{analysis_name}_z_magnitude" + ''.join(f"_{i}" for i in labels)
+    fig_zmag = plot_multiple_cases(np.abs(zdisp), binposition, labels, 'z displacement (A)', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir)
+
+    # Plot lateral displacement
+    output_filename = f"{analysis_name}_lateral" + ''.join(f"_{i}" for i in labels)
+    fig_lateral = plot_multiple_cases(lateraldisp, binposition, labels, 'lateral displacement (A)', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir)
 
     return {
         "z_displacement": fig_z,
         "z_magnitude": fig_zmag,
         "lateral_displacement": fig_lateral,
-    }  # Return the figure objects for further use if needed
+    }
 
 
-def analyze_clusters(filepath, z_filament_lower_limit=5,z_filament_upper_limit=23, thickness = 21):
-    """Performs cluster analysis on the given file:
-    computes the coordination number, selects metallic atoms, clusters them,
-    deletes the non-filamentary atoms, separates the top and bottom part of filament,
-    analyzes filament connectivities and rdf of filamentary atoms."""
+def analyze_clusters(
+    filepath: str,
+    z_filament_lower_limit: float = 5,
+    z_filament_upper_limit: float = 23,
+    thickness: float = 21
+) -> tuple[int, int, int, float, np.ndarray, int, float, np.ndarray, float, float]:
+    """
+    Performs cluster analysis on the given file:
+    - Computes the coordination number, selects metallic atoms, clusters them.
+    - Deletes the non-filamentary atoms, separates the top and bottom part of filament.
+    - Analyzes filament connectivities and RDF of filamentary atoms.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the input file for OVITO analysis.
+    z_filament_lower_limit : float, optional
+        Lower z-bound for filament connection (default: 5).
+    z_filament_upper_limit : float, optional
+        Upper z-bound for filament connection (default: 23).
+    thickness : float, optional
+        Filament thickness parameter (default: 21).
+
+    Returns
+    -------
+    tuple
+        (
+            timestep: int,
+            connection: int,
+            fil_size_down: int,
+            fil_height: float,
+            rdf_down: np.ndarray,
+            fil_size_up: int,
+            fil_depth: float,
+            rdf_up: np.ndarray,
+            separation: float,
+            gap: float
+        )
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file does not exist.
+    ValueError
+        If no clusters are found or file is malformed for OVITO.
+    """
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
     try:
+        # Import file for OVITO pipelines
         pipeline1 = import_file(filepath)
         pipeline2 = import_file(filepath)
         pipeline_fil = import_file(filepath)
         pipeline_fil_up = import_file(filepath)
     except Exception as e:
         raise ValueError(f"Malformed or unreadable file for OVITO: {filepath} (error: {e})")
-    #pipeline_cmo = import_file(filepath) 
-    coord1 = pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
-    select_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10 || ParticleType==9 ) && Position.Z < 28 '))
-    cluster_metal1 = pipeline1.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
-    select_no_metal1 = pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
-    delete_no_metal1 = pipeline1.modifiers.append(om.DeleteSelectedModifier())
+
+    # Pipeline 1: Analyze clusters (main)
+    pipeline1.modifiers.append(om.CoordinationAnalysisModifier(cutoff=2.7, number_of_bins=200))
+    pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression='((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10 || ParticleType==9 ) && Position.Z < 28 '))
+    pipeline1.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected=True))
+    pipeline1.modifiers.append(om.ExpressionSelectionModifier(expression='Cluster !=1'))
+    pipeline1.modifiers.append(om.DeleteSelectedModifier())
     data1 = pipeline1.compute()
     if data1.particles.count == 0:
         raise ValueError(f"No clusters found in file: {filepath}")
 
     timestep = data1.attributes['Timestep']
-
     xyz1 = np.array(data1.particles['Position'])
-    
-    coord2 = pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
-    select_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28 '))
-    cluster_metal2 = pipeline2.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
-    select_no_metal2 = pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=2'))
-    delete_no_metal2 = pipeline2.modifiers.append(om.DeleteSelectedModifier())
+
+    # Pipeline 2: Analyze clusters (secondary)
+    pipeline2.modifiers.append(om.CoordinationAnalysisModifier(cutoff=2.7, number_of_bins=200))
+    pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression='((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6) || ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28 '))
+    pipeline2.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected=True))
+    pipeline2.modifiers.append(om.ExpressionSelectionModifier(expression='Cluster !=2'))
+    pipeline2.modifiers.append(om.DeleteSelectedModifier())
     data2 = pipeline2.compute()
     xyz2 = np.array(data2.particles['Position'])
-    
-    z1_min, z1_max = np.min(xyz1[:,2]), np.max(xyz1[:,2])
-    print(np.shape(xyz1),len(xyz2))
-    if len(xyz2)!=0:
-        z2_min, z2_max = np.min(xyz2[:,2]), np.max(xyz2[:,2])
-    
+
+    # Determine filament connection and separation
+    z1_min, z1_max = np.min(xyz1[:, 2]), np.max(xyz1[:, 2])
+    print(np.shape(xyz1), len(xyz2))
+    if len(xyz2) != 0:
+        # z2_min, z2_max = np.min(xyz2[:, 2]), np.max(xyz2[:, 2])  # Unused
+        pass
+
     if z1_min < z_filament_lower_limit and z1_max > z_filament_upper_limit:
         connection = 1
-        upper_filament = xyz1
-        lower_filament = xyz1
-        separation = 0
-        gap = 0
+        separation = 0.0
+        gap = 0.0
     else:
         connection = 0
         if z1_min < z_filament_lower_limit:
-            upper_filament = xyz1
-            lower_filament = xyz2
+            group_a = xyz1
+            group_b = xyz2
         else:
-            upper_filament = xyz2
-            lower_filament = xyz1
+            group_a = xyz2
+            group_b = xyz1
         separation = float('inf')
-        closest_pair = (None, None)
-        for point1 in xyz1:
-            for point2 in xyz2:
+        gap = float('inf')
+        for point1 in group_a:
+            for point2 in group_b:
                 distance = np.linalg.norm(point1 - point2)
                 if distance < separation:
                     separation = distance
-                    closest_pair = (point1, point2)
                     gap = abs(point1[2] - point2[2])
-        separation -= 3.9
+        separation -= 3.9  # Subtract cutoff
 
-    coord_fil = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
-    select_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6)'))
-    cluster_fil = pipeline_fil.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
-    select_no_fil = pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
-    delete_no_fil = pipeline_fil.modifiers.append(om.DeleteSelectedModifier())
-    rdf_mod = pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 3.9, number_of_bins = 200))
+    # Pipeline for lower filament
+    pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff=2.7, number_of_bins=200))
+    pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression='((ParticleType==2 || ParticleType==4 ||ParticleType==8) && Coordination<6)'))
+    pipeline_fil.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected=True))
+    pipeline_fil.modifiers.append(om.ExpressionSelectionModifier(expression='Cluster !=1'))
+    pipeline_fil.modifiers.append(om.DeleteSelectedModifier())
+    pipeline_fil.modifiers.append(om.CoordinationAnalysisModifier(cutoff=3.9, number_of_bins=200))
     data_fil = pipeline_fil.compute()
-    
     xyz_fil_down = np.array(data_fil.particles['Position'])
-    fil_height = np.max(xyz_fil_down[:,2])
-    rdf_down = data_fil.tables['coordination-rdf'].xy()  
+    fil_height = np.max(xyz_fil_down[:, 2])
+    rdf_down = data_fil.tables['coordination-rdf'].xy()
     fil_size_down = data_fil.particles.count
-    
-    coord_fil_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 2.7, number_of_bins = 200))
-    select_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = '((ParticleType==8 && Coordination<6) || ( ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28))'))
-    cluster_fil_up = pipeline_fil_up.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
-    select_no_fil_up = pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression = 'Cluster !=1'))
-    delete_no_fil_up = pipeline_fil_up.modifiers.append(om.DeleteSelectedModifier())
-    rdf_mod_up = pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff = 3.9, number_of_bins = 200))
-    data_fil_up = pipeline_fil_up.compute()
-   
 
+    # Pipeline for upper filament
+    pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff=2.7, number_of_bins=200))
+    pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression='((ParticleType==8 && Coordination<6) || ( ( ParticleType==10  || ParticleType==9 ) && Position.Z < 28))'))
+    pipeline_fil_up.modifiers.append(om.ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected=True))
+    pipeline_fil_up.modifiers.append(om.ExpressionSelectionModifier(expression='Cluster !=1'))
+    pipeline_fil_up.modifiers.append(om.DeleteSelectedModifier())
+    pipeline_fil_up.modifiers.append(om.CoordinationAnalysisModifier(cutoff=3.9, number_of_bins=200))
+    data_fil_up = pipeline_fil_up.compute()
     xyz_fil_up = np.array(data_fil_up.particles['Position'])
-    fil_depth = np.min(xyz_fil_up[:,2])
-    rdf_up = data_fil_up.tables['coordination-rdf'].xy()  
+    fil_depth = np.min(xyz_fil_up[:, 2])
+    rdf_up = data_fil_up.tables['coordination-rdf'].xy()
     fil_size_up = data_fil_up.particles.count
+
+    return (
+        timestep,
+        connection,
+        fil_size_down,
+        fil_height,
+        rdf_down,
+        fil_size_up,
+        fil_depth,
+        rdf_up,
+        separation,
+        gap
+    )
     
-    
-    return timestep, connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, separation, gap
-    
-    
-    #select_metallic_cmo = pipeline_cmo.modifiers.append(ExpressionSelectionModifier(expression = 'ParticleType==10 || ParticleType==9'))
-    #cluster_cmo = pipeline_cmo.modifiers.append(ClusterAnalysisModifier(cutoff=3.9, sort_by_size=True, compute_com=True, only_selected = True))
-    #data_cmo = pipeline_cmo.compute()
-    
-def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_steps,output_dir=os.getcwd()):     ## Calls analyze_clusters(...)
-    """Tracks and plots the evolution of the filament connectivity state, 
-    gap and separation over time for each timeseries trajectory file in the file_list, 
-    and plots the key results."""
-    step_arr, connection, fil_size_down, fil_height, rdf_down, fil_size_up, fil_depth, rdf_up, gap, separation = [], [],[],[],[], [], [], [], [], []
+def track_filament_evolution(
+    file_list: list[str],
+    analysis_name: str,
+    time_step: float,
+    dump_interval_steps: int,
+    output_dir: str = os.getcwd()
+) -> dict[str, plt.Figure]:
+    """
+    Tracks and plots the evolution of the filament connectivity state, gap, and separation over time for each timeseries trajectory file in the file_list.
+    Plots key results including connectivity, gap, separation, filament size, and filament height/depth.
+
+    Parameters
+    ----------
+    file_list : list of str
+        List of file paths to timeseries trajectory files.
+    analysis_name : str
+        Base name for output files.
+    time_step : float
+        Simulation time step (ps).
+    dump_interval_steps : int
+        Number of steps between dumps.
+    output_dir : str, optional
+        Directory to save output figures. Defaults to current working directory.
+
+    Returns
+    -------
+    dict
+        Dictionary of figure objects for each plot type.
+
+    Raises
+    ------
+    FileNotFoundError
+        If any file in file_list does not exist.
+    ValueError
+        If cluster analysis fails for any file.
+    """
+    # Initialize arrays to collect results
+    step_arr: list[int] = []
+    connection: list[int] = []
+    fil_size_down: list[int] = []
+    fil_height: list[float] = []
+    rdf_down: list[np.ndarray] = []
+    fil_size_up: list[int] = []
+    fil_depth: list[float] = []
+    rdf_up: list[np.ndarray] = []
+    gap: list[float] = []
+    separation: list[float] = []
+
+    # Analyze each file
     for filepath in file_list:
-        step_temp, connection_temp, fil_size_down_temp, fil_height_temp, rdf_down_temp, fil_size_up_temp, fil_depth_temp, rdf_up_temp, separation_temp, gap_temp = analyze_clusters(filepath)
+        (
+            step_temp,
+            connection_temp,
+            fil_size_down_temp,
+            fil_height_temp,
+            rdf_down_temp,
+            fil_size_up_temp,
+            fil_depth_temp,
+            rdf_up_temp,
+            separation_temp,
+            gap_temp
+        ) = analyze_clusters(filepath)
+        step_arr.append(step_temp)
+        connection.append(connection_temp)
         fil_size_down.append(fil_size_down_temp)
         fil_size_up.append(fil_size_up_temp)
-        connection.append(connection_temp)
         fil_height.append(fil_height_temp)
         fil_depth.append(fil_depth_temp)
         rdf_down.append(rdf_down_temp)
         rdf_up.append(rdf_up_temp)
         gap.append(gap_temp)
         separation.append(separation_temp)
-        step_arr.append(step_temp) 
 
-        
+    # Convert lists to numpy arrays for analysis
     step_arr = np.array(step_arr)
     connection = np.array(connection)
     gap = np.array(gap)
@@ -1013,21 +1139,19 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     fil_depth = np.array(fil_depth)
     rdf_down = np.array(rdf_down)
     rdf_up = np.array(rdf_up)
-    print('shape of connections array',np.shape(np.array(connection))[0])
-    #step_arr = np.linspace(0,np.shape(np.array(connection))[0]-1,np.shape(np.array(connection))[0])
-    
+
+    print('shape of connections array', np.shape(connection)[0])
+
+    # Calculate time axis
     time_switch = step_arr * time_step * dump_interval_steps
-    
-    #figure_size = [2.5,5]
-    
-    # max_height = 21  # Unused variable, candidate for removal
-    
+
+    # Plotting parameters
     ln = 0.1
     mrkr = 5
-    alph = 0.55 
+    alph = 0.55
 
-    
-    on_frequency = np.sum(connection==1)/len(connection)
+    # Plot filament connectivity state
+    on_frequency = np.sum(connection == 1) / len(connection)
     fig_conn, ax_conn = plt.subplots()
     ax_conn.plot(time_switch, connection, alpha=alph, linewidth=ln, markersize=mrkr)
     ax_conn.scatter(
@@ -1048,8 +1172,8 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close(fig_conn)
-    
-    
+
+    # Plot filament gap
     average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
     fig_gap, ax_gap = plt.subplots()
     ax_gap.plot(time_switch, gap, alpha=alph, linewidth=ln, markersize=mrkr)
@@ -1058,155 +1182,109 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     ax_gap.set_ylabel('Filament gap (A)')
     ax_gap.set_title('Filament gap')
     ax_gap.legend()
-    # ax_gap.set_ylim(heightmin, heightmax)  # Uncomment if you want to set y-limits
     output_filename = analysis_name + 'fil_gap' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
+
+    # Plot filament separation
     average_filament_separation, sd_separation = np.mean(separation), np.std(separation)
     fig_sep, ax_sep = plt.subplots()
     ax_sep.plot(time_switch, separation, alpha=alph, linewidth=ln, markersize=mrkr)
-    ax_sep.scatter(time_switch, separation, alpha=alph, linewidth=ln, s=mrkr, marker='^',
-                   label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
+    ax_sep.scatter(time_switch, separation, alpha=alph, linewidth=ln, s=mrkr, marker='^', label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
     ax_sep.set_xlabel('Time (ps)')
     ax_sep.set_ylabel('Filament separation (A)')
     ax_sep.set_title('Filament separation')
     ax_sep.legend(fontsize=8)
-    # ax_sep.set_ylim(heightmin, heightmax)  # Uncomment if you want to set y-limits
     output_filename = analysis_name + 'fil_separation' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    ###### filament gap & # of conductive atoms
-    
+
+    # Plot filament gap & number of conductive atoms
     fig_size_gap, ax1_size_gap = plt.subplots()
-    
     color = 'tab:red'
-    average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
-    gap_max = 8.5
-    gap_min = -0.5
-    
     ax1_size_gap.set_xlabel('Time (ps)')
     ax1_size_gap.set_ylabel('Filament gap (A)', color=color)
-    ax1_size_gap.scatter(time_switch, gap, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
+    ax1_size_gap.scatter(time_switch, gap, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
     ax1_size_gap.tick_params(axis='y', labelcolor=color)
-    ax1_size_gap.set_ylim(gap_min,gap_max)
-   
-   
+    ax1_size_gap.set_ylim(-0.5, 8.5)
+
     ax2_size_gap = ax1_size_gap.twinx()
-    
-    sizemax_down = 350
-    sizemin_down = 0
-    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     color = 'tab:blue'
-    
+    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     ax2_size_gap.set_ylabel('# of vacancies in filament (A.U.)', color=color)
-    ax2_size_gap.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2_size_gap.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
     ax2_size_gap.tick_params(axis='y', labelcolor=color)
-    ax2_size_gap.set_ylim(sizemin_down,sizemax_down)
-    
+    ax2_size_gap.set_ylim(0, 350)
+
     plt.title('Gap & no. of conductive atoms in Filament')
     fig_size_gap.tight_layout()
-    ax1_size_gap.legend(loc = 'upper right', framealpha = 0.8)
-    ax2_size_gap.legend(loc = 'lower right', framealpha = 0.8)
+    ax1_size_gap.legend(loc='upper right', framealpha=0.8)
+    ax2_size_gap.legend(loc='lower right', framealpha=0.8)
     output_filename = analysis_name + 'fil_state' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    ###### filament lower
-    
+
+    # Plot filament lower part
     fig_lowfil, ax1_lowfil = plt.subplots()
-    
-    heightmax = 25
-    heightmin = 3
-    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
     color = 'tab:red'
-    
+    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
     ax1_lowfil.set_xlabel('Timestep (ps)')
     ax1_lowfil.set_ylabel('Filament length-lower end (A)', color=color)
-    ax1_lowfil.scatter(time_switch, fil_height, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
+    ax1_lowfil.scatter(time_switch, fil_height, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
     ax1_lowfil.tick_params(axis='y', labelcolor=color)
-    ax1_lowfil.set_ylim(heightmin,heightmax)
-    plt.legend(loc = 'upper right', framealpha = 0.75)
-    
-    
+    ax1_lowfil.set_ylim(3, 25)
+    plt.legend(loc='upper right', framealpha=0.75)
+
     ax2_lowfil = ax1_lowfil.twinx()
-    
-    sizemax_down = 350
-    sizemin_down = 0
-    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     color = 'tab:blue'
-    
+    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     ax2_lowfil.set_ylabel('# of vacancies in filament-lower end (A.U.)', color=color)
-    ax2_lowfil.scatter(time_switch, fil_size_down, alpha = alph, linewidth = ln, s=mrkr,  marker='^',  color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax2_lowfil.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
     ax2_lowfil.tick_params(axis='y', labelcolor=color)
-    ax2_lowfil.set_ylim(sizemin_down,sizemax_down)
-    
+    ax2_lowfil.set_ylim(0, 350)
+
     plt.title('Filament lower part near cathode')
     fig_lowfil.tight_layout()
-    plt.legend(loc = 'lower right', framealpha = 0.75)
+    plt.legend(loc='lower right', framealpha=0.75)
     output_filename = analysis_name + 'fil_lower' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    ###### filament upper
-      
-    # depthmax = 25  # Unused variable, candidate for removal
-    # depthmin = 3   # Unused variable, candidate for removal
-    
-    # sizemax_up = 700  # Unused variable, candidate for removal
-    # sizemin_up = 400  # Unused variable, candidate for removal
-       
+
+    # Plot filament upper part
     fig_upfil, ax1_upfil = plt.subplots()
-    
-    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
     color = 'tab:red'
-    
+    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
     ax1_upfil.set_xlabel('Timestep (ps)')
     ax1_upfil.set_ylabel('Filament length-upper end (A)', color=color)
-    ax1_upfil.scatter(time_switch, fil_depth, alpha = alph, linewidth = ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
+    ax1_upfil.scatter(time_switch, fil_depth, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
     ax1_upfil.tick_params(axis='y', labelcolor=color)
-    plt.legend(loc = 'upper right', framealpha = 0.75)
-#    ax1_upfil.set_ylim(heightmin,heightmax)
-    
-    
-    ax2_upfil = ax1_upfil.twinx()
-    
+    plt.legend(loc='upper right', framealpha=0.75)
 
-    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
+    ax2_upfil = ax1_upfil.twinx()
     color = 'tab:blue'
-    
+    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
     ax2_upfil.set_ylabel('# of vacancies in filament-upper end (A.U.)', color=color)
-    ax2_upfil.scatter(time_switch, fil_size_up, alpha = alph, linewidth = ln, s=mrkr,  marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    ax2_upfil.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
     ax2_upfil.tick_params(axis='y', labelcolor=color)
-#    ax2_upfil.set_ylim(sizemin_down,sizemax_down)
-    
+
     plt.title('Filament upper part near anode')
     fig_upfil.tight_layout()
-    plt.legend(loc = 'lower right', framealpha = 0.75)
+    plt.legend(loc='lower right', framealpha=0.75)
     output_filename = analysis_name + 'upper' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    ###############
-    
-    # heightmax = 25  # Unused variable, candidate for removal
-    # heightmin = 3   # Unused variable, candidate for removal
-    
+
+    # Plot filament height (lower end)
     average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
     fig_height, ax_height = plt.subplots()
     ax_height.scatter(time_switch, fil_height, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
@@ -1214,18 +1292,14 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     ax_height.set_ylabel('Filament length-lower end (A)')
     ax_height.set_title('Filament length-lower end')
     ax_height.legend()
-    ax_height.set_ylim(heightmin, heightmax)
+    ax_height.set_ylim(3, 25)
     output_filename = analysis_name + 'fil_height' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    
-    # depthmax = 25  # Unused variable, candidate for removal
-    # depthmin = 3   # Unused variable, candidate for removal
-    
+
+    # Plot filament depth (upper end)
     average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
     fig_depth, ax_depth = plt.subplots()
     ax_depth.scatter(time_switch, fil_depth, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
@@ -1233,52 +1307,42 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
     ax_depth.set_ylabel('Filament length-upper end (A)')
     ax_depth.set_title('Filament length-upper end')
     ax_depth.legend()
-    # ax_depth.set_ylim(depthmin, depthmax)
     output_filename = analysis_name + 'fil_depth' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
 
-    ###### filament size   
-    # sizemax_up = 700  # Unused variable, candidate for removal
-    # sizemin_up = 400  # Unused variable, candidate for removal
-    
+    # Plot filament size (upper end)
     average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
     fig_size_up, ax_size_up = plt.subplots()
-    ax_size_up.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr,
-                       label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
+    ax_size_up.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
     ax_size_up.set_xlabel('Timestep (ps)')
     ax_size_up.set_ylabel('# of vacancies in filament-upper end (A.U.)')
     ax_size_up.set_title('# of vacancies in filament-upper end')
-    # ax_size_up.set_ylim(sizemin_up, sizemax_up)
     ax_size_up.legend()
     output_filename = analysis_name + 'fil_size_up' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    
-    
-    # sizemax_down = 350  # Unused variable, candidate for removal
-    # sizemin_down = 0    # Unused variable, candidate for removal
-    
+
+    # Plot filament size (lower end)
     average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
     fig_size_down, ax_size_down = plt.subplots()
-    ax_size_down.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr,
-                        label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
+    ax_size_down.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
     ax_size_down.set_xlabel('Timestep (ps)')
     ax_size_down.set_ylabel('# of vacancies in filament-lower end (A.U.)')
     ax_size_down.set_title('# of vacancies in filament-lower end (A.U.)')
-    ax_size_down.set_ylim(sizemin_down, sizemax_down)
+    ax_size_down.set_ylim(0, 350)
     ax_size_down.legend()
     output_filename = analysis_name + 'fil_size_down' + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename)
     plt.savefig(savepath)
     plt.close()
-    #    plt.scatter(rdf[-1,:,0], rdf[-1,:,1])
 
+    # Return all figure objects for further use if needed
     return {
         "connection": fig_conn,
         "gap": fig_gap,
@@ -1290,7 +1354,7 @@ def track_filament_evolution(file_list, analysis_name,time_step,dump_interval_st
         "filament_depth": fig_depth,
         "filament_size_up": fig_size_up,
         "filament_size_down": fig_size_down
-    }  # Return the figure objects for further use if needed
+    }
 
 
 
