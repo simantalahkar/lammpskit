@@ -153,18 +153,54 @@ def main_analysis(filename: str, save_plot: bool = False, plot_path: Optional[st
 #--------------------------------------------------------------------------------
 
 COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
+# =========================
+# Structure Info Reading Function (Restored and Refactored)
+# =========================
+def read_structure_info(filepath: str) -> tuple[int, int, float, float, float, float, float, float]:
+    """
+    Reads the structure file and returns the timestep, total number of atoms, and the box dimensions.
 
-def read_structure_info(filepath):
-    """Reads the structure file and returns the 
-    timestep, total number of atoms, and the box dimensions."""
+    Parameters
+    ----------
+    filepath : str
+        Path to the structure file.
+
+    Returns
+    -------
+    tuple
+        (timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi)
+        timestep : int
+            Simulation timestep.
+        total_atoms : int
+            Total number of atoms in the simulation.
+        xlo, xhi : float
+            Lower and upper bounds of the simulation box in x.
+        ylo, yhi : float
+            Lower and upper bounds of the simulation box in y.
+        zlo, zhi : float
+            Lower and upper bounds of the simulation box in z.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file does not exist.
+    EOFError
+        If expected data is missing.
+    ValueError
+        If data is malformed.
+    OSError
+        If there is an error opening the file.
+    """
     skip = 1
     try:
         with open(filepath, "r", encoding='utf-8') as f:
-            for j in range(skip):
+            # Skip header lines before timestep
+            for _ in range(skip):
                 try:
                     next(f)
                 except StopIteration:
                     raise StopIteration(f"File is empty: {filepath}")
+            # Read timestep
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for Timestep: {filepath}")
@@ -174,8 +210,9 @@ def read_structure_info(filepath):
                 timestep = int(c[0])
             except (IndexError, ValueError):
                 raise ValueError(f"Malformed timestep line in file: {filepath} (got: {line.strip()})")
-            
-            for j in range(skip):
+
+            # Skip header lines before total atoms
+            for _ in range(skip):
                 try:
                     next(f)
                 except StopIteration:
@@ -189,12 +226,14 @@ def read_structure_info(filepath):
                 total_atoms = int(c[0])
             except (IndexError, ValueError):
                 raise ValueError(f"Malformed total atoms line in file: {filepath} (got: {line.strip()})")
-        
-            for j in range(skip):
+
+            # Skip header lines before box bounds
+            for _ in range(skip):
                 try:
                     next(f)
                 except StopIteration:
                     raise StopIteration(f"Missing section for box bounds: {filepath}")
+            # Read x bounds
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for x bounds: {filepath}")
@@ -205,7 +244,8 @@ def read_structure_info(filepath):
                 xhi = float(c[1])
             except (IndexError, ValueError):
                 raise ValueError(f"Malformed x bounds line in file: {filepath} (got: {line.strip()})")
-            
+
+            # Read y bounds
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for y bounds: {filepath}")
@@ -216,7 +256,8 @@ def read_structure_info(filepath):
                 yhi = float(c[1])
             except (IndexError, ValueError):
                 raise ValueError(f"Malformed y bounds line in file: {filepath} (got: {line.strip()})")
-            
+
+            # Read z bounds
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for z bounds: {filepath}")
@@ -232,32 +273,116 @@ def read_structure_info(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
     except OSError as e:
         raise OSError(f"Error opening file {filepath}: {e}")
+#...existing code...
 
-def read_coordinates(file_list, skip_rows, columns_to_read):        ## Calls read_structure_info(...)
-    """Reads the structure files and returns the 
-    simulation cell parameters along with coordinates 
-    and timestep array."""
-    
+def read_coordinates(
+    file_list: list[str],
+    skip_rows: int,
+    columns_to_read: tuple[int, ...]
+) -> tuple[np.ndarray, np.ndarray, int, float, float, float, float, float, float]:
+    """
+    Reads multiple LAMMPS structure files and extracts simulation cell parameters, coordinates, and timesteps.
+
+    Parameters
+    ----------
+    file_list : list of str
+        List of file paths to structure files.
+    skip_rows : int
+        Number of header rows to skip before atomic coordinates.
+    columns_to_read : tuple of int
+        Indices of columns to read from each file.
+
+    Returns
+    -------
+    tuple
+        (coordinates, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi)
+        coordinates : np.ndarray
+            Array of atomic coordinates for all files.
+        timestep_arr : np.ndarray
+            Array of timesteps for all files.
+        total_atoms : int
+            Number of atoms (should be the same for all files).
+        xlo, xhi, ylo, yhi, zlo, zhi : float
+            Simulation box bounds (should be the same for all files).
+
+    Raises
+    ------
+    ValueError
+        If file_list is empty or atomic data is malformed.
+    EOFError
+        If a file has fewer atom lines than expected.
+    """
     print(file_list)
     if not file_list:
         raise ValueError("file_list is empty. No files to process.")
-    timestep_arr = []
-    coordinates = []
+    timestep_arr: list[int] = []
+    coordinates: list[np.ndarray] = []
     for filepath in file_list:
-        timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_structure_info(filepath)       ## All these values are expected to be the same other than the timestep for this analysis
+        # Extract simulation parameters from each file
+        timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_structure_info(filepath)
         timestep_arr.append(timestep)
         try:
-            coords = np.loadtxt(filepath, delimiter=' ', comments='#', skiprows=skip_rows, max_rows=total_atoms, usecols=columns_to_read)
+            # Read atomic coordinates
+            coords = np.loadtxt(
+                filepath,
+                delimiter=' ',
+                comments='#',
+                skiprows=skip_rows,
+                max_rows=total_atoms,
+                usecols=columns_to_read
+            )
         except ValueError as e:
-            raise ValueError(f"Column index out of range or Non-float atomic data in file: {filepath} (error: {e})\n (column indices provided to read = {columns_to_read})")
+            raise ValueError(
+                f"Column index out of range or Non-float atomic data in file: {filepath} (error: {e})\n (column indices provided to read = {columns_to_read})"
+            )
         if coords.shape[0] != total_atoms:
             raise EOFError(f"File {filepath} has fewer atom lines ({coords.shape[0]}) than expected ({total_atoms})")
         coordinates.append(coords)
-    return np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
+    # Return arrays and simulation parameters
+    return (
+        np.array(coordinates),
+        np.array(timestep_arr),
+        total_atoms,
+        xlo, xhi, ylo, yhi, zlo, zhi
+    )
 
-def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
-    """Reads the displacement data from the binwise averaged output data file 
-    and returns the displacement data for the specified loops."""
+
+def read_displacement_data(
+    filepath: str,
+    loop_start: int,
+    loop_end: int,
+    repeat_count: int = 0
+) -> list[np.ndarray]:
+    """
+    Reads binwise averaged displacement data from a file and returns data for specified loops.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the binwise averaged output data file.
+    loop_start : int
+        Starting loop index (inclusive).
+    loop_end : int
+        Ending loop index (inclusive).
+    repeat_count : int, optional
+        Number of times the first timestep is repeated in the data file (default: 0).
+
+    Returns
+    -------
+    thermo : list of np.ndarray
+        List of displacement data arrays for each loop.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file does not exist.
+    ValueError
+        If loop_start > loop_end or column index is out of range.
+    EOFError
+        If expected data is missing or malformed.
+    TypeError
+        If Nchunks line is malformed.
+    """
     print(filepath)
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
@@ -266,145 +391,169 @@ def read_displacement_data(filepath, loop_start, loop_end, repeat_count=0):
     try:
         tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
     except ValueError:
-        raise TypeError("Malformed Nchunks line in file: {filepath}")
-    
-    #print(tmp)
+        raise TypeError(f"Malformed Nchunks line in file: {filepath}")
+
     try:
-        Nchunks = tmp[1].astype(int)
+        Nchunks = int(tmp[1])
     except (IndexError, ValueError) as e:
         if isinstance(e, IndexError):
             raise EOFError(f"Missing Nchunks line in file: {filepath}") from e
         elif isinstance(e, ValueError):
-            raise TypeError("Malformed Nchunks line in file: {filepath}") from e
+            raise TypeError(f"Malformed Nchunks line in file: {filepath}") from e
 
-    
-    #print(Nchunks,loop_start,loop_end) 
-    thermo = []
-    for n in range(loop_start,loop_end+1):
-      #step_time.append([n*DUMP_INTERVAL_STEPS,n*DUMP_INTERVAL_STEPS*TIME_STEP])
-      #print(Nchunks,loop_start,loop_end,n) 
+    thermo: list[np.ndarray] = []
+    for n in range(loop_start, loop_end + 1):
         try:
-            chunk = np.loadtxt(filepath, comments='#', skiprows=3 + 1 + (n - loop_start) * (Nchunks + 4), max_rows=Nchunks)
+            chunk = np.loadtxt(
+                filepath,
+                comments='#',
+                skiprows=3 + 1 + (n - loop_start) * (Nchunks + 4),
+                max_rows=Nchunks
+            )
         except ValueError:
             raise EOFError(f"Missing or malformed chunk data for loop {n} in file: {filepath}")
         if chunk.shape[0] != Nchunks:
             raise EOFError(f"Not enough data for chunk {n} in file: {filepath}")
         thermo.append(chunk)
-#      print(n)
-      #if n == 0:
-        #print(np.shape(thermo),'\n',thermo[-1])   
-    #print(np.shape(thermo),'\n',thermo[-1]) 
     return thermo
-    #step_time = np.array(step_time)
     
 
-def plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=os.getcwd(), **kwargs):  
-    """Plots the cases with the given x and y arrays, 
-    labels, and saves the figure.""" 
+def plot_multiple_cases(
+    x_arr: np.ndarray,
+    y_arr: np.ndarray,
+    labels: list,
+    xlabel: str,
+    ylabel: str,
+    output_filename: str,
+    xsize: float,
+    ysize: float,
+    output_dir: str = os.getcwd(),
+    **kwargs
+) -> plt.Figure:
+    """
+    Plots multiple cases with the given x and y arrays, labels, and saves the figure.
+
+    Parameters
+    ----------
+    x_arr : np.ndarray
+        Array(s) of x values for each case.
+    y_arr : np.ndarray
+        Array(s) of y values for each case.
+    labels : list
+        List of labels for each case.
+    xlabel : str
+        Label for the x-axis.
+    ylabel : str
+        Label for the y-axis.
+    output_filename : str
+        Base filename for saving the figure (without extension).
+    xsize : float
+        Width of the figure in inches.
+    ysize : float
+        Height of the figure in inches.
+    output_dir : str, optional
+        Directory to save the figure. Defaults to current working directory.
+    **kwargs
+        Additional keyword arguments for customizing the plot (e.g., axis limits, marker style).
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure object for further use if needed.
+    """
     nrows = 1
     ncolumns = 1
-    xsize=1.6
-    ysize=3.2
+    xsize = 1.6
+    ysize = 3.2
     print('before subplots')
     plt.ioff()
-    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(xsize,ysize))
+    fig, axes = plt.subplots(nrows, ncolumns, squeeze=False, constrained_layout=False, figsize=(xsize, ysize))
     print('before axes flatten')
-    axes=axes.flatten()
+    axes = axes.flatten()
     print('before tight layout')
     fig.tight_layout()
     #plt.rcParams['xtick.labelsize'] = 6
     #plt.rcParams['ytick.labelsize'] = 6
-    #print(axes)
-    colorlist = ['b', 'r', 'g','k']
-    linestylelist = ['--', '-.', ':','-']
+    colorlist = ['b', 'r', 'g', 'k']
+    linestylelist = ['--', '-.', ':', '-']
     markerlist = ['o', '^', 's', '*']
     print('reached now plotting point')
-    if x_arr.ndim >1 and y_arr.ndim >1:
+
+    # Plot each case depending on array dimensions
+    if x_arr.ndim > 1 and y_arr.ndim > 1:
         for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr[i], y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim >1 and y_arr.ndim ==1:
+            j = kwargs.get('markerindex', i)
+            axes[0].plot(x_arr[i], y_arr[i], label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
+    elif x_arr.ndim > 1 and y_arr.ndim == 1:
         for i in range(len(x_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr[i], y_arr, label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
-    elif x_arr.ndim ==1 and y_arr.ndim >1:
+            j = kwargs.get('markerindex', i)
+            axes[0].plot(x_arr[i], y_arr, label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
+    elif x_arr.ndim == 1 and y_arr.ndim > 1:
         for i in range(len(y_arr)):
-            if 'markerindex' in kwargs:
-                j = kwargs['markerindex']
-            else:
-                j = i
-            axes[0].plot(x_arr, y_arr[i], label=labels[i], color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+            j = kwargs.get('markerindex', i)
+            axes[0].plot(x_arr, y_arr[i], label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
     else:
-        if 'markerindex' in kwargs:
-            j = kwargs['markerindex']
-        else:
-            j = 0        
-        axes[0].plot(x_arr, y_arr, label=labels, color = colorlist[j], linestyle=linestylelist[j], marker = markerlist[j], markersize=5, linewidth = 1.2, alpha = 0.75)
+        j = kwargs.get('markerindex', 0)
+        axes[0].plot(x_arr, y_arr, label=labels, color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
+
+    # Optionally plot atom bin counts and print averages
     if 'ncount' in kwargs:
         atoms_per_bin_count = kwargs['ncount']
         for i in range(len(x_arr)):
-            Ncount_temp = atoms_per_bin_count[i,atoms_per_bin_count[i]>0]
-            x_arr_temp = x_arr[i,atoms_per_bin_count[i]>0]
-            average = np.sum(x_arr[i]*atoms_per_bin_count[i])/np.sum(atoms_per_bin_count[i])
+            Ncount_temp = atoms_per_bin_count[i, atoms_per_bin_count[i] > 0]
+            x_arr_temp = x_arr[i, atoms_per_bin_count[i] > 0]
+            average = np.sum(x_arr[i] * atoms_per_bin_count[i]) / np.sum(atoms_per_bin_count[i])
             print(f'\n The average for {labels[i]} in {output_filename} is {average} \n')
-                      
 
+    # Axis limits and lines
     if 'xlimit' in kwargs:
         print('x axis is limited')
         axes[0].set_xlim(kwargs['xlimit'])
     if 'ylimit' in kwargs:
         print('y axis is limited')
         axes[0].set_ylim(kwargs['ylimit'])
-
     if 'xlimithi' in kwargs:
         print('x hi axis is limited')
         axes[0].set_xlim(right=kwargs['xlimithi'])
     if 'ylimithi' in kwargs:
         print('y hi axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimithi']) 
+        axes[0].set_ylim(top=kwargs['ylimithi'])
     if 'xlimitlo' in kwargs:
         print('x lo axis is limited')
         axes[0].set_xlim(left=kwargs['xlimitlo'])
     if 'ylimitlo' in kwargs:
         print('y lo axis is limited')
-        axes[0].set_ylim(bottom=kwargs['ylimitlo'])        
+        axes[0].set_ylim(bottom=kwargs['ylimitlo'])
 
     if 'xaxis' in kwargs:
         axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='y=0')
     if 'yaxis' in kwargs:
         axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='x=0')
+
     print('reached axes labelling point')
     axes[0].set_ylabel(ylabel, fontsize=8)
     axes[0].legend(loc='upper center', fontsize=7)
-    axes[0].adjustable='datalim'
+    axes[0].adjustable = 'datalim'
     axes[0].set_aspect('auto')
     axes[0].tick_params(axis='both', which='major', labelsize=7)
     axes[0].set_aspect('auto')
-    #axes.set_xticklabels(ax.get_xticks(), fontsize=6)
     axes[0].set_xlabel(xlabel, fontsize=8)
-#    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
+    #plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
 
-      
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
+    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize=8)
     #plt.show()
-    
+
     plt.ioff()
     print('reached file saving point')
     output_filename_pdf = output_filename + '.pdf'
     os.makedirs(output_dir, exist_ok=True)
     savepath = os.path.join(output_dir, output_filename_pdf)
-    fig.savefig(savepath, bbox_inches='tight', format='pdf')#,dpi=300)#, )
+    fig.savefig(savepath, bbox_inches='tight', format='pdf')
     output_filename_svg = output_filename + '.svg'
     savepath = os.path.join(output_dir, output_filename_svg)
     fig.savefig(savepath, bbox_inches='tight', format='svg')
-    plt.close()  
-    return fig  # Return the figure object for further use if needed
+    plt.close()
+    return fig
  
 def plot_atomic_distribution(file_list,labels,skip_rows,z_bins,analysis_name,output_dir=os.getcwd(),**kwargs):     ## Calls read_coordinates(...) and plot_multiple_cases(...)
     """Reads the coordinates from the file_list, calculates the atomic distributions,
