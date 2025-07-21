@@ -11,6 +11,17 @@ from ovito.io import import_file
 import ovito.modifiers as om
 from typing import Any, Dict, List, Optional
 
+# Import configuration settings
+from ..config import (
+    DEFAULT_TIMESERIES_CONFIG, 
+    DEFAULT_PLOT_CONFIG,
+    TimeSeriesConfig,
+    PlotConfig,
+    process_displacement_timeseries_data,
+    plot_timeseries_grid,
+    save_figure
+)
+
 plt.rcParams['axes.titlesize'] = 8
 plt.rcParams['axes.labelsize'] = 8
 plt.rcParams['xtick.labelsize'] = 8
@@ -1358,70 +1369,108 @@ def track_filament_evolution(
 
 
 
-def plot_displacement_timeseries(file_list,datatype,dataindex, Nchunks, loop_start, loop_end, output_dir=os.getcwd()):     ## Calls read_displacement_data(...)
-    """Reads the averaged thermodynamic output data for each case 
-    from the correspinging files in a file_list, and plots the timeseries displacements 
-    (one of the output data types selected by the dataindex as the 4th index) averaged 
-    in groups (as the 3rd index) according to z-position of the atoms in the model
-    for the data row indices (1st index) corresponding to each case read from a file."""
-    all_thermo_data = []
-    element_labels = []
+def plot_displacement_timeseries(
+    file_list: list[str],
+    datatype: str,
+    dataindex: int,
+    Nchunks: int,
+    loop_start: int,
+    loop_end: int,
+    output_dir: str = os.getcwd(),
+    timeseries_config: Optional['TimeSeriesConfig'] = None,
+    plot_config: Optional['PlotConfig'] = None
+) -> dict[str, plt.Figure]:
+    """
+    Create time series plots showing displacement data across spatial bins and files.
+    
+    This function generates a grid of subplots where each row represents a spatial bin
+    and each column represents a different file/element. The configuration parameters
+    control the appearance and layout of the plots.
+
+    Parameters
+    ----------
+    file_list : list of str
+        List of file paths to thermodynamic output data files.
+    datatype : str
+        Type of data being plotted (used in labels and filenames).
+    dataindex : int
+        Index of the data type to plot (4th dimension index).
+        Corresponds to: 0='abs total disp', 1='density - mass', 2='temp (K)',
+        3='z disp (A)', 4='lateral disp (A)', 5='outward disp vector (A)'.
+    Nchunks : int
+        Number of spatial bins/chunks along z-axis.
+    loop_start : int
+        Starting loop index (inclusive).
+    loop_end : int
+        Ending loop index (inclusive).
+    output_dir : str, optional
+        Directory to save output figures. Defaults to current working directory.
+    timeseries_config : TimeSeriesConfig, optional
+        Configuration for time series plotting parameters. Uses defaults if None.
+    plot_config : PlotConfig, optional
+        Configuration for plot appearance and styling. Uses defaults if None.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the figure object with key "displacement_timeseries".
+
+    Raises
+    ------
+    FileNotFoundError
+        If any file in file_list does not exist.
+    ValueError
+        If dataindex is out of valid range or data is malformed.
+    """    # Initialize configurations with defaults if not provided
+    if timeseries_config is None:
+        timeseries_config = DEFAULT_TIMESERIES_CONFIG
+    if plot_config is None:
+        plot_config = DEFAULT_PLOT_CONFIG
+    
+    # Process displacement data using extracted function
+    all_thermo_data, element_labels, dump_steps = process_displacement_timeseries_data(
+        file_list, loop_start, loop_end, timeseries_config.time_points, read_displacement_data
+    )
+    
     print(file_list)
-    for filename in file_list:
-        element_labels.append(filename[:2])
-        all_thermo_data.append(read_displacement_data(filename, loop_start, loop_end))
-    all_thermo_data = np.array(all_thermo_data)                                 ## 1st, 2nd and 3rd indices correspond to file, timestep and bin number correspondingly
-                                                                    ## 4th index corresponds to the type of data (z, lateral displacement...)
-    #print(filename)
     print(element_labels)
     print(np.shape(all_thermo_data))
-    
-    dump_steps = np.linspace(0,loop_end-1,100)
-    print('dump_steps=',dump_steps)
-    
+    print('dump_steps=', dump_steps)
 
-    dataindexname = ['abs total disp','density - mass', 'temp (K)', 'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)']
-
+    # Setup subplot grid using configuration
     nrows = Nchunks
-    ncolumns = 4
-    fig,axes = plt.subplots(nrows,ncolumns,squeeze=False,constrained_layout=False,figsize=(ncolumns*3,nrows*0.65))
-    #axes=axes.flatten()
-    fig.tight_layout()
-    #plt.rcParams['xtick.labelsize'] = 6
-    #plt.rcParams['ytick.labelsize'] = 6
+    ncolumns = timeseries_config.ncolumns
+    figsize = timeseries_config.calculate_figsize(nrows)
+    
+    # Create the time series plot using extracted function
+    fig = plot_timeseries_grid(
+        data=all_thermo_data,
+        x_values=dump_steps,
+        element_labels=element_labels,
+        datatype=datatype,
+        data_labels=timeseries_config.data_labels,
+        dataindex=dataindex,
+        nrows=nrows,
+        ncolumns=ncolumns,
+        figsize=figsize,
+        config=plot_config
+    )
 
-    for j in range(ncolumns):
-        for i in range(nrows):
-          axes[nrows-1-i,j].plot(dump_steps, all_thermo_data[j,:,i,dataindex], label=f'{element_labels[j]} of region {i+1}', color = 'blue')
-          if  j == 0:
-            axes[nrows-1-i,j].set_ylabel(f'{datatype} \n {dataindexname[dataindex]}', fontsize=5)
-          axes[nrows-1-i,j].legend(loc='upper center', fontsize=7)
-          axes[nrows-1-i,j].adjustable='datalim'
-          axes[nrows-1-i,j].set_aspect('auto')
-          axes[nrows-1-i,j].tick_params(axis='both', which='major', labelsize=6)
-          axes[nrows-1-i,j].set_aspect('auto')
-          #axes[nrows-1-i,j].set_xticklabels(ax.get_xticks(), fontsize=6)
-          if nrows-1-i != nrows-1:
-            axes[nrows-1-i,j].set_xticklabels(())
-
-        axes[nrows-1,j].set_xlabel('Dump steps', fontsize=8)
-    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
-
-    output_filename= datatype + '-' + dataindexname[dataindex] #+'.pdf'
-        
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize = 8)
-    #plt.show()
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    fig.savefig(savepath, bbox_inches='tight', format='svg')#,dpi=300)#, )
-    plt.close()
-
+    # Generate output filename and save using extracted function
+    output_filename = f"{datatype}-{timeseries_config.data_labels[dataindex]}"
+    save_figure(
+        fig=fig,
+        output_dir=output_dir,
+        filename=output_filename,
+        config=plot_config,
+        close_after_save=True
+    )
     return {
         "displacement_timeseries": fig,
-    }  # Return the figure object for further use if needed
+    }
 
 
-def run_analysis():
+def main():
     output_dir =  os.path.join("..", "..", "output", "ecellmodel")
 
     global COLUMNS_TO_READ
@@ -1652,7 +1701,7 @@ def run_analysis():
     exit()
 
 if __name__ == "__main__":
-    run_analysis()
+    main()
 
 
 
