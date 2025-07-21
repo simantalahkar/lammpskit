@@ -122,6 +122,52 @@ class PlotConfig:
             self.defaults = PLOT_DEFAULTS.copy()
         if self.layout is None:
             self.layout = LAYOUT_DEFAULTS.copy()
+    
+    # Convenience properties for easy access to commonly used values
+    @property
+    def linewidth(self):
+        """Get default line width."""
+        return self.defaults.get('linewidth', 1.2)
+    
+    @property
+    def alpha(self):
+        """Get default alpha value."""
+        return self.defaults.get('alpha', 0.8)
+    
+    @property
+    def figsize(self):
+        """Get default figure size."""
+        return self.defaults.get('figsize', (10, 6))
+    
+    @property
+    def dpi(self):
+        """Get default DPI for saving figures."""
+        return self.defaults.get('dpi', 300)
+    
+    @property
+    def save_formats(self):
+        """Get list of save formats."""
+        return self.defaults.get('save_formats', ['png'])
+    
+    @property
+    def grid(self):
+        """Get grid setting."""
+        return self.defaults.get('grid', True)
+    
+    @property
+    def title_fontsize(self):
+        """Get title font size."""
+        return self.font_sizes.get('title', 12)
+    
+    @property
+    def label_fontsize(self):
+        """Get label font size."""
+        return self.font_sizes.get('label', 10)
+    
+    @property
+    def tick_fontsize(self):
+        """Get tick font size."""
+        return self.font_sizes.get('tick', 8)
 
 
 @dataclass
@@ -472,169 +518,11 @@ def save_figure(
     return savepath
 
 
-def process_displacement_timeseries_data(
-    file_list: List[str],
-    loop_start: int,
-    loop_end: int,
-    time_points: int = 100,
-    read_displacement_data_func=None
-) -> Tuple[List[np.ndarray], List[str], np.ndarray]:
-    """
-    Process displacement data from multiple files for time series plotting.
-    
-    Args:
-        file_list: List of file paths containing displacement data
-        loop_start: Starting timestep for data processing
-        loop_end: Ending timestep for data processing
-        time_points: Number of time points for plotting
-        read_displacement_data_func: Function to read displacement data
-        
-    Returns:
-        Tuple of (all_thermo_data, element_labels, dump_steps)
-        
-    Raises:
-        ValueError: If inputs are invalid or data processing fails
-        FileNotFoundError: If files cannot be read
-    """
-    # Validate inputs
-    if read_displacement_data_func is None:
-        raise ValueError("read_displacement_data_func must be provided")
-    
-    validate_file_list(file_list)
-    validate_loop_parameters(loop_start, loop_end)
-    
-    if not isinstance(time_points, int) or time_points <= 0:
-        raise ValueError(f"time_points must be a positive integer, got {time_points}")
-    
-    # Read and process data from all files
-    all_thermo_data = []
-    element_labels = []
-    
-    for i, filename in enumerate(file_list):
-        try:
-            # Extract element label from filename - more robust extraction
-            element_label = extract_element_label_from_filename(filename)
-            element_labels.append(element_label)
-            
-            # Read displacement data with error handling
-            thermo_data = read_displacement_data_func(filename, loop_start, loop_end)
-            
-            # Validate data shape and content
-            if not thermo_data:
-                raise ValueError(f"No data read from file {filename}")
-            
-            all_thermo_data.append(thermo_data)
-            
-        except Exception as e:
-            raise ValueError(f"Failed to process file {filename} (index {i}): {str(e)}") from e
-    
-    # Convert to numpy array for easier indexing
-    try:
-        all_thermo_data = np.array(all_thermo_data)
-    except ValueError as e:
-        raise ValueError(f"Failed to convert data to numpy array. Data might have inconsistent shapes: {str(e)}") from e
-    
-    # Validate final data shape
-    if all_thermo_data.size == 0:
-        raise ValueError("No valid data was processed from any file")
-    
-    # Generate time steps for plotting
-    if loop_end < loop_start:
-        raise ValueError(f"loop_end ({loop_end}) must be >= loop_start ({loop_start})")
-    
-    dump_steps = np.linspace(loop_start, loop_end, time_points)
-    
-    return all_thermo_data, element_labels, dump_steps
+# =============================================================================
+# DEFAULT CONFIGURATION INSTANCES
+# =============================================================================
 
-
-def extract_element_label_from_filename(filename: str) -> str:
-    """
-    Extract element label from filename using robust parsing.
-    
-    Args:
-        filename: Full file path
-        
-    Returns:
-        Element label extracted from filename
-    """
-    import os
-    
-    # Get basename without path
-    basename = os.path.basename(filename)
-    
-    # Try different extraction strategies
-    # Strategy 1: First 2 characters of basename
-    if len(basename) >= 2:
-        return basename[:2]
-    
-    # Strategy 2: First character if only 1 available
-    if len(basename) >= 1:
-        return basename[:1]
-    
-    # Fallback: use "??" if no characters available
-    return "??"
-
-
-def plot_timeseries_grid(
-    data: np.ndarray,
-    x_values: np.ndarray,
-    element_labels: List[str],
-    datatype: str,
-    data_labels: List[str],
-    dataindex: int,
-    nrows: int,
-    ncolumns: int,
-    figsize: Tuple[float, float],
-    config: PlotConfig = None
-) -> Any:
-    """
-    Create a grid of time series plots.
-    
-    Args:
-        data: 4D array [file_index, timestep, bin_number, data_type]
-        x_values: Array of x-axis values (time steps)
-        element_labels: Labels for each file/element
-        datatype: Type of data being plotted (for labeling)
-        data_labels: Labels for different data types
-        dataindex: Index into data array specifying which data type to plot
-        nrows: Number of rows in subplot grid
-        ncolumns: Number of columns in subplot grid
-        figsize: Figure size as (width, height)
-        config: Plot configuration to use
-        
-    Returns:
-        Matplotlib figure object
-    """
-    if config is None:
-        config = DEFAULT_PLOT_CONFIG
-    
-    # Create figure and axes
-    fig, axes = create_figure_with_subplots(nrows, ncolumns, figsize, config)
-    
-    # Plot data for each file (column) and each spatial bin (row)
-    for j in range(ncolumns):
-        for i in range(nrows):
-            # Plot timeseries for this file and spatial bin
-            # Note: plotting from bottom to top (nrows-1-i) for spatial ordering
-            axes[nrows-1-i, j].plot(
-                x_values,
-                data[j, :, i, dataindex],
-                label=f'{element_labels[j]} of region {i+1}',
-                color='blue'
-            )
-            
-            # Configure subplot appearance
-            ylabel = f'{datatype} \n {data_labels[dataindex]}' if j == 0 else None
-            xlabel = 'Dump steps' if nrows-1-i == nrows-1 else None
-            hide_xticks = nrows-1-i != nrows-1
-            
-            configure_subplot_appearance(
-                axes[nrows-1-i, j],
-                config=config,
-                hide_xticks=hide_xticks,
-                ylabel=ylabel,
-                xlabel=xlabel,
-                show_legend=True
-            )
-    
-    return fig
+# Create default configuration instances for easy import and use
+DEFAULT_PLOT_CONFIG = PlotConfig()
+DEFAULT_TIMESERIES_CONFIG = TimeSeriesConfig()
+DEFAULT_DATA_CONFIG = DataConfig()

@@ -15,10 +15,10 @@ from lammpskit.config import (
     validate_file_list,
     validate_loop_parameters,
     validate_chunks_parameter,
-    extract_element_label_from_filename,
-    process_displacement_timeseries_data,
     DISPLACEMENT_DATA_LABELS
 )
+from lammpskit.ecellmodel.data_processing import extract_element_label_from_filename
+from lammpskit.ecellmodel.plotting import process_displacement_timeseries_data
 
 
 class TestValidateDataindex:

@@ -2,8 +2,7 @@ import os
 import tempfile
 import numpy as np
 import pytest
-from lammpskit.ecellmodel.filament_layer_analysis import read_structure_info
-from lammpskit.ecellmodel.filament_layer_analysis import read_coordinates
+from lammpskit.io import read_structure_info, read_coordinates
 from lammpskit.ecellmodel.filament_layer_analysis import read_displacement_data
 
 ####################

@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-from lammpskit.ecellmodel.filament_layer_analysis import plot_multiple_cases
+from lammpskit.plotting import plot_multiple_cases
 
 import pytest
 

@@ -2,24 +2,31 @@
 
 import os
 import glob
-import re
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from ovito.io import import_file
 import ovito.modifiers as om
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-# Import configuration settings
+# Import general utilities
+from ..io import read_coordinates
+from ..plotting import plot_multiple_cases
+
+# Import configuration settings and general utilities
 from ..config import (
     DEFAULT_TIMESERIES_CONFIG, 
     DEFAULT_PLOT_CONFIG,
     TimeSeriesConfig,
     PlotConfig,
-    process_displacement_timeseries_data,
-    plot_timeseries_grid,
     save_figure
+)
+
+# Import ecellmodel-specific functions (imported locally where needed)
+from .plotting import (
+    process_displacement_timeseries_data,
+    plot_timeseries_grid
 )
 
 plt.rcParams['axes.titlesize'] = 8
@@ -47,316 +54,37 @@ Refactored for modularity, maintainability, and Sphinx documentation.
 # =========================
 # Global Configuration (To be centralized)
 # =========================
-# TODO: Identify and move global settings here for future modularization
-# Example:
-# DEFAULT_PLOT_STYLE = 'ggplot'
-# DATA_DIR = 'data/'
+
 
 # =========================
 # Data Reading Functions
 # =========================
 
-
-def read_lammps_data(filename: str) -> Dict[str, Any]:
-    """
-    Reads a LAMMPS data file and returns structured data.
-
-    Parameters
-    ----------
-    filename : str
-        Path to the LAMMPS data file.
-
-    Returns
-    -------
-    data : dict
-        Parsed data from the file.
-    """
-    # TODO: Implement actual reading logic based on file format
-    # Example: parse columns, handle headers, etc.
-    data = {}
-    # ...parsing logic...
-    return data
-
 # =========================
 # Analysis Functions
 # =========================
-def analyze_filament_layers(data: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """
-    Analyzes filament layers from structured data.
-
-    Parameters
-    ----------
-    data : dict
-        Structured data from LAMMPS output.
-
-    Returns
-    -------
-    layers : list of dict
-        Analysis results for each filament layer.
-    """
-    layers = []
-    # TODO: Implement analysis logic
-    # Example: identify layers, compute properties
-    return layers
 
 # =========================
 # Plotting Functions
 # =========================
-def plot_filament_layers(layers: List[Dict[str, Any]], save_path: Optional[str] = None) -> None:
-    """
-    Plots filament layers using matplotlib.
-
-    Parameters
-    ----------
-    layers : list of dict
-        Analysis results for each filament layer.
-    save_path : str, optional
-        If provided, saves the plot to this path.
-    """
-    fig, ax = plt.subplots()
-    # TODO: Implement plotting logic
-    # Example: plot layer positions, colors, etc.
-    if save_path:
-        plt.savefig(save_path)
-    else:
-        plt.show()
 
 # =========================
 # Orchestration Function
 # =========================
-def main_analysis(filename: str, save_plot: bool = False, plot_path: Optional[str] = None) -> None:
-    """
-    Orchestrates the analysis workflow for filament layers.
-
-    Parameters
-    ----------
-    filename : str
-        Path to the LAMMPS data file.
-    save_plot : bool, optional
-        Whether to save the plot to disk.
-    plot_path : str, optional
-        Path to save the plot if save_plot is True.
-    """
-    # =========================
-    # Main orchestration logic for analysis workflow
-    # =========================
-    # Read data
-    data = read_lammps_data(filename)
-    # Analyze layers
-    layers = analyze_filament_layers(data)
-    # Plot results
-    if save_plot:
-        plot_filament_layers(layers, save_path=plot_path)
-    else:
-        plot_filament_layers(layers)
-    # TODO: Expand orchestration to handle additional analysis and plotting modules in future modularization.
 
 # =========================
 # Legacy/Redundant Code (Candidates for deprecation)
 # =========================
-# TODO: Mark unused or legacy functions for removal
-# Example:
-# def old_analysis_method(...):
-#     """Deprecated: Use analyze_filament_layers instead."""
-#     pass
+
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
 
 COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
+
 # =========================
-# Structure Info Reading Function (Restored and Refactored)
+# Data Reading Functions
 # =========================
-def read_structure_info(filepath: str) -> tuple[int, int, float, float, float, float, float, float]:
-    """
-    Reads the structure file and returns the timestep, total number of atoms, and the box dimensions.
-
-    Parameters
-    ----------
-    filepath : str
-        Path to the structure file.
-
-    Returns
-    -------
-    tuple
-        (timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi)
-        timestep : int
-            Simulation timestep.
-        total_atoms : int
-            Total number of atoms in the simulation.
-        xlo, xhi : float
-            Lower and upper bounds of the simulation box in x.
-        ylo, yhi : float
-            Lower and upper bounds of the simulation box in y.
-        zlo, zhi : float
-            Lower and upper bounds of the simulation box in z.
-
-    Raises
-    ------
-    FileNotFoundError
-        If the file does not exist.
-    EOFError
-        If expected data is missing.
-    ValueError
-        If data is malformed.
-    OSError
-        If there is an error opening the file.
-    """
-    skip = 1
-    try:
-        with open(filepath, "r", encoding='utf-8') as f:
-            # Skip header lines before timestep
-            for _ in range(skip):
-                try:
-                    next(f)
-                except StopIteration:
-                    raise StopIteration(f"File is empty: {filepath}")
-            # Read timestep
-            line = f.readline()
-            if line == "":
-                raise EOFError(f"Missing data for Timestep: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
-            c = [ele for ele in c0 if ele.strip()]
-            try:
-                timestep = int(c[0])
-            except (IndexError, ValueError):
-                raise ValueError(f"Malformed timestep line in file: {filepath} (got: {line.strip()})")
-
-            # Skip header lines before total atoms
-            for _ in range(skip):
-                try:
-                    next(f)
-                except StopIteration:
-                    raise StopIteration(f"Missing section for total atoms: {filepath}")
-            line = f.readline()
-            if line == "":
-                raise EOFError(f"Missing data for total atoms: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
-            c = [ele for ele in c0 if ele.strip()]
-            try:
-                total_atoms = int(c[0])
-            except (IndexError, ValueError):
-                raise ValueError(f"Malformed total atoms line in file: {filepath} (got: {line.strip()})")
-
-            # Skip header lines before box bounds
-            for _ in range(skip):
-                try:
-                    next(f)
-                except StopIteration:
-                    raise StopIteration(f"Missing section for box bounds: {filepath}")
-            # Read x bounds
-            line = f.readline()
-            if line == "":
-                raise EOFError(f"Missing data for x bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
-            c = [ele for ele in c0 if ele.strip()]
-            try:
-                xlo = float(c[0])
-                xhi = float(c[1])
-            except (IndexError, ValueError):
-                raise ValueError(f"Malformed x bounds line in file: {filepath} (got: {line.strip()})")
-
-            # Read y bounds
-            line = f.readline()
-            if line == "":
-                raise EOFError(f"Missing data for y bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
-            c = [ele for ele in c0 if ele.strip()]
-            try:
-                ylo = float(c[0])
-                yhi = float(c[1])
-            except (IndexError, ValueError):
-                raise ValueError(f"Malformed y bounds line in file: {filepath} (got: {line.strip()})")
-
-            # Read z bounds
-            line = f.readline()
-            if line == "":
-                raise EOFError(f"Missing data for z bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
-            c = [ele for ele in c0 if ele.strip()]
-            try:
-                zlo = float(c[0])
-                zhi = float(c[1])
-            except (IndexError, ValueError):
-                raise ValueError(f"Malformed z bounds line in file: {filepath} (got: {line.strip()})")
-        return timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi
-    except FileNotFoundError:
-        raise FileNotFoundError(f"File not found: {filepath}")
-    except OSError as e:
-        raise OSError(f"Error opening file {filepath}: {e}")
-
-
-def read_coordinates(
-    file_list: list[str],
-    skip_rows: int,
-    columns_to_read: tuple[int, ...]
-) -> tuple[np.ndarray, np.ndarray, int, float, float, float, float, float, float]:
-    """
-    Reads multiple LAMMPS structure files and extracts simulation cell parameters, coordinates, and timesteps.
-
-    Parameters
-    ----------
-    file_list : list of str
-        List of file paths to structure files.
-    skip_rows : int
-        Number of header rows to skip before atomic coordinates.
-    columns_to_read : tuple of int
-        Indices of columns to read from each file.
-
-    Returns
-    -------
-    tuple
-        (coordinates, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi)
-        coordinates : np.ndarray
-            Array of atomic coordinates for all files.
-        timestep_arr : np.ndarray
-            Array of timesteps for all files.
-        total_atoms : int
-            Number of atoms (should be the same for all files).
-        xlo, xhi, ylo, yhi, zlo, zhi : float
-            Simulation box bounds (should be the same for all files).
-
-    Raises
-    ------
-    ValueError
-        If file_list is empty or atomic data is malformed.
-    EOFError
-        If a file has fewer atom lines than expected.
-    """
-    print(file_list)
-    if not file_list:
-        raise ValueError("file_list is empty. No files to process.")
-    timestep_arr: list[int] = []
-    coordinates: list[np.ndarray] = []
-    for filepath in file_list:
-        # Extract simulation parameters from each file
-        timestep, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_structure_info(filepath)
-        timestep_arr.append(timestep)
-        try:
-            # Read atomic coordinates
-            coords = np.loadtxt(
-                filepath,
-                delimiter=' ',
-                comments='#',
-                skiprows=skip_rows,
-                max_rows=total_atoms,
-                usecols=columns_to_read
-            )
-        except ValueError as e:
-            raise ValueError(
-                f"Column index out of range or Non-float atomic data in file: {filepath} (error: {e})\n (column indices provided to read = {columns_to_read})"
-            )
-        if coords.shape[0] != total_atoms:
-            raise EOFError(f"File {filepath} has fewer atom lines ({coords.shape[0]}) than expected ({total_atoms})")
-        coordinates.append(coords)
-    # Return arrays and simulation parameters
-    return (
-        np.array(coordinates),
-        np.array(timestep_arr),
-        total_atoms,
-        xlo, xhi, ylo, yhi, zlo, zhi
-    )
-
 
 def read_displacement_data(
     filepath: str,
@@ -427,145 +155,11 @@ def read_displacement_data(
             raise EOFError(f"Not enough data for chunk {n} in file: {filepath}")
         thermo.append(chunk)
     return thermo
-    
 
-def plot_multiple_cases(
-    x_arr: np.ndarray,
-    y_arr: np.ndarray,
-    labels: list,
-    xlabel: str,
-    ylabel: str,
-    output_filename: str,
-    xsize: float,
-    ysize: float,
-    output_dir: str = os.getcwd(),
-    **kwargs
-) -> plt.Figure:
-    """
-    Plots multiple cases with the given x and y arrays, labels, and saves the figure.
+# =========================
+# Plotting Functions  
+# =========================
 
-    Parameters
-    ----------
-    x_arr : np.ndarray
-        Array(s) of x values for each case.
-    y_arr : np.ndarray
-        Array(s) of y values for each case.
-    labels : list
-        List of labels for each case.
-    xlabel : str
-        Label for the x-axis.
-    ylabel : str
-        Label for the y-axis.
-    output_filename : str
-        Base filename for saving the figure (without extension).
-    xsize : float
-        Width of the figure in inches.
-    ysize : float
-        Height of the figure in inches.
-    output_dir : str, optional
-        Directory to save the figure. Defaults to current working directory.
-    **kwargs
-        Additional keyword arguments for customizing the plot (e.g., axis limits, marker style).
-
-    Returns
-    -------
-    fig : matplotlib.figure.Figure
-        The figure object for further use if needed.
-    """
-    nrows = 1
-    ncolumns = 1
-    xsize = 1.6
-    ysize = 3.2
-    print('before subplots')
-    plt.ioff()
-    fig, axes = plt.subplots(nrows, ncolumns, squeeze=False, constrained_layout=False, figsize=(xsize, ysize))
-    print('before axes flatten')
-    axes = axes.flatten()
-    print('before tight layout')
-    fig.tight_layout()
-    #plt.rcParams['xtick.labelsize'] = 6
-    #plt.rcParams['ytick.labelsize'] = 6
-    colorlist = ['b', 'r', 'g', 'k']
-    linestylelist = ['--', '-.', ':', '-']
-    markerlist = ['o', '^', 's', '*']
-    print('reached now plotting point')
-
-    # Plot each case depending on array dimensions
-    if x_arr.ndim > 1 and y_arr.ndim > 1:
-        for i in range(len(x_arr)):
-            j = kwargs.get('markerindex', i)
-            axes[0].plot(x_arr[i], y_arr[i], label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
-    elif x_arr.ndim > 1 and y_arr.ndim == 1:
-        for i in range(len(x_arr)):
-            j = kwargs.get('markerindex', i)
-            axes[0].plot(x_arr[i], y_arr, label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
-    elif x_arr.ndim == 1 and y_arr.ndim > 1:
-        for i in range(len(y_arr)):
-            j = kwargs.get('markerindex', i)
-            axes[0].plot(x_arr, y_arr[i], label=labels[i], color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
-    else:
-        j = kwargs.get('markerindex', 0)
-        axes[0].plot(x_arr, y_arr, label=labels, color=colorlist[j], linestyle=linestylelist[j], marker=markerlist[j], markersize=5, linewidth=1.2, alpha=0.75)
-
-    # Optionally plot atom bin counts and print averages
-    if 'ncount' in kwargs:
-        atoms_per_bin_count = kwargs['ncount']
-        for i in range(len(x_arr)):
-            Ncount_temp = atoms_per_bin_count[i, atoms_per_bin_count[i] > 0]
-            x_arr_temp = x_arr[i, atoms_per_bin_count[i] > 0]
-            average = np.sum(x_arr[i] * atoms_per_bin_count[i]) / np.sum(atoms_per_bin_count[i])
-            print(f'\n The average for {labels[i]} in {output_filename} is {average} \n')
-
-    # Axis limits and lines
-    if 'xlimit' in kwargs:
-        print('x axis is limited')
-        axes[0].set_xlim(kwargs['xlimit'])
-    if 'ylimit' in kwargs:
-        print('y axis is limited')
-        axes[0].set_ylim(kwargs['ylimit'])
-    if 'xlimithi' in kwargs:
-        print('x hi axis is limited')
-        axes[0].set_xlim(right=kwargs['xlimithi'])
-    if 'ylimithi' in kwargs:
-        print('y hi axis is limited')
-        axes[0].set_ylim(top=kwargs['ylimithi'])
-    if 'xlimitlo' in kwargs:
-        print('x lo axis is limited')
-        axes[0].set_xlim(left=kwargs['xlimitlo'])
-    if 'ylimitlo' in kwargs:
-        print('y lo axis is limited')
-        axes[0].set_ylim(bottom=kwargs['ylimitlo'])
-
-    if 'xaxis' in kwargs:
-        axes[0].axhline(y=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='y=0')
-    if 'yaxis' in kwargs:
-        axes[0].axvline(x=0, color=colorlist[-1], linestyle=linestylelist[-1], linewidth=1, label='x=0')
-
-    print('reached axes labelling point')
-    axes[0].set_ylabel(ylabel, fontsize=8)
-    axes[0].legend(loc='upper center', fontsize=7)
-    axes[0].adjustable = 'datalim'
-    axes[0].set_aspect('auto')
-    axes[0].tick_params(axis='both', which='major', labelsize=7)
-    axes[0].set_aspect('auto')
-    axes[0].set_xlabel(xlabel, fontsize=8)
-    #plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0)
-
-    #plt.suptitle(f'{datatype} {dataindexname[dataindex]}', fontsize=8)
-    #plt.show()
-
-    plt.ioff()
-    print('reached file saving point')
-    output_filename_pdf = output_filename + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename_pdf)
-    fig.savefig(savepath, bbox_inches='tight', format='pdf')
-    output_filename_svg = output_filename + '.svg'
-    savepath = os.path.join(output_dir, output_filename_svg)
-    fig.savefig(savepath, bbox_inches='tight', format='svg')
-    plt.close()
-    return fig
- 
 def plot_atomic_distribution(
     file_list: list[str],
     labels: list[str],
@@ -601,52 +195,31 @@ def plot_atomic_distribution(
     dict
         Dictionary of figure objects for each plot type.
     """
+    from .data_processing import calculate_atomic_distributions, calculate_z_bins_setup
+    
     # Read coordinates and simulation parameters
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
-    z_bin_width = (zhi - zlo) / z_bins
-    z_bin_centers = np.linspace(zlo + z_bin_width / 2, zhi - z_bin_width / 2, z_bins)
+    z_bin_width, z_bin_centers = calculate_z_bins_setup(zlo, zhi, z_bins)
 
-    # Initialize distributions
-    oxygen_distribution: list[np.ndarray] = []
-    hafnium_distribution: list[np.ndarray] = []
-    tantalum_distribution: list[np.ndarray] = []
-
+    # Calculate atomic distributions using modular function
+    distributions = calculate_atomic_distributions(coordinates_arr, z_bins, zlo, zhi)
+    
     print(f"\nshape of coordinate_arr= {np.shape(coordinates_arr)}, length of coordinate_arr= {len(coordinates_arr)}")
-    for coordinates in coordinates_arr:
-        # Sort by z position
-        coordinates = coordinates[coordinates[:, 5].argsort()]
 
-        # Select atom types
-        hf_atoms = coordinates[coordinates[:, 1] == 2]
-        ta_atoms = coordinates[np.logical_or(coordinates[:, 1] == 4, np.logical_or(coordinates[:, 1] == 6, coordinates[:, 1] == 10))]
-        o_atoms = coordinates[np.logical_or(coordinates[:, 1] == 1, np.logical_or(coordinates[:, 1] == 3, np.logical_or(coordinates[:, 1] == 5, coordinates[:, 1] == 9)))]
-
-        # Histogram distributions
-        hafnium_distribution.append(np.histogram(hf_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-        oxygen_distribution.append(np.histogram(o_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-        tantalum_distribution.append(np.histogram(ta_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-
-    # Convert to arrays
-    hafnium_distribution = np.array(hafnium_distribution)
-    tantalum_distribution = np.array(tantalum_distribution)
-    oxygen_distribution = np.array(oxygen_distribution)
-    metal_distribution = hafnium_distribution + tantalum_distribution
-    total_distribution = metal_distribution + oxygen_distribution
-
-    # Avoid division by zero
-    total_distribution_divide = total_distribution.copy()
+    # Avoid division by zero for stoichiometry calculations
+    total_distribution_divide = distributions['total'].copy()
     total_distribution_divide[total_distribution_divide == 0] = 1
 
     # Calculate stoichiometry for last and first trajectory
-    O_stoich = 3.5 * oxygen_distribution[-1] / total_distribution_divide[-1]
-    Ta_stoich = 3.5 * tantalum_distribution[-1] / total_distribution_divide[-1]
-    Hf_stoich = 3.5 * hafnium_distribution[-1] / total_distribution_divide[-1]
+    O_stoich = 3.5 * distributions['oxygen'][-1] / total_distribution_divide[-1]
+    Ta_stoich = 3.5 * distributions['tantalum'][-1] / total_distribution_divide[-1]
+    Hf_stoich = 3.5 * distributions['hafnium'][-1] / total_distribution_divide[-1]
     stoichiometry = np.array([Hf_stoich, O_stoich, Ta_stoich])
     proportion_labels = np.array(['a (of Hf$_a$)', 'b (of O$_b$)', 'c (of Ta$_c$)'])
 
-    O_stoich_in = 3.5 * oxygen_distribution[0] / total_distribution_divide[0]
-    Ta_stoich_in = 3.5 * tantalum_distribution[0] / total_distribution_divide[0]
-    Hf_stoich_in = 3.5 * hafnium_distribution[0] / total_distribution_divide[0]
+    O_stoich_in = 3.5 * distributions['oxygen'][0] / total_distribution_divide[0]
+    Ta_stoich_in = 3.5 * distributions['tantalum'][0] / total_distribution_divide[0]
+    Hf_stoich_in = 3.5 * distributions['hafnium'][0] / total_distribution_divide[0]
     initial_stoichiometry = np.array([Hf_stoich_in, O_stoich_in, Ta_stoich_in])
 
     figure_size = [2.5, 5]
@@ -663,19 +236,19 @@ def plot_atomic_distribution(
 
     # Plot metal atoms
     output_filename = f"{analysis_name}_M" + ''.join(f"_{i}" for i in labels)
-    fig_metal = plot_multiple_cases(metal_distribution, z_bin_centers, labels, 'Metal atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
+    fig_metal = plot_multiple_cases(distributions['metal'], z_bin_centers, labels, 'Metal atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
 
     # Plot Hf atoms
     output_filename = f"{analysis_name}_Hf" + ''.join(f"_{i}" for i in labels)
-    fig_hf = plot_multiple_cases(hafnium_distribution, z_bin_centers, labels, 'Hf atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
+    fig_hf = plot_multiple_cases(distributions['hafnium'], z_bin_centers, labels, 'Hf atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
 
     # Plot Ta atoms
     output_filename = f"{analysis_name}_Ta" + ''.join(f"_{i}" for i in labels)
-    fig_ta = plot_multiple_cases(tantalum_distribution, z_bin_centers, labels, 'Ta atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
+    fig_ta = plot_multiple_cases(distributions['tantalum'], z_bin_centers, labels, 'Ta atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
 
     # Plot O atoms
     output_filename = f"{analysis_name}_O" + ''.join(f"_{i}" for i in labels)
-    fig_o = plot_multiple_cases(oxygen_distribution, z_bin_centers, labels, 'O atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
+    fig_o = plot_multiple_cases(distributions['oxygen'], z_bin_centers, labels, 'O atoms #', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, **kwargs)
 
     return {
         "stoichiometry": fig_stoich,
@@ -721,102 +294,49 @@ def plot_atomic_charge_distribution(
     dict
         Dictionary of figure objects for each plot type.
     """
+    from .data_processing import calculate_atomic_distributions, calculate_charge_distributions, calculate_z_bins_setup
+    
     # Read coordinates and simulation parameters
     coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
-    z_bin_width = (zhi - zlo) / z_bins
-    z_bin_centers = np.linspace(zlo + z_bin_width / 2, zhi - z_bin_width / 2, z_bins)
-
-    # Initialize distributions
-    oxygen_charge_distribution: list[np.ndarray] = []
-    hafnium_charge_distribution: list[np.ndarray] = []
-    tantalum_charge_distribution: list[np.ndarray] = []
-    total_charge_distribution: list[np.ndarray] = []
-    hafnium_distribution: list[np.ndarray] = []
-    tantalum_distribution: list[np.ndarray] = []
-    oxygen_distribution: list[np.ndarray] = []
+    z_bin_width, z_bin_centers = calculate_z_bins_setup(zlo, zhi, z_bins)
 
     print(f"\nshape of coordinate_arr= {np.shape(coordinates_arr)}, length of coordinate_arr= {len(coordinates_arr)}")
-    for coordinates in coordinates_arr:
-        # Sort by z position
-        coordinates = coordinates[coordinates[:, 5].argsort()]
 
-        # Select atom types
-        hf_atoms = coordinates[coordinates[:, 1] == 2]
-        ta_atoms = coordinates[np.logical_or(coordinates[:, 1] == 4, np.logical_or(coordinates[:, 1] == 6, coordinates[:, 1] == 10))]
-        o_atoms = coordinates[np.logical_or(coordinates[:, 1] == 1, np.logical_or(coordinates[:, 1] == 3, np.logical_or(coordinates[:, 1] == 5, coordinates[:, 1] == 9)))]
-
-        # Histogram distributions
-        hafnium_distribution.append(np.histogram(hf_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-        oxygen_distribution.append(np.histogram(o_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-        tantalum_distribution.append(np.histogram(ta_atoms[:, 5], bins=z_bins, range=(zlo, zhi))[0])
-
-        # Histogram charge distributions
-        total_charge_distribution.append(np.histogram(coordinates[:, 5], bins=z_bins, range=(zlo, zhi), weights=coordinates[:, 2])[0])
-        hafnium_charge_distribution.append(np.histogram(hf_atoms[:, 5], bins=z_bins, range=(zlo, zhi), weights=hf_atoms[:, 2])[0])
-        oxygen_charge_distribution.append(np.histogram(o_atoms[:, 5], bins=z_bins, range=(zlo, zhi), weights=o_atoms[:, 2])[0])
-        tantalum_charge_distribution.append(np.histogram(ta_atoms[:, 5], bins=z_bins, range=(zlo, zhi), weights=ta_atoms[:, 2])[0])
-
-    # Convert to arrays
-    hafnium_distribution = np.array(hafnium_distribution)
-    tantalum_distribution = np.array(tantalum_distribution)
-    oxygen_distribution = np.array(oxygen_distribution)
-    metal_distribution = hafnium_distribution + tantalum_distribution
-    total_distribution = metal_distribution + oxygen_distribution
-
-    total_charge_distribution = np.array(total_charge_distribution)
-    hafnium_charge_distribution = np.array(hafnium_charge_distribution)
-    tantalum_charge_distribution = np.array(tantalum_charge_distribution)
-    metal_charge_distribution = hafnium_charge_distribution + tantalum_charge_distribution
-    oxygen_charge_distribution = np.array(oxygen_charge_distribution)
-
-    # Avoid division by zero
-    total_distribution_divide = total_distribution.copy()
-    total_distribution_divide[total_distribution_divide == 0] = 1
-    hafnium_distribution_divide = hafnium_distribution.copy()
-    hafnium_distribution_divide[hafnium_distribution_divide == 0] = 1
-    tantalum_distribution_divide = tantalum_distribution.copy()
-    tantalum_distribution_divide[tantalum_distribution_divide == 0] = 1
-    metal_distribution_divide = metal_distribution.copy()
-    metal_distribution_divide[metal_distribution_divide == 0] = 1
-    oxygen_distribution_divide = oxygen_distribution.copy()
-    oxygen_distribution_divide[oxygen_distribution_divide == 0] = 1
-
-    # Calculate mean charge distributions
-    total_mean_charge_distribution = total_charge_distribution / total_distribution_divide
-    hafnium_mean_charge_distribution = hafnium_charge_distribution / hafnium_distribution_divide
-    tantalum_mean_charge_distribution = tantalum_charge_distribution / tantalum_distribution_divide
-    metal_mean_charge_distribution = metal_charge_distribution / metal_distribution_divide
-    O_mean_charge_dist = oxygen_charge_distribution / oxygen_distribution_divide
+    # Calculate atomic distributions (needed for charge distribution normalization)
+    atomic_distributions = calculate_atomic_distributions(coordinates_arr, z_bins, zlo, zhi)
+    
+    # Calculate charge distributions using modular function
+    charge_distributions = calculate_charge_distributions(coordinates_arr, z_bins, zlo, zhi, atomic_distributions)
 
     figure_size = [2.5, 5]
 
     # Plot net charge
     output_filename = f"{analysis_name}_all" + ''.join(f"_{i}" for i in labels)
-    fig_net = plot_multiple_cases(total_charge_distribution, z_bin_centers, labels, 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0)
+    fig_net = plot_multiple_cases(charge_distributions['total_charge'], z_bin_centers, labels, 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0)
 
     # Plot metal mean charge
     output_filename = f"{analysis_name}_M" + ''.join(f"_{i}" for i in labels)
-    fig_metal = plot_multiple_cases(metal_mean_charge_distribution, z_bin_centers, labels, 'Metal atoms mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimitlo=0.7, xlimithi=1.2)
+    fig_metal = plot_multiple_cases(charge_distributions['metal_mean_charge'], z_bin_centers, labels, 'Metal atoms mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimitlo=0.7, xlimithi=1.2)
 
     # Plot oxygen mean charge
     output_filename = f"{analysis_name}_O" + ''.join(f"_{i}" for i in labels)
-    fig_o = plot_multiple_cases(O_mean_charge_dist, z_bin_centers, labels, 'O mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=0, xlimitlo=-0.7)
+    fig_o = plot_multiple_cases(charge_distributions['oxygen_mean_charge'], z_bin_centers, labels, 'O mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=0, xlimitlo=-0.7)
 
     # Plot final net charge
     output_filename = f"final_{analysis_name}_all" + ''.join(f"_{i}" for i in labels)
-    fig_net_end = plot_multiple_cases(total_charge_distribution[-1], z_bin_centers, labels[-1], 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0, markerindex=1)
+    fig_net_end = plot_multiple_cases(charge_distributions['total_charge'][-1], z_bin_centers, labels[-1], 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0, markerindex=1)
 
     # Plot initial net charge
     output_filename = f"initial_{analysis_name}_all" + ''.join(f"_{i}" for i in labels)
-    fig_net_start = plot_multiple_cases(total_charge_distribution[0], z_bin_centers, labels[0], 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0)
+    fig_net_start = plot_multiple_cases(charge_distributions['total_charge'][0], z_bin_centers, labels[0], 'Net charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=15, xlimitlo=-20, yaxis=0)
 
     # Plot initial metal mean charge
     output_filename = f"initial_{analysis_name}_M" + ''.join(f"_{i}" for i in labels)
-    fig_metal_start = plot_multiple_cases(metal_mean_charge_distribution[0], z_bin_centers, labels[0], 'Metal atoms mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimitlo=0.7, xlimithi=1.2)
+    fig_metal_start = plot_multiple_cases(charge_distributions['metal_mean_charge'][0], z_bin_centers, labels[0], 'Metal atoms mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimitlo=0.7, xlimithi=1.2)
 
     # Plot initial oxygen mean charge
     output_filename = f"initial_{analysis_name}_O" + ''.join(f"_{i}" for i in labels)
-    fig_o_start = plot_multiple_cases(O_mean_charge_dist[0], z_bin_centers, labels[0], 'O mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=0, xlimitlo=-0.7)
+    fig_o_start = plot_multiple_cases(charge_distributions['oxygen_mean_charge'][0], z_bin_centers, labels[0], 'O mean charge', 'z position (A)', output_filename, figure_size[0], figure_size[1], output_dir=output_dir, ylimithi=70, xlimithi=0, xlimitlo=-0.7)
 
     return {
         "net_charge": fig_net,
