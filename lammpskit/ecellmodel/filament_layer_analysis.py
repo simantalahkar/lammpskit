@@ -1427,6 +1427,14 @@ def plot_displacement_timeseries(
     if plot_config is None:
         plot_config = DEFAULT_PLOT_CONFIG
     
+    # Validate input parameters
+    from ..config import validate_dataindex, validate_file_list, validate_loop_parameters, validate_chunks_parameter
+    
+    validate_file_list(file_list)
+    validate_dataindex(dataindex)
+    validate_loop_parameters(loop_start, loop_end)
+    validate_chunks_parameter(Nchunks)
+    
     # Process displacement data using extracted function
     all_thermo_data, element_labels, dump_steps = process_displacement_timeseries_data(
         file_list, loop_start, loop_end, timeseries_config.time_points, read_displacement_data

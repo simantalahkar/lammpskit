@@ -12,6 +12,7 @@ across different analysis functions and reduce code duplication.
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import numpy as np
+import os
 
 
 # =============================================================================
@@ -65,7 +66,7 @@ COLUMNS_TO_READ_DEFAULT = (0, 1, 2, 3, 4, 5, 9, 10, 11, 12)
 COLUMNS_TO_READ_EXTENDED = (0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16)
 
 # Time series configuration
-TIME_SERIES_POINTS = 100  # Number of points for time series plots
+TIME_SERIES_POINTS = 100  # Number of points for resolution of time series plots
 
 # Data type labels for displacement analysis
 DISPLACEMENT_DATA_LABELS = [
@@ -182,6 +183,114 @@ class DataConfig:
 DEFAULT_PLOT_CONFIG = PlotConfig()
 DEFAULT_TIMESERIES_CONFIG = TimeSeriesConfig()
 DEFAULT_DATA_CONFIG = DataConfig()
+
+
+# =============================================================================
+# VALIDATION FUNCTIONS
+# =============================================================================
+
+def validate_dataindex(dataindex: int, max_index: Optional[int] = None) -> None:
+    """
+    Validate that dataindex is within the valid range for displacement data.
+    
+    Args:
+        dataindex: Index to validate (supports negative indexing like Python lists)
+        max_index: Maximum valid index (defaults to length of DISPLACEMENT_DATA_LABELS - 1)
+        
+    Raises:
+        ValueError: If dataindex is out of valid range
+    """
+    if max_index is None:
+        max_index = len(DISPLACEMENT_DATA_LABELS) - 1
+    
+    if not isinstance(dataindex, int):
+        raise ValueError(f"dataindex must be an integer, got {type(dataindex).__name__}")
+    
+    # Support Python-style negative indexing
+    total_length = max_index + 1
+    
+    # Check bounds (both positive and negative indexing)
+    if dataindex < -total_length or dataindex > max_index:
+        raise ValueError(
+            f"dataindex {dataindex} is out of range. Valid range is {-total_length}-{max_index}. "
+            f"Available data types: {DISPLACEMENT_DATA_LABELS}"
+        )
+
+
+def validate_file_list(file_list: List[str]) -> None:
+    """
+    Validate that all files in the file list exist and are readable.
+    
+    Args:
+        file_list: List of file paths to validate
+        
+    Raises:
+        FileNotFoundError: If any file does not exist
+        ValueError: If file_list is empty
+    """
+    if not file_list:
+        raise ValueError("file_list cannot be empty")
+    
+    if not isinstance(file_list, (list, tuple)):
+        raise ValueError(f"file_list must be a list or tuple, got {type(file_list).__name__}")
+    
+    missing_files = []
+    for filepath in file_list:
+        if not isinstance(filepath, str):
+            raise ValueError(f"All file paths must be strings, got {type(filepath).__name__}")
+        if not os.path.exists(filepath):
+            missing_files.append(filepath)
+    
+    if missing_files:
+        raise FileNotFoundError(f"The following files were not found: {missing_files}")
+
+
+def validate_loop_parameters(loop_start: int, loop_end: int) -> None:
+    """
+    Validate loop start and end parameters.
+    
+    Args:
+        loop_start: Starting loop index
+        loop_end: Ending loop index
+        
+    Raises:
+        ValueError: If parameters are invalid
+    """
+    if not isinstance(loop_start, int) or not isinstance(loop_end, int):
+        raise ValueError("loop_start and loop_end must be integers")
+    
+    if loop_start < 0:
+        raise ValueError(f"loop_start must be non-negative, got {loop_start}")
+    
+    if loop_end < 0:
+        raise ValueError(f"loop_end must be non-negative, got {loop_end}")
+        
+    if loop_start > loop_end:
+        raise ValueError(
+            f"loop_start ({loop_start}) must be less than or equal to loop_end ({loop_end})"
+        )
+
+
+def validate_chunks_parameter(nchunks: int, min_chunks: int = 1, max_chunks: int = 1000) -> None:
+    """
+    Validate the number of spatial chunks parameter.
+    
+    Args:
+        nchunks: Number of spatial chunks
+        min_chunks: Minimum allowed chunks (default: 1)
+        max_chunks: Maximum allowed chunks (default: 1000)
+        
+    Raises:
+        ValueError: If nchunks is invalid
+    """
+    if not isinstance(nchunks, int):
+        raise ValueError(f"nchunks must be an integer, got {type(nchunks).__name__}")
+    
+    if nchunks < min_chunks:
+        raise ValueError(f"nchunks must be at least {min_chunks}, got {nchunks}")
+        
+    if nchunks > max_chunks:
+        raise ValueError(f"nchunks cannot exceed {max_chunks}, got {nchunks}")
 
 
 # =============================================================================
@@ -382,26 +491,88 @@ def process_displacement_timeseries_data(
         
     Returns:
         Tuple of (all_thermo_data, element_labels, dump_steps)
+        
+    Raises:
+        ValueError: If inputs are invalid or data processing fails
+        FileNotFoundError: If files cannot be read
     """
+    # Validate inputs
     if read_displacement_data_func is None:
         raise ValueError("read_displacement_data_func must be provided")
+    
+    validate_file_list(file_list)
+    validate_loop_parameters(loop_start, loop_end)
+    
+    if not isinstance(time_points, int) or time_points <= 0:
+        raise ValueError(f"time_points must be a positive integer, got {time_points}")
     
     # Read and process data from all files
     all_thermo_data = []
     element_labels = []
     
-    for filename in file_list:
-        # Extract element label from filename (first 2 characters)
-        element_labels.append(filename[:2])
-        all_thermo_data.append(read_displacement_data_func(filename, loop_start, loop_end))
+    for i, filename in enumerate(file_list):
+        try:
+            # Extract element label from filename - more robust extraction
+            element_label = extract_element_label_from_filename(filename)
+            element_labels.append(element_label)
+            
+            # Read displacement data with error handling
+            thermo_data = read_displacement_data_func(filename, loop_start, loop_end)
+            
+            # Validate data shape and content
+            if not thermo_data:
+                raise ValueError(f"No data read from file {filename}")
+            
+            all_thermo_data.append(thermo_data)
+            
+        except Exception as e:
+            raise ValueError(f"Failed to process file {filename} (index {i}): {str(e)}") from e
     
     # Convert to numpy array for easier indexing
-    all_thermo_data = np.array(all_thermo_data)
+    try:
+        all_thermo_data = np.array(all_thermo_data)
+    except ValueError as e:
+        raise ValueError(f"Failed to convert data to numpy array. Data might have inconsistent shapes: {str(e)}") from e
+    
+    # Validate final data shape
+    if all_thermo_data.size == 0:
+        raise ValueError("No valid data was processed from any file")
     
     # Generate time steps for plotting
-    dump_steps = np.linspace(0, loop_end - 1, time_points)
+    if loop_end < loop_start:
+        raise ValueError(f"loop_end ({loop_end}) must be >= loop_start ({loop_start})")
+    
+    dump_steps = np.linspace(loop_start, loop_end, time_points)
     
     return all_thermo_data, element_labels, dump_steps
+
+
+def extract_element_label_from_filename(filename: str) -> str:
+    """
+    Extract element label from filename using robust parsing.
+    
+    Args:
+        filename: Full file path
+        
+    Returns:
+        Element label extracted from filename
+    """
+    import os
+    
+    # Get basename without path
+    basename = os.path.basename(filename)
+    
+    # Try different extraction strategies
+    # Strategy 1: First 2 characters of basename
+    if len(basename) >= 2:
+        return basename[:2]
+    
+    # Strategy 2: First character if only 1 available
+    if len(basename) >= 1:
+        return basename[:1]
+    
+    # Fallback: use "??" if no characters available
+    return "??"
 
 
 def plot_timeseries_grid(
