@@ -1,5 +1,3 @@
-
-
 import os
 import glob
 import numpy as np
@@ -50,35 +48,6 @@ This file contains functions for:
 
 Refactored for modularity, maintainability, and Sphinx documentation.
 """
-
-# =========================
-# Global Configuration (To be centralized)
-# =========================
-
-
-# =========================
-# Data Reading Functions
-# =========================
-
-# =========================
-# Analysis Functions
-# =========================
-
-# =========================
-# Plotting Functions
-# =========================
-
-# =========================
-# Orchestration Function
-# =========================
-
-# =========================
-# Legacy/Redundant Code (Candidates for deprecation)
-# =========================
-
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
 
 COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
 
