@@ -14,6 +14,5 @@ from .filament_layer_analysis import main
 
 __all__ = [
     'data_processing',
-    'plotting', 
     'main'
 ]

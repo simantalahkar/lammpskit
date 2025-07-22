@@ -27,8 +27,10 @@ class TestAtomTypeSelection:
             [4, 4, 0.4, 13, 23, 8],   # Ta atom (type 4)
             [5, 5, 0.5, 14, 24, 9],   # O atom (type 5)
             [6, 6, 0.6, 15, 25, 10],  # Ta atom (type 6)
-            [7, 9, 0.7, 16, 26, 11],  # O atom (type 9)
-            [8, 10, 0.8, 17, 27, 12]  # Ta atom (type 10)
+            [7, 7, 0.7, 16, 26, 11],  # O atom (type 7)
+            [8, 8, 0.8, 17, 27, 12],  # Ta atom (type 8)
+            [9, 9, 0.9, 18, 28, 13],  # O atom (type 9)
+            [10, 10, 1.0, 19, 29, 14] # Ta atom (type 10)
         ])
         
         result = select_atom_types_from_coordinates(coordinates)
@@ -42,19 +44,21 @@ class TestAtomTypeSelection:
         assert len(result['hf']) == 1
         assert result['hf'][0, 1] == 2
         
-        # Verify Ta atoms (types 4, 6, 10)
-        assert len(result['ta']) == 3
+        # Verify Ta atoms (types 4, 6, 8, 10)
+        assert len(result['ta']) == 4
         ta_types = result['ta'][:, 1]
         assert 4 in ta_types
         assert 6 in ta_types
+        assert 8 in ta_types
         assert 10 in ta_types
         
-        # Verify O atoms (types 1, 3, 5, 9)
-        assert len(result['o']) == 4
+        # Verify O atoms (types 1, 3, 5, 7, 9)
+        assert len(result['o']) == 5
         o_types = result['o'][:, 1]
         assert 1 in o_types
         assert 3 in o_types
         assert 5 in o_types
+        assert 7 in o_types
         assert 9 in o_types
 
     def test_select_atom_types_sorted_by_z(self):

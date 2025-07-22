@@ -9,7 +9,7 @@ This package provides:
 """
 
 # Version info
-__version__ = "0.1.0"
+__version__ = "0.2.2"
 
 # Import key modules for convenient access
 from . import io
