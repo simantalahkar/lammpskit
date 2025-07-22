@@ -3,6 +3,12 @@ Data processing utilities for electrochemical cell model analysis.
 
 This module contains functions for processing atomic coordinates, calculating
 distributions, and handling HfTaO-specific atomic analysis operations.
+
+Atom Type Definitions:
+- Type 2: Hafnium (Hf) atoms
+- All odd type IDs (1, 3, 5, 7, 9, ...): Oxygen (O) atoms  
+- All other even type IDs (4, 6, 8, 10, ...): Tantalum (Ta) atoms
+- Types 5, 6, 9, 10: Electrode atoms (in addition to their element designation)
 """
 
 import numpy as np
@@ -11,13 +17,13 @@ from typing import Dict, Tuple, List
 
 def select_atom_types_from_coordinates(coordinates: np.ndarray) -> Dict[str, np.ndarray]:
     """
-    Selects atoms by type from LAMMPS coordinates array and returns indices for each atomic species.
+    Selects atoms by type from LAMMPS coordinates array and returns coordinate arrays for each atomic species.
     
     This function is specific to HfTaO electrochemical cell simulations where:
-    - Type 2, 4, 8: Metal atoms (Hf, Ta)
-    - Type 1, 3, 5: Oxygen atoms
-    - Type 6, 7: Additional oxygen types
-    - Type 9, 10: Electrode atoms
+    - Type 2: Hafnium (Hf) atoms
+    - All odd type IDs (1, 3, 5, 7, 9, ...): Oxygen (O) atoms
+    - All other even type IDs (4, 6, 8, 10, ...): Tantalum (Ta) atoms
+    - Types 5, 6, 9, 10: Electrode atoms (in addition to their element designation)
     
     Parameters
     ----------
@@ -29,34 +35,40 @@ def select_atom_types_from_coordinates(coordinates: np.ndarray) -> Dict[str, np.
     -------
     Dict[str, np.ndarray]
         Dictionary containing coordinate arrays for each atom type:
-        - 'hf': Hf atom coordinates
-        - 'ta': Ta atom coordinates
-        - 'o': O atom coordinates
+        - 'hf': Hf atom coordinates (type 2)
+        - 'ta': Ta atom coordinates (all even types except 2)
+        - 'o': O atom coordinates (all odd types)
     
     Examples
     --------
-    >>> coords = np.array([[1, 2, 0, 0, 0], [2, 1, 1, 1, 1], [3, 8, 2, 2, 2]])
-    >>> masks = select_atom_types_from_coordinates(coords)
-    >>> masks['hafnium']  # Boolean mask for Hf atoms
-    array([True, False, False])
+    >>> coords = np.array([[1, 2, 0, 0, 0, 0], [2, 1, 1, 1, 1, 1], [3, 8, 2, 2, 2, 2]])
+    >>> atom_coords = select_atom_types_from_coordinates(coords)
+    >>> len(atom_coords['hf'])  # Number of Hf atoms
+    1
     """
-    # Define type selections based on test expectations
+    # Define type selections based on correct atom type definitions:
+    # Type 2: Hafnium (Hf)
+    # All odd types: Oxygen (O) 
+    # All other even types: Tantalum (Ta)
+    # Types 5,6,9,10: Also electrode atoms
     # Sort by z position (column 5)
     sorted_coords = coordinates[coordinates[:, 5].argsort()]
     
-    # Select atom types based on test expectations - return coordinate arrays not masks
+    # Select atom types based on correct definitions - return coordinate arrays not masks
     atom_types = {
         'hf': sorted_coords[sorted_coords[:, 1] == 2],  # Hf atoms are type 2
         'ta': sorted_coords[np.logical_or.reduce([
             sorted_coords[:, 1] == 4,   # Ta atoms type 4
-            sorted_coords[:, 1] == 6,   # Ta atoms type 6  
-            sorted_coords[:, 1] == 10   # Ta atoms type 10
+            sorted_coords[:, 1] == 6,   # Ta atoms type 6 (also electrode)
+            sorted_coords[:, 1] == 8,   # Ta atoms type 8
+            sorted_coords[:, 1] == 10   # Ta atoms type 10 (also electrode)
         ])],
         'o': sorted_coords[np.logical_or.reduce([
             sorted_coords[:, 1] == 1,   # O atoms type 1
             sorted_coords[:, 1] == 3,   # O atoms type 3
-            sorted_coords[:, 1] == 5,   # O atoms type 5
-            sorted_coords[:, 1] == 9    # O atoms type 9
+            sorted_coords[:, 1] == 5,   # O atoms type 5 (also electrode)
+            sorted_coords[:, 1] == 7,   # O atoms type 7
+            sorted_coords[:, 1] == 9    # O atoms type 9 (also electrode)
         ])]
     }
     

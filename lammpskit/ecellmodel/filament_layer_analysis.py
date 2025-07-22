@@ -945,8 +945,8 @@ def plot_displacement_timeseries(
     # Validate chunks parameter
     if not isinstance(Nchunks, int):
         raise ValueError("Nchunks must be an integer")
-    if Nchunks < 1 or Nchunks > 1000:
-        raise ValueError("Nchunks must be between 1 and 1000")
+    if Nchunks < 1 or Nchunks > 100:
+        raise ValueError("Nchunks must be between 1 and 100")
     
     # Process displacement data (inlined from plotting.py)
     from .data_processing import extract_element_label_from_filename

@@ -1,5 +1,5 @@
 """
-Tests for atomic processing functions in config.py
+Tests for atomic processing functions in data_processing.py
 
 These tests validate the new modular functions for atom type selection,
 distribution calculations, and charge distribution processing.
