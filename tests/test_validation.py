@@ -8,7 +8,6 @@ that ensure data integrity and provide meaningful error messages.
 import pytest
 import tempfile
 import os
-from unittest.mock import patch
 
 from lammpskit.config import (
     validate_dataindex,
@@ -18,7 +17,6 @@ from lammpskit.config import (
     DISPLACEMENT_DATA_LABELS
 )
 from lammpskit.ecellmodel.data_processing import extract_element_label_from_filename
-from lammpskit.ecellmodel.plotting import process_displacement_timeseries_data
 
 
 class TestValidateDataindex:
@@ -203,60 +201,29 @@ class TestExtractElementLabel:
         assert extract_element_label_from_filename("/very/long/path/to/Al_test.dat") == "Al"
 
 
-class TestProcessDisplacementTimeseriesData:
-    """Test cases for displacement timeseries data processing."""
+class TestInlinedValidationInPlotTimeseries:
+    """Test cases for validation logic that was inlined into plot_displacement_timeseries."""
     
-    def test_missing_read_function(self):
-        """Test that missing read function raises ValueError."""
-        with pytest.raises(ValueError, match="read_displacement_data_func must be provided"):
-            process_displacement_timeseries_data([], 0, 10, 100, None)
+    def test_plot_displacement_timeseries_file_validation(self):
+        """Test that file validation works in plot_displacement_timeseries."""
+        from lammpskit.ecellmodel.filament_layer_analysis import plot_displacement_timeseries
+        
+        # Test empty file list
+        with pytest.raises(ValueError, match="file_list cannot be empty"):
+            plot_displacement_timeseries([], "test", 0, 5, 0, 10)
     
-    def test_invalid_time_points(self):
-        """Test that invalid time_points raises ValueError."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            test_file = os.path.join(tmpdir, "test.dat")
-            with open(test_file, 'w') as f:
-                f.write("test")
-            
-            with pytest.raises(ValueError, match="time_points must be a positive integer"):
-                process_displacement_timeseries_data([test_file], 0, 10, -1, lambda x, y, z: [])
-            
-            with pytest.raises(ValueError, match="time_points must be a positive integer"):
-                process_displacement_timeseries_data([test_file], 0, 10, 0, lambda x, y, z: [])
-    
-    @patch('lammpskit.config.validate_file_list')
-    @patch('lammpskit.config.validate_loop_parameters')
-    def test_validation_calls(self, mock_validate_loop, mock_validate_files):
-        """Test that validation functions are called correctly."""
-        def mock_read_func(filename, start, end):
-            return [[1, 2, 3]]
+    def test_plot_displacement_timeseries_dataindex_validation(self):
+        """Test that dataindex validation works in plot_displacement_timeseries.""" 
+        from lammpskit.ecellmodel.filament_layer_analysis import plot_displacement_timeseries
         
         with tempfile.TemporaryDirectory() as tmpdir:
             test_file = os.path.join(tmpdir, "test.dat")
             with open(test_file, 'w') as f:
                 f.write("test")
             
-            # This will fail on file validation, but we want to test the calls
-            try:
-                process_displacement_timeseries_data([test_file], 0, 10, 5, mock_read_func)
-            except Exception:
-                pass
-            
-            mock_validate_files.assert_called_once_with([test_file])
-            mock_validate_loop.assert_called_once_with(0, 10)
-    
-    def test_data_processing_error(self):
-        """Test that data processing errors are properly handled."""
-        def failing_read_func(filename, start, end):
-            raise Exception("Read failed")
-        
-        with tempfile.TemporaryDirectory() as tmpdir:
-            test_file = os.path.join(tmpdir, "test.dat")
-            with open(test_file, 'w') as f:
-                f.write("test")
-            
-            with pytest.raises(ValueError, match="Failed to process file.*Read failed"):
-                process_displacement_timeseries_data([test_file], 0, 10, 5, failing_read_func)
+            # Test non-integer dataindex
+            with pytest.raises(ValueError, match="dataindex must be an integer"):
+                plot_displacement_timeseries([test_file], "test", "not_int", 5, 0, 10)
 
 
 if __name__ == "__main__":

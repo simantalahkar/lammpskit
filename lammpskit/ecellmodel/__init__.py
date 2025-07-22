@@ -7,7 +7,7 @@ cell simulations including data processing, plotting, and filament analysis.
 
 # Import specialized ecellmodel modules
 from . import data_processing
-from . import plotting  
+# plotting module removed - functions inlined into filament_layer_analysis  
 
 # Import main simulation analysis
 from .filament_layer_analysis import main

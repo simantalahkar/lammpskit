@@ -6,26 +6,15 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from ovito.io import import_file
 import ovito.modifiers as om
-from typing import Optional
+# Remove unused typing import since config classes are inlined
 
 # Import general utilities
 from ..io import read_coordinates
 from ..plotting import plot_multiple_cases
 
-# Import configuration settings and general utilities
-from ..config import (
-    DEFAULT_TIMESERIES_CONFIG, 
-    DEFAULT_PLOT_CONFIG,
-    TimeSeriesConfig,
-    PlotConfig,
-    save_figure
-)
+# Import configuration settings (simplified - inline values directly)
 
-# Import ecellmodel-specific functions (imported locally where needed)
-from .plotting import (
-    process_displacement_timeseries_data,
-    plot_timeseries_grid
-)
+# Import ecellmodel-specific functions (inlined to reduce dependencies)
 
 plt.rcParams['axes.titlesize'] = 8
 plt.rcParams['axes.labelsize'] = 8
@@ -864,9 +853,7 @@ def plot_displacement_timeseries(
     Nchunks: int,
     loop_start: int,
     loop_end: int,
-    output_dir: str = os.getcwd(),
-    timeseries_config: Optional['TimeSeriesConfig'] = None,
-    plot_config: Optional['PlotConfig'] = None
+    output_dir: str = os.getcwd()
 ) -> dict[str, plt.Figure]:
     """
     Create time series plots showing displacement data across spatial bins and files.
@@ -909,58 +896,162 @@ def plot_displacement_timeseries(
         If any file in file_list does not exist.
     ValueError
         If dataindex is out of valid range or data is malformed.
-    """    # Initialize configurations with defaults if not provided
-    if timeseries_config is None:
-        timeseries_config = DEFAULT_TIMESERIES_CONFIG
-    if plot_config is None:
-        plot_config = DEFAULT_PLOT_CONFIG
+    """    # Initialize configurations with inlined defaults
+    # Timeseries configuration defaults (inlined)
+    data_labels = [
+        'abs total disp', 'density - mass', 'temp (K)', 
+        'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)'
+    ]
+    ncolumns = 4  # Number of columns for subplot grid
+    time_points = 100  # Number of points for time series analysis
     
-    # Validate input parameters
-    from ..config import validate_dataindex, validate_file_list, validate_loop_parameters, validate_chunks_parameter
+    # Plot configuration defaults (inlined)
+    colors = ['b', 'r', 'g', 'k']
+    linewidth = 1.2
+    alpha = 0.75
+    title_fontsize = 12  # Increased from 8
+    label_fontsize = 10  # Increased from 8 
+    tick_fontsize = 8    # Increased from 6
+    legend_fontsize = 7.5  # Smaller legend font size
+    grid = True
     
-    validate_file_list(file_list)
-    validate_dataindex(dataindex)
-    validate_loop_parameters(loop_start, loop_end)
-    validate_chunks_parameter(Nchunks)
+    # Validate input parameters (inlined from config.py)
+    if not isinstance(file_list, list):
+        raise ValueError("file_list must be a list")
+    if not file_list:
+        raise ValueError("file_list cannot be empty")
     
-    # Process displacement data using extracted function
-    all_thermo_data, element_labels, dump_steps = process_displacement_timeseries_data(
-        file_list, loop_start, loop_end, timeseries_config.time_points, read_displacement_data
-    )
+    # Check if files exist
+    for filepath in file_list:
+        if not isinstance(filepath, str):
+            raise ValueError("All items in file_list must be strings")
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"File not found: {filepath}")
+    
+    # Validate dataindex
+    if not isinstance(dataindex, int):
+        raise ValueError("dataindex must be an integer")
+    
+    # Validate loop parameters  
+    if not isinstance(loop_start, int) or not isinstance(loop_end, int):
+        raise ValueError("loop_start and loop_end must be integers")
+    if loop_start < 0:
+        raise ValueError("loop_start must be non-negative")
+    if loop_end < 0:
+        raise ValueError("loop_end must be non-negative")
+    if loop_start > loop_end:
+        raise ValueError("loop_start must be less than or equal to loop_end")
+    
+    # Validate chunks parameter
+    if not isinstance(Nchunks, int):
+        raise ValueError("Nchunks must be an integer")
+    if Nchunks < 1 or Nchunks > 1000:
+        raise ValueError("Nchunks must be between 1 and 1000")
+    
+    # Process displacement data (inlined from plotting.py)
+    from .data_processing import extract_element_label_from_filename
+    
+    all_thermo_data = []
+    element_labels = []
+    
+    for filename in file_list:
+        # Extract element label from filename
+        element_label = extract_element_label_from_filename(filename)
+        element_labels.append(element_label)
+        
+        # Read displacement data with error handling
+        try:
+            thermo_data = read_displacement_data(filename, loop_start, loop_end)
+            all_thermo_data.append(thermo_data)
+        except Exception as e:
+            raise ValueError(f"Failed to process file {filename}: {str(e)}")
+    
+    # Create dump steps array
+    dump_steps = np.arange(loop_start, loop_end + 1)
     
     print(file_list)
     print(element_labels)
     print(np.shape(all_thermo_data))
     print('dump_steps=', dump_steps)
 
-    # Setup subplot grid using configuration
+    # Setup subplot grid using inlined configuration
     nrows = Nchunks
-    ncolumns = timeseries_config.ncolumns
-    figsize = timeseries_config.calculate_figsize(nrows)
+    # ncolumns = 4 (already defined above)
+    figsize = (ncolumns * 3.0, nrows * 0.65)  # Calculate figsize with original multipliers
     
-    # Create the time series plot using extracted function
-    fig = plot_timeseries_grid(
-        data=all_thermo_data,
-        x_values=dump_steps,
-        element_labels=element_labels,
-        datatype=datatype,
-        data_labels=timeseries_config.data_labels,
-        dataindex=dataindex,
-        nrows=nrows,
-        ncolumns=ncolumns,
-        figsize=figsize,
-        config=plot_config
-    )
+    # Create the time series plot (inlined from plotting.py)
+    plt.ioff()
+    fig, axes = plt.subplots(nrows, ncolumns, figsize=figsize, squeeze=False)
+    
+    # Convert data to numpy array for easier indexing
+    data_array = np.array(all_thermo_data)
+    
+    # Plot data for each subplot
+    for row in range(nrows):
+        for col in range(min(ncolumns, len(element_labels))):
+            ax = axes[row, col]
+            
+            # Extract data for this bin and element
+            if row < data_array.shape[1] and col < data_array.shape[0]:
+                # Reverse the data order: bottom row gets highest data index, top row gets lowest
+                data_row_index = nrows - 1 - row
+                y_data = data_array[col, :, data_row_index, dataindex]
+                
+                # Create legend label with 1-based chunk numbering (bottom=1, top=highest)
+                chunk_id = data_row_index + 1
+                legend_label = f"{element_labels[col]} in Chunk {chunk_id}"
+                ax.plot(dump_steps, y_data, 
+                       linewidth=linewidth,
+                       alpha=alpha,
+                       color=colors[col % len(colors)],
+                       label=legend_label)
+                
+                # Configure subplot appearance
+                if row == 0:  # Top row gets column titles
+                    ax.set_title(f"{element_labels[col]}", fontsize=title_fontsize)
+                
+                if row == nrows - 1:  # Bottom row gets x-label
+                    ax.set_xlabel("Time step", fontsize=label_fontsize)
+                
+                # Set minimal tick labels for scale reference
+                ax.tick_params(labelsize=tick_fontsize)
+                
+                # Add legend to all subplots
+                ax.legend(fontsize=legend_fontsize, loc='best')
+                
+                # Add grid if enabled
+                if grid:
+                    ax.grid(True, alpha=0.3)
+    
+    # Remove empty subplots
+    for col in range(len(element_labels), ncolumns):
+        for row in range(nrows):
+            fig.delaxes(axes[row, col])
+    
+    # Add shared y-label for the leftmost column
+    shared_ylabel = f"{datatype} {data_labels[dataindex]}"
+    fig.text(0.025, 0.5, shared_ylabel, fontsize=label_fontsize, 
+             rotation=90, va='center', ha='center')
+    
+    # Set overall title
+    fig.suptitle(f'{datatype} {data_labels[dataindex]}', fontsize=title_fontsize)
+    
+    # Adjust layout to create continuous/joined subplots vertically
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.93, left=0.05, hspace=0)  # hspace=0 creates continuous vertical layout
 
-    # Generate output filename and save using extracted function
-    output_filename = f"{datatype}-{timeseries_config.data_labels[dataindex]}"
-    save_figure(
-        fig=fig,
-        output_dir=output_dir,
-        filename=output_filename,
-        config=plot_config,
-        close_after_save=True
-    )
+    # Generate output filename and save (inlined save_figure)
+    output_filename = f"{datatype}-{data_labels[dataindex]}"
+    
+    # Save the figure
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Save in SVG format (simplified)
+    filename = f"{output_filename}.svg"
+    filepath = os.path.join(output_dir, filename)
+    fig.savefig(filepath, dpi=300, bbox_inches='tight', format='svg')
+    
+    plt.close(fig)
     return {
         "displacement_timeseries": fig,
     }
