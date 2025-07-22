@@ -50,9 +50,4 @@ setup(
         "Topic :: Scientific/Engineering :: Chemistry",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    entry_points={
-        "console_scripts": [
-            "lammpskit=lammpskit.cli:main",
-        ],
-    },
 )

@@ -857,7 +857,6 @@ def track_filament_evolution(
     }
 
 
-
 def plot_displacement_timeseries(
     file_list: list[str],
     datatype: str,
