@@ -63,7 +63,7 @@ def validate_file_list(file_list: List[str]) -> None:
         FileNotFoundError: If any file doesn't exist
     """
     if not isinstance(file_list, (list, tuple)):
-        raise ValueError("file_list must be a list or tuple")
+        raise ValueError("file_list must be a list")
     
     if not file_list:
         raise ValueError("file_list cannot be empty")

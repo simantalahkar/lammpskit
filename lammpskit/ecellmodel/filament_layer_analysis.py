@@ -12,6 +12,14 @@ import ovito.modifiers as om
 from ..io import read_coordinates
 from ..plotting import plot_multiple_cases
 
+# Import validation functions from config
+from ..config import (
+    validate_file_list,
+    validate_dataindex, 
+    validate_loop_parameters,
+    validate_chunks_parameter
+)
+
 # Import configuration settings (simplified - inline values directly)
 
 # Import ecellmodel-specific functions (inlined to reduce dependencies)
@@ -945,38 +953,11 @@ def plot_displacement_timeseries(
     legend_fontsize = 7.5  # Smaller legend font size
     grid = True
     
-    # Validate input parameters (inlined from config.py)
-    if not isinstance(file_list, list):
-        raise ValueError("file_list must be a list")
-    if not file_list:
-        raise ValueError("file_list cannot be empty")
-    
-    # Check if files exist
-    for filepath in file_list:
-        if not isinstance(filepath, str):
-            raise ValueError("All items in file_list must be strings")
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"File not found: {filepath}")
-    
-    # Validate dataindex
-    if not isinstance(dataindex, int):
-        raise ValueError("dataindex must be an integer")
-    
-    # Validate loop parameters  
-    if not isinstance(loop_start, int) or not isinstance(loop_end, int):
-        raise ValueError("loop_start and loop_end must be integers")
-    if loop_start < 0:
-        raise ValueError("loop_start must be non-negative")
-    if loop_end < 0:
-        raise ValueError("loop_end must be non-negative")
-    if loop_start > loop_end:
-        raise ValueError("loop_start must be less than or equal to loop_end")
-    
-    # Validate chunks parameter
-    if not isinstance(Nchunks, int):
-        raise ValueError("Nchunks must be an integer")
-    if Nchunks < 1 or Nchunks > 100:
-        raise ValueError("Nchunks must be between 1 and 100")
+    # Validate input parameters using centralized functions
+    validate_file_list(file_list)
+    validate_dataindex(dataindex)
+    validate_loop_parameters(loop_start, loop_end)
+    validate_chunks_parameter(Nchunks, min_chunks=1, max_chunks=100)
     
     # Process displacement data (inlined from plotting.py)
     from .data_processing import extract_element_label_from_filename

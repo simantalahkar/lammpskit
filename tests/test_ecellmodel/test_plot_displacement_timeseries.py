@@ -91,7 +91,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "All items in file_list must be strings" in str(excinfo.value)
+        assert "All file paths must be strings" in str(excinfo.value)
 
     def test_plot_displacement_timeseries_missing_files(self, tmp_path):
         """Test that non-existent files raise FileNotFoundError."""
@@ -105,7 +105,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "File not found: nonexistent_file.dat" in str(excinfo.value)
+        assert "The following files were not found:" in str(excinfo.value)
 
     # Data Index Validation Tests
     def test_plot_displacement_timeseries_invalid_dataindex_type(self, tmp_path):
@@ -205,7 +205,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=5,
                 output_dir=tmp_path
             )
-        assert "loop_start must be less than or equal to loop_end" in str(excinfo.value)
+        assert "loop_start (10) must be less than or equal to loop_end (5)" in str(excinfo.value)
 
     # Nchunks Parameter Validation Tests
     def test_plot_displacement_timeseries_invalid_nchunks_type(self, tmp_path):
@@ -220,7 +220,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "Nchunks must be an integer" in str(excinfo.value)
+        assert "nchunks must be an integer" in str(excinfo.value)
 
     def test_plot_displacement_timeseries_nchunks_too_small(self, tmp_path):
         """Test that Nchunks < 1 raises ValueError."""
@@ -234,7 +234,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "Nchunks must be between 1 and 100" in str(excinfo.value)
+        assert "nchunks must be at least 1" in str(excinfo.value)
 
     def test_plot_displacement_timeseries_nchunks_too_large(self, tmp_path):
         """Test that Nchunks > 100 raises ValueError."""
@@ -248,7 +248,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "Nchunks must be between 1 and 100" in str(excinfo.value)
+        assert "nchunks cannot exceed 100" in str(excinfo.value)
 
     def test_plot_displacement_timeseries_nchunks_float(self, tmp_path):
         """Test that float Nchunks raises ValueError."""
@@ -262,7 +262,7 @@ class TestPlotDisplacementTimeseriesValidation:
                 loop_end=self.valid_loop_end,
                 output_dir=tmp_path
             )
-        assert "Nchunks must be an integer" in str(excinfo.value)
+        assert "nchunks must be an integer" in str(excinfo.value)
 
     # File Processing Error Tests
     def test_plot_displacement_timeseries_malformed_file(self, tmp_path):

@@ -103,7 +103,7 @@ class TestValidateFileList:
     
     def test_invalid_file_list_type(self):
         """Test that invalid file list types raise ValueError."""
-        with pytest.raises(ValueError, match="file_list must be a list or tuple"):
+        with pytest.raises(ValueError, match="file_list must be a list"):
             validate_file_list("not_a_list")
         
         with pytest.raises(ValueError, match="All file paths must be strings"):
