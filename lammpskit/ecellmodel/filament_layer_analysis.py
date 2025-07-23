@@ -17,7 +17,8 @@ from ..config import (
     validate_file_list,
     validate_dataindex, 
     validate_loop_parameters,
-    validate_chunks_parameter
+    validate_chunks_parameter,
+    validate_filepath
 )
 
 # Import configuration settings (simplified - inline values directly)
@@ -89,10 +90,10 @@ def read_displacement_data(
         If Nchunks line is malformed.
     """
     print(filepath)
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"File not found: {filepath}")
-    if loop_start > loop_end:
-        raise ValueError(f"loop_start ({loop_start}) is greater than loop_end ({loop_end})")
+    # Validate input parameters using centralized functions
+    validate_filepath(filepath)
+    validate_loop_parameters(loop_start, loop_end)
+    
     try:
         tmp = np.loadtxt(filepath, comments='#', skiprows=3, max_rows=1)
     except ValueError:

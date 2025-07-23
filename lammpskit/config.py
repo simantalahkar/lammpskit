@@ -26,6 +26,29 @@ DISPLACEMENT_DATA_LABELS = [
 # VALIDATION FUNCTIONS
 # =============================================================================
 
+def validate_filepath(filepath: str, check_existence: bool = True) -> None:
+    """
+    Validate that filepath is a valid string path.
+    
+    Args:
+        filepath: The file path to validate
+        check_existence: Whether to check if file exists
+        
+    Raises:
+        TypeError: If filepath is not a string
+        ValueError: If filepath is empty
+        FileNotFoundError: If file doesn't exist (when check_existence=True)
+    """
+    if not isinstance(filepath, str):
+        raise TypeError("filepath must be a string")
+    
+    if not filepath:
+        raise ValueError("filepath cannot be empty")
+    
+    if check_existence and not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+
+
 def validate_dataindex(dataindex: int, max_index: Optional[int] = None) -> None:
     """
     Validate that dataindex is a valid integer for array indexing.
