@@ -31,8 +31,11 @@ class TimeSeriesPlotConfig:
     # File output
     format: str = 'pdf'
     
-    # Legend and text
-    fontsize_legend: Optional[int] = None  # None means use default
+    # Text and font sizes (centrally controlled)
+    fontsize_title: Optional[int] = 8
+    fontsize_labels: Optional[int] = 8
+    fontsize_ticks: Optional[int] = 8
+    fontsize_legend: Optional[int] = 8
 
 
 @dataclass
@@ -57,6 +60,12 @@ class DualAxisPlotConfig:
     secondary_legend_loc: str = 'lower right'
     legend_framealpha: float = 0.75
     tight_layout: bool = True
+    
+    # Text and font sizes (centrally controlled)
+    fontsize_title: Optional[int] = 8
+    fontsize_labels: Optional[int] = 8
+    fontsize_ticks: Optional[int] = 8
+    fontsize_legend: Optional[int] = 8
 
 
 def create_time_series_plot(
@@ -68,7 +77,11 @@ def create_time_series_plot(
     stats_label: str,
     config: Optional[TimeSeriesPlotConfig] = None,
     ylim: Optional[Tuple[float, float]] = None,
-    legend_fontsize: Optional[int] = None
+    # Font size overrides (individual parameter control)
+    fontsize_title: Optional[int] = None,
+    fontsize_labels: Optional[int] = None,
+    fontsize_ticks: Optional[int] = None,
+    fontsize_legend: Optional[int] = None
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
     Create a standardized time series plot with configurable line and scatter elements.
@@ -94,7 +107,13 @@ def create_time_series_plot(
         Plot configuration. Uses defaults if None.
     ylim : tuple of float, optional
         Y-axis limits (min, max).
-    legend_fontsize : int, optional
+    fontsize_title : int, optional
+        Override title font size from config.
+    fontsize_labels : int, optional
+        Override axis label font size from config.
+    fontsize_ticks : int, optional
+        Override tick label font size from config.
+    fontsize_legend : int, optional
         Override legend font size from config.
         
     Returns
@@ -125,20 +144,28 @@ def create_time_series_plot(
                   marker=config.marker, 
                   label=stats_label)
     
-    # Set labels and title
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
+    # Set labels and title with centralized font size control
+    title_fontsize = fontsize_title or config.fontsize_title
+    labels_fontsize = fontsize_labels or config.fontsize_labels
+    ticks_fontsize = fontsize_ticks or config.fontsize_ticks
+    
+    ax.set_xlabel(xlabel, fontsize=labels_fontsize)
+    ax.set_ylabel(ylabel, fontsize=labels_fontsize)
+    ax.set_title(title, fontsize=title_fontsize)
+    
+    # Set tick label sizes
+    if ticks_fontsize is not None:
+        ax.tick_params(axis='both', which='major', labelsize=ticks_fontsize)
     
     # Set y-limits if provided
     if ylim is not None:
         ax.set_ylim(ylim)
     
-    # Add legend (use parameter override, then config, then matplotlib default)
+    # Add legend with centralized font size control
     if config.include_scatter:  # Only show legend if there's a label
-        fontsize = legend_fontsize or config.fontsize_legend
-        if fontsize is not None:
-            ax.legend(fontsize=fontsize)
+        legend_fontsize_final = fontsize_legend or config.fontsize_legend
+        if legend_fontsize_final is not None:
+            ax.legend(fontsize=legend_fontsize_final)
         else:
             ax.legend()
     
@@ -157,7 +184,12 @@ def create_dual_axis_plot(
     secondary_stats_label: str,
     config: Optional[DualAxisPlotConfig] = None,
     primary_ylim: Optional[Tuple[float, float]] = None,
-    secondary_ylim: Optional[Tuple[float, float]] = None
+    secondary_ylim: Optional[Tuple[float, float]] = None,
+    # Font size overrides (individual parameter control)
+    fontsize_title: Optional[int] = None,
+    fontsize_labels: Optional[int] = None,
+    fontsize_ticks: Optional[int] = None,
+    fontsize_legend: Optional[int] = None
 ) -> Tuple[plt.Figure, plt.Axes, plt.Axes]:
     """
     Create a standardized dual-axis plot with two y-axes.
@@ -188,6 +220,14 @@ def create_dual_axis_plot(
         Primary y-axis limits (min, max).
     secondary_ylim : tuple of float, optional
         Secondary y-axis limits (min, max).
+    fontsize_title : int, optional
+        Override title font size from config.
+    fontsize_labels : int, optional
+        Override axis label font size from config.
+    fontsize_ticks : int, optional
+        Override tick label font size from config.
+    fontsize_legend : int, optional
+        Override legend font size from config.
         
     Returns
     -------
@@ -203,16 +243,23 @@ def create_dual_axis_plot(
     
     fig, ax1 = plt.subplots()
     
+    # Get font sizes with override capability
+    title_fontsize = fontsize_title or config.fontsize_title
+    labels_fontsize = fontsize_labels or config.fontsize_labels
+    ticks_fontsize = fontsize_ticks or config.fontsize_ticks
+    legend_fontsize_final = fontsize_legend or config.fontsize_legend
+    
     # Configure primary axis (left)
-    ax1.set_xlabel(xlabel)
-    ax1.set_ylabel(primary_ylabel, color=config.primary_color)
+    ax1.set_xlabel(xlabel, fontsize=labels_fontsize)
+    ax1.set_ylabel(primary_ylabel, color=config.primary_color, fontsize=labels_fontsize)
     ax1.scatter(x_data, primary_y_data, 
                alpha=config.alpha, 
                linewidth=config.linewidth, 
                s=config.markersize, 
                color=config.primary_color, 
                label=primary_stats_label)
-    ax1.tick_params(axis='y', labelcolor=config.primary_color)
+    ax1.tick_params(axis='y', labelcolor=config.primary_color, labelsize=ticks_fontsize)
+    ax1.tick_params(axis='x', labelsize=ticks_fontsize)
     
     # Set primary y-limits if provided
     if primary_ylim is not None:
@@ -220,7 +267,7 @@ def create_dual_axis_plot(
     
     # Create secondary axis (right)
     ax2 = ax1.twinx()
-    ax2.set_ylabel(secondary_ylabel, color=config.secondary_color)
+    ax2.set_ylabel(secondary_ylabel, color=config.secondary_color, fontsize=labels_fontsize)
     ax2.scatter(x_data, secondary_y_data, 
                alpha=config.alpha, 
                linewidth=config.linewidth, 
@@ -228,22 +275,26 @@ def create_dual_axis_plot(
                marker=config.marker, 
                color=config.secondary_color, 
                label=secondary_stats_label)
-    ax2.tick_params(axis='y', labelcolor=config.secondary_color)
+    ax2.tick_params(axis='y', labelcolor=config.secondary_color, labelsize=ticks_fontsize)
     
     # Set secondary y-limits if provided
     if secondary_ylim is not None:
         ax2.set_ylim(secondary_ylim)
     
-    # Set title
-    plt.title(title)
+    # Set title with font size control
+    plt.title(title, fontsize=title_fontsize)
     
     # Apply tight layout if configured
     if config.tight_layout:
         fig.tight_layout()
     
-    # Add legends
-    ax1.legend(loc=config.primary_legend_loc, framealpha=config.legend_framealpha)
-    ax2.legend(loc=config.secondary_legend_loc, framealpha=config.legend_framealpha)
+    # Add legends with font size control
+    legend_kwargs = {'framealpha': config.legend_framealpha}
+    if legend_fontsize_final is not None:
+        legend_kwargs['fontsize'] = legend_fontsize_final
+    
+    ax1.legend(loc=config.primary_legend_loc, **legend_kwargs)
+    ax2.legend(loc=config.secondary_legend_loc, **legend_kwargs)
     
     return fig, ax1, ax2
 

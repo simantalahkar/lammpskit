@@ -103,7 +103,7 @@ def test_time_series_plot_with_frequency_label(sample_time_data):
         ylabel="Connection State (1: connected, 0: broken)",
         stats_label=freq_label,
         config=config,
-        legend_fontsize=10
+        fontsize_legend=10  # Use new parameter name
     )
     
     return fig
@@ -243,7 +243,11 @@ def test_timeseries_plot_config_defaults():
     assert config.include_line is True
     assert config.include_scatter is True
     assert config.format == 'pdf'
-    assert config.fontsize_legend is None
+    # Test centralized font size defaults
+    assert config.fontsize_title == 8
+    assert config.fontsize_labels == 8
+    assert config.fontsize_ticks == 8
+    assert config.fontsize_legend == 8
 
 
 def test_dual_axis_plot_config_defaults():
@@ -261,3 +265,8 @@ def test_dual_axis_plot_config_defaults():
     assert config.secondary_legend_loc == 'lower right'
     assert config.legend_framealpha == 0.75
     assert config.tight_layout is True
+    # Test centralized font size defaults
+    assert config.fontsize_title == 8
+    assert config.fontsize_labels == 8
+    assert config.fontsize_ticks == 8
+    assert config.fontsize_legend == 8

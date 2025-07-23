@@ -12,6 +12,17 @@ import ovito.modifiers as om
 from ..io import read_coordinates
 from ..plotting import plot_multiple_cases
 
+# Import centralized plotting functions
+from ..plotting import (
+    create_time_series_plot,
+    create_dual_axis_plot,
+    TimeSeriesPlotConfig,
+    DualAxisPlotConfig,
+    save_and_close_figure,
+    calculate_mean_std_label,
+    calculate_frequency_label
+)
+
 # Import validation functions from config
 from ..config import (
     validate_file_list,
@@ -26,6 +37,7 @@ from ..config import (
 
 # Import ecellmodel-specific functions (inlined to reduce dependencies)
 
+# Set global matplotlib parameters for consistent styling across all plots
 plt.rcParams['axes.titlesize'] = 8
 plt.rcParams['axes.labelsize'] = 8
 plt.rcParams['xtick.labelsize'] = 8
@@ -648,202 +660,191 @@ def track_filament_evolution(
     # Calculate time axis
     time_switch = step_arr * time_step * dump_interval_steps
 
-    # Plotting parameters
-    ln = 0.1
-    mrkr = 5
-    alph = 0.55
+    # Create plotting configuration matching original parameters
+    timeseries_config = TimeSeriesPlotConfig(
+        alpha=0.55,
+        linewidth=0.1,
+        markersize=5,
+        marker="^",
+        include_line=True,
+        include_scatter=True
+    )
 
     # Plot filament connectivity state
-    on_frequency = np.sum(connection == 1) / len(connection)
-    fig_conn, ax_conn = plt.subplots()
-    ax_conn.plot(time_switch, connection, alpha=alph, linewidth=ln, markersize=mrkr)
-    ax_conn.scatter(
-        time_switch,
-        connection,
-        alpha=alph,
-        linewidth=ln,
-        s=mrkr,
-        marker="^",
-        label=f"filament is in connected state {on_frequency*100: .2f}% of the time",
+    freq_label = calculate_frequency_label(
+        connection, 1, 
+        "filament is in connected state {frequency: .2f}% of the time"
     )
-    ax_conn.set_xlabel("Time (ps)")
-    ax_conn.set_ylabel("Filament connectivity state (1: connected, 0: broken)")
-    ax_conn.set_title("Filament connectivity state (1: connected, 0: broken)")
-    ax_conn.legend()
-    output_filename = analysis_name + "OnOff" + ".pdf"
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close(fig_conn)
+    fig_conn, ax_conn = create_time_series_plot(
+        time_switch, connection,
+        title="Filament connectivity state (1: connected, 0: broken)",
+        xlabel="Time (ps)",
+        ylabel="Filament connectivity state (1: connected, 0: broken)",
+        stats_label=freq_label,
+        config=timeseries_config
+    )
+    save_and_close_figure(fig_conn, output_dir, analysis_name + "OnOff")
 
     # Plot filament gap
-    average_filament_gap, sd_gap = np.mean(gap), np.std(gap)
-    fig_gap, ax_gap = plt.subplots()
-    ax_gap.plot(time_switch, gap, alpha=alph, linewidth=ln, markersize=mrkr)
-    ax_gap.scatter(time_switch, gap, alpha=alph, linewidth=ln, s=mrkr, marker='^', label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
-    ax_gap.set_xlabel('Time (ps)')
-    ax_gap.set_ylabel('Filament gap (A)')
-    ax_gap.set_title('Filament gap')
-    ax_gap.legend()
-    output_filename = analysis_name + 'fil_gap' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    gap_label = calculate_mean_std_label(gap, "average_filament_gap")
+    fig_gap, ax_gap = create_time_series_plot(
+        time_switch, gap,
+        title="Filament gap",
+        xlabel="Time (ps)",
+        ylabel="Filament gap (A)",
+        stats_label=gap_label,
+        config=timeseries_config
+    )
+    save_and_close_figure(fig_gap, output_dir, analysis_name + 'fil_gap')
 
     # Plot filament separation
-    average_filament_separation, sd_separation = np.mean(separation), np.std(separation)
-    fig_sep, ax_sep = plt.subplots()
-    ax_sep.plot(time_switch, separation, alpha=alph, linewidth=ln, markersize=mrkr)
-    ax_sep.scatter(time_switch, separation, alpha=alph, linewidth=ln, s=mrkr, marker='^', label=f'average_filament_separation = {average_filament_separation: .2f} +/- {sd_separation: .2f}')
-    ax_sep.set_xlabel('Time (ps)')
-    ax_sep.set_ylabel('Filament separation (A)')
-    ax_sep.set_title('Filament separation')
-    ax_sep.legend(fontsize=8)
-    output_filename = analysis_name + 'fil_separation' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    separation_label = calculate_mean_std_label(separation, "average_filament_separation")
+    fig_sep, ax_sep = create_time_series_plot(
+        time_switch, separation,
+        title="Filament separation",
+        xlabel="Time (ps)",
+        ylabel="Filament separation (A)",
+        stats_label=separation_label,
+        config=timeseries_config,
+        fontsize_legend=8  # Override legend font size for this specific plot
+    )
+    save_and_close_figure(fig_sep, output_dir, analysis_name + 'fil_separation')
+
+    # Create dual-axis plotting configuration matching original parameters
+    dual_config = DualAxisPlotConfig(
+        alpha=0.55,
+        linewidth=0.1,
+        markersize=5,
+        marker='^',
+        primary_color='tab:red',
+        secondary_color='tab:blue',
+        primary_legend_loc='upper right',
+        secondary_legend_loc='lower right',
+        legend_framealpha=0.8,
+        tight_layout=True
+    )
 
     # Plot filament gap & number of conductive atoms
-    fig_size_gap, ax1_size_gap = plt.subplots()
-    color = 'tab:red'
-    ax1_size_gap.set_xlabel('Time (ps)')
-    ax1_size_gap.set_ylabel('Filament gap (A)', color=color)
-    ax1_size_gap.scatter(time_switch, gap, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_gap = {average_filament_gap: .2f} +/- {sd_gap: .2f}')
-    ax1_size_gap.tick_params(axis='y', labelcolor=color)
-    ax1_size_gap.set_ylim(-0.5, 8.5)
-
-    ax2_size_gap = ax1_size_gap.twinx()
-    color = 'tab:blue'
-    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
-    ax2_size_gap.set_ylabel('# of vacancies in filament (A.U.)', color=color)
-    ax2_size_gap.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    ax2_size_gap.tick_params(axis='y', labelcolor=color)
-    ax2_size_gap.set_ylim(0, 350)
-
-    plt.title('Gap & no. of conductive atoms in Filament')
-    fig_size_gap.tight_layout()
-    ax1_size_gap.legend(loc='upper right', framealpha=0.8)
-    ax2_size_gap.legend(loc='lower right', framealpha=0.8)
-    output_filename = analysis_name + 'fil_state' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    gap_label = calculate_mean_std_label(gap, "average_filament_gap")
+    size_down_label = calculate_mean_std_label(fil_size_down, "average # of vacancies in filament")
+    fig_size_gap, ax1_size_gap, ax2_size_gap = create_dual_axis_plot(
+        time_switch, gap, fil_size_down,
+        title="Gap & no. of conductive atoms in Filament",
+        xlabel="Time (ps)",
+        primary_ylabel="Filament gap (A)",
+        secondary_ylabel="# of vacancies in filament (A.U.)",
+        primary_stats_label=gap_label,
+        secondary_stats_label=size_down_label,
+        config=dual_config,
+        primary_ylim=(-0.5, 8.5),
+        secondary_ylim=(0, 350)
+    )
+    save_and_close_figure(fig_size_gap, output_dir, analysis_name + 'fil_state')
 
     # Plot filament lower part
-    fig_lowfil, ax1_lowfil = plt.subplots()
-    color = 'tab:red'
-    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
-    ax1_lowfil.set_xlabel('Timestep (ps)')
-    ax1_lowfil.set_ylabel('Filament length-lower end (A)', color=color)
-    ax1_lowfil.scatter(time_switch, fil_height, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
-    ax1_lowfil.tick_params(axis='y', labelcolor=color)
-    ax1_lowfil.set_ylim(3, 25)
-    plt.legend(loc='upper right', framealpha=0.75)
-
-    ax2_lowfil = ax1_lowfil.twinx()
-    color = 'tab:blue'
-    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
-    ax2_lowfil.set_ylabel('# of vacancies in filament-lower end (A.U.)', color=color)
-    ax2_lowfil.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    ax2_lowfil.tick_params(axis='y', labelcolor=color)
-    ax2_lowfil.set_ylim(0, 350)
-
-    plt.title('Filament lower part near cathode')
-    fig_lowfil.tight_layout()
-    plt.legend(loc='lower right', framealpha=0.75)
-    output_filename = analysis_name + 'fil_lower' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    lower_dual_config = DualAxisPlotConfig(
+        alpha=0.55,
+        linewidth=0.1,
+        markersize=5,
+        marker='^',
+        primary_color='tab:red',
+        secondary_color='tab:blue',
+        primary_legend_loc='upper right',
+        secondary_legend_loc='lower right',
+        legend_framealpha=0.75,
+        tight_layout=True
+    )
+    
+    height_label = calculate_mean_std_label(fil_height, "average_filament_height")
+    size_down_lower_label = calculate_mean_std_label(fil_size_down, "average # of vacancies in filament (bottom half)")
+    fig_lowfil, ax1_lowfil, ax2_lowfil = create_dual_axis_plot(
+        time_switch, fil_height, fil_size_down,
+        title="Filament lower part near cathode",
+        xlabel="Timestep (ps)",
+        primary_ylabel="Filament length-lower end (A)",
+        secondary_ylabel="# of vacancies in filament-lower end (A.U.)",
+        primary_stats_label=height_label,
+        secondary_stats_label=size_down_lower_label,
+        config=lower_dual_config,
+        primary_ylim=(3, 25),
+        secondary_ylim=(0, 350)
+    )
+    save_and_close_figure(fig_lowfil, output_dir, analysis_name + 'fil_lower')
 
     # Plot filament upper part
-    fig_upfil, ax1_upfil = plt.subplots()
-    color = 'tab:red'
-    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
-    ax1_upfil.set_xlabel('Timestep (ps)')
-    ax1_upfil.set_ylabel('Filament length-upper end (A)', color=color)
-    ax1_upfil.scatter(time_switch, fil_depth, alpha=alph, linewidth=ln, s=mrkr, color=color, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
-    ax1_upfil.tick_params(axis='y', labelcolor=color)
-    plt.legend(loc='upper right', framealpha=0.75)
+    depth_label = calculate_mean_std_label(fil_depth, "average_filament_depth")
+    size_up_label = calculate_mean_std_label(fil_size_up, "average # of vacancies in filament (top half)")
+    fig_upfil, ax1_upfil, ax2_upfil = create_dual_axis_plot(
+        time_switch, fil_depth, fil_size_up,
+        title="Filament upper part near anode",
+        xlabel="Timestep (ps)",
+        primary_ylabel="Filament length-upper end (A)",
+        secondary_ylabel="# of vacancies in filament-upper end (A.U.)",
+        primary_stats_label=depth_label,
+        secondary_stats_label=size_up_label,
+        config=lower_dual_config  # Use same config as lower
+    )
+    save_and_close_figure(fig_upfil, output_dir, analysis_name + 'upper')
 
-    ax2_upfil = ax1_upfil.twinx()
-    color = 'tab:blue'
-    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
-    ax2_upfil.set_ylabel('# of vacancies in filament-upper end (A.U.)', color=color)
-    ax2_upfil.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr, marker='^', color=color, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
-    ax2_upfil.tick_params(axis='y', labelcolor=color)
-
-    plt.title('Filament upper part near anode')
-    fig_upfil.tight_layout()
-    plt.legend(loc='lower right', framealpha=0.75)
-    output_filename = analysis_name + 'upper' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    # Create scatter-only configuration for simple plots (no line)
+    scatter_config = TimeSeriesPlotConfig(
+        alpha=0.55,
+        linewidth=0.1,
+        markersize=5,
+        marker='^',
+        include_line=False,  # Scatter only
+        include_scatter=True
+    )
 
     # Plot filament height (lower end)
-    average_filament_height, sd_height = np.mean(fil_height), np.std(fil_height)
-    fig_height, ax_height = plt.subplots()
-    ax_height.scatter(time_switch, fil_height, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_height = {average_filament_height: .2f} +/- {sd_height: .2f}')
-    ax_height.set_xlabel('Timestep (ps)')
-    ax_height.set_ylabel('Filament length-lower end (A)')
-    ax_height.set_title('Filament length-lower end')
-    ax_height.legend()
-    ax_height.set_ylim(3, 25)
-    output_filename = analysis_name + 'fil_height' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    height_simple_label = calculate_mean_std_label(fil_height, "average_filament_height")
+    fig_height, ax_height = create_time_series_plot(
+        time_switch, fil_height,
+        title="Filament length-lower end",
+        xlabel="Timestep (ps)",
+        ylabel="Filament length-lower end (A)",
+        stats_label=height_simple_label,
+        config=scatter_config,
+        ylim=(3, 25)
+    )
+    save_and_close_figure(fig_height, output_dir, analysis_name + 'fil_height')
 
     # Plot filament depth (upper end)
-    average_filament_depth, sd_depth = np.mean(fil_depth), np.std(fil_depth)
-    fig_depth, ax_depth = plt.subplots()
-    ax_depth.scatter(time_switch, fil_depth, alpha=alph, linewidth=ln, s=mrkr, label=f'average_filament_depth = {average_filament_depth: .2f} +/- {sd_depth}')
-    ax_depth.set_xlabel('Timestep (ps)')
-    ax_depth.set_ylabel('Filament length-upper end (A)')
-    ax_depth.set_title('Filament length-upper end')
-    ax_depth.legend()
-    output_filename = analysis_name + 'fil_depth' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    depth_simple_label = calculate_mean_std_label(fil_depth, "average_filament_depth")
+    fig_depth, ax_depth = create_time_series_plot(
+        time_switch, fil_depth,
+        title="Filament length-upper end",
+        xlabel="Timestep (ps)",
+        ylabel="Filament length-upper end (A)",
+        stats_label=depth_simple_label,
+        config=scatter_config
+    )
+    save_and_close_figure(fig_depth, output_dir, analysis_name + 'fil_depth')
 
     # Plot filament size (upper end)
-    average_filament_size_up, sd_size_up = np.mean(fil_size_up), np.std(fil_size_up)
-    fig_size_up, ax_size_up = plt.subplots()
-    ax_size_up.scatter(time_switch, fil_size_up, alpha=alph, linewidth=ln, s=mrkr, label=f'average # of vacancies in filament (top half) = {average_filament_size_up: .2f} +/- {sd_size_up: .2f}')
-    ax_size_up.set_xlabel('Timestep (ps)')
-    ax_size_up.set_ylabel('# of vacancies in filament-upper end (A.U.)')
-    ax_size_up.set_title('# of vacancies in filament-upper end')
-    ax_size_up.legend()
-    output_filename = analysis_name + 'fil_size_up' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    size_up_simple_label = calculate_mean_std_label(fil_size_up, "average # of vacancies in filament (top half)")
+    fig_size_up, ax_size_up = create_time_series_plot(
+        time_switch, fil_size_up,
+        title="# of vacancies in filament-upper end",
+        xlabel="Timestep (ps)",
+        ylabel="# of vacancies in filament-upper end (A.U.)",
+        stats_label=size_up_simple_label,
+        config=scatter_config
+    )
+    save_and_close_figure(fig_size_up, output_dir, analysis_name + 'fil_size_up')
 
     # Plot filament size (lower end)
-    average_filament_size_down, sd_size_down = np.mean(fil_size_down), np.std(fil_size_down)
-    fig_size_down, ax_size_down = plt.subplots()
-    ax_size_down.scatter(time_switch, fil_size_down, alpha=alph, linewidth=ln, s=mrkr, label=f'average # of vacancies in filament (bottom half) = {average_filament_size_down: .2f} +/- {sd_size_down: .2f}')
-    ax_size_down.set_xlabel('Timestep (ps)')
-    ax_size_down.set_ylabel('# of vacancies in filament-lower end (A.U.)')
-    ax_size_down.set_title('# of vacancies in filament-lower end (A.U.)')
-    ax_size_down.set_ylim(0, 350)
-    ax_size_down.legend()
-    output_filename = analysis_name + 'fil_size_down' + '.pdf'
-    os.makedirs(output_dir, exist_ok=True)
-    savepath = os.path.join(output_dir, output_filename)
-    plt.savefig(savepath)
-    plt.close()
+    size_down_simple_label = calculate_mean_std_label(fil_size_down, "average # of vacancies in filament (bottom half)")
+    fig_size_down, ax_size_down = create_time_series_plot(
+        time_switch, fil_size_down,
+        title="# of vacancies in filament-lower end (A.U.)",
+        xlabel="Timestep (ps)",
+        ylabel="# of vacancies in filament-lower end (A.U.)",
+        stats_label=size_down_simple_label,
+        config=scatter_config,
+        ylim=(0, 350)
+    )
+    save_and_close_figure(fig_size_down, output_dir, analysis_name + 'fil_size_down')
 
     # Return all figure objects for further use if needed
     return {
