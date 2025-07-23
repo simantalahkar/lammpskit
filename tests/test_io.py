@@ -145,12 +145,12 @@ def test_read_structure_info_file_not_found():
 def test_read_coordinates_empty_file_list():
     with pytest.raises(ValueError) as excinfo:
         read_coordinates([], skip_rows=9, columns_to_read=(0,1,2,3,4,5,9,10,11,12))
-    assert "file_list is empty" in str(excinfo.value)
+    assert "file_list cannot be empty" in str(excinfo.value)
 
 def test_read_coordinates_file_not_found():
     with pytest.raises(FileNotFoundError) as excinfo:
         read_coordinates(["nonexistent_file.lammpstrj"], skip_rows=9, columns_to_read=(0,1,2,3,4,5,9,10,11,12))
-    assert "File not found" in str(excinfo.value)
+    assert "The following files were not found" in str(excinfo.value)
 
 def test_read_coordinates_file_fewer_atoms_than_expected():
     # total_atoms says 3, but only 2 atom lines provided

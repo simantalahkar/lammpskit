@@ -150,5 +150,46 @@ def validate_chunks_parameter(nchunks: int, min_chunks: int = 1, max_chunks: int
         raise ValueError(f"nchunks cannot exceed {max_chunks}")
 
 
+def validate_cluster_parameters(
+    z_filament_lower_limit: float,
+    z_filament_upper_limit: float, 
+    thickness: float
+) -> None:
+    """
+    Validate cluster analysis parameters for OVITO processing.
+    
+    Args:
+        z_filament_lower_limit: Lower z-bound for filament connection
+        z_filament_upper_limit: Upper z-bound for filament connection  
+        thickness: Filament thickness parameter
+        
+    Raises:
+        TypeError: If parameters are not numeric
+        ValueError: If parameter ranges are invalid
+    """
+    import warnings
+    
+    # Parameter type validation
+    if not isinstance(z_filament_lower_limit, (int, float)):
+        raise TypeError("z_filament_lower_limit must be numeric (int or float)")
+    if not isinstance(z_filament_upper_limit, (int, float)):
+        raise TypeError("z_filament_upper_limit must be numeric (int or float)")
+    if not isinstance(thickness, (int, float)):
+        raise TypeError("thickness must be numeric (int or float)")
+    
+    # Parameter range validation (errors)
+    if z_filament_lower_limit >= z_filament_upper_limit:
+        raise ValueError(f"z_filament_lower_limit ({z_filament_lower_limit}) must be less than z_filament_upper_limit ({z_filament_upper_limit})")
+    if thickness <= 0:
+        raise ValueError(f"thickness ({thickness}) must be positive")
+    
+    # Parameter range validation (warnings)
+    if z_filament_lower_limit < 0:
+        warnings.warn(f"z_filament_lower_limit ({z_filament_lower_limit}) is negative, which might indicate coordinate system issues", UserWarning)
+    
+    if abs(z_filament_lower_limit) > 1000 or abs(z_filament_upper_limit) > 1000:
+        warnings.warn(f"Large z-coordinate values detected (z_lower={z_filament_lower_limit}, z_upper={z_filament_upper_limit}), which might indicate unit scale issues", UserWarning)
+
+
 # Legacy alias for backward compatibility (in case any tests use it)
 extract_element_label_from_filename = None  # Will be imported from data_processing module

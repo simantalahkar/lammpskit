@@ -10,6 +10,9 @@ import re
 import numpy as np
 from typing import Tuple
 
+# Import validation functions from config
+from ..config import validate_file_list
+
 
 def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, float, float, float]:
     """
@@ -174,8 +177,9 @@ def read_coordinates(
         If a file has fewer atom lines than expected.
     """
     print(file_list)
-    if not file_list:
-        raise ValueError("file_list is empty. No files to process.")
+    # Validate input parameters using centralized functions
+    validate_file_list(file_list)
+    
     timestep_arr: list[int] = []
     coordinates: list[np.ndarray] = []
     for filepath in file_list:

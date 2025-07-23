@@ -18,7 +18,8 @@ from ..config import (
     validate_dataindex, 
     validate_loop_parameters,
     validate_chunks_parameter,
-    validate_filepath
+    validate_filepath,
+    validate_cluster_parameters
 )
 
 # Import configuration settings (simplified - inline values directly)
@@ -454,36 +455,10 @@ def analyze_clusters(
     TypeError
         If parameters have invalid types.
     """
-    import warnings
+    # Validate input parameters using centralized functions
+    validate_filepath(filepath)
+    validate_cluster_parameters(z_filament_lower_limit, z_filament_upper_limit, thickness)
     
-    # Parameter type validation
-    if not isinstance(filepath, str):
-        raise TypeError("filepath must be a string")
-    if not filepath:
-        raise ValueError("filepath cannot be empty")
-    
-    if not isinstance(z_filament_lower_limit, (int, float)):
-        raise TypeError("z_filament_lower_limit must be numeric (int or float)")
-    if not isinstance(z_filament_upper_limit, (int, float)):
-        raise TypeError("z_filament_upper_limit must be numeric (int or float)")
-    if not isinstance(thickness, (int, float)):
-        raise TypeError("thickness must be numeric (int or float)")
-    
-    # Parameter range validation (errors)
-    if z_filament_lower_limit >= z_filament_upper_limit:
-        raise ValueError(f"z_filament_lower_limit ({z_filament_lower_limit}) must be less than z_filament_upper_limit ({z_filament_upper_limit})")
-    if thickness <= 0:
-        raise ValueError(f"thickness ({thickness}) must be positive")
-    
-    # Parameter range validation (warnings)
-    if z_filament_lower_limit < 0:
-        warnings.warn(f"z_filament_lower_limit ({z_filament_lower_limit}) is negative, which might indicate coordinate system issues", UserWarning)
-    
-    if abs(z_filament_lower_limit) > 1000 or abs(z_filament_upper_limit) > 1000:
-        warnings.warn(f"Large z-coordinate values detected (z_lower={z_filament_lower_limit}, z_upper={z_filament_upper_limit}), which might indicate unit scale issues", UserWarning)
-    
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"File not found: {filepath}")
     try:
         # Import file for OVITO pipelines
         pipeline1 = import_file(filepath)
