@@ -30,7 +30,9 @@ from ..config import (
     validate_loop_parameters,
     validate_chunks_parameter,
     validate_filepath,
-    validate_cluster_parameters
+    validate_cluster_parameters,
+    DEFAULT_COLUMNS_TO_READ,
+    EXTENDED_COLUMNS_TO_READ
 )
 
 # Import configuration settings (simplified - inline values directly)
@@ -59,8 +61,6 @@ This file contains functions for:
 
 Refactored for modularity, maintainability, and Sphinx documentation.
 """
-
-COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12) #,13,14,15,16
 
 # =========================
 # Data Reading Functions
@@ -137,7 +137,7 @@ def read_displacement_data(
     return thermo
 
 # =========================
-# Plotting Functions  
+# Plotting  and Auxiliary Analysis Functions
 # =========================
 
 def plot_atomic_distribution(
@@ -147,6 +147,7 @@ def plot_atomic_distribution(
     z_bins: int,
     analysis_name: str,
     output_dir: str = os.getcwd(),
+    columns_to_read: tuple = None,
     **kwargs
 ) -> dict[str, plt.Figure]:
     """
@@ -167,6 +168,8 @@ def plot_atomic_distribution(
         Base name for output files.
     output_dir : str, optional
         Directory to save output figures. Defaults to current working directory.
+    columns_to_read : tuple, optional
+        Columns to read from the coordinate files. If None, uses DEFAULT_COLUMNS_TO_READ.
     **kwargs
         Additional keyword arguments for customizing the plots.
 
@@ -177,8 +180,12 @@ def plot_atomic_distribution(
     """
     from .data_processing import calculate_atomic_distributions, calculate_z_bins_setup
     
+    # Use default columns if not specified
+    if columns_to_read is None:
+        columns_to_read = DEFAULT_COLUMNS_TO_READ
+    
     # Read coordinates and simulation parameters
-    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
+    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, columns_to_read)
     z_bin_width, z_bin_centers = calculate_z_bins_setup(zlo, zhi, z_bins)
 
     # Calculate atomic distributions using modular function
@@ -246,6 +253,7 @@ def plot_atomic_charge_distribution(
     z_bins: int,
     analysis_name: str,
     output_dir: str = os.getcwd(),
+    columns_to_read: tuple = None,
     **kwargs
 ) -> dict[str, plt.Figure]:
     """
@@ -266,6 +274,8 @@ def plot_atomic_charge_distribution(
         Base name for output files.
     output_dir : str, optional
         Directory to save output figures. Defaults to current working directory.
+    columns_to_read : tuple, optional
+        Columns to read from the coordinate files. If None, uses DEFAULT_COLUMNS_TO_READ.
     **kwargs
         Additional keyword arguments for customizing the plots.
 
@@ -276,8 +286,12 @@ def plot_atomic_charge_distribution(
     """
     from .data_processing import calculate_atomic_distributions, calculate_charge_distributions, calculate_z_bins_setup
     
+    # Use default columns if not specified
+    if columns_to_read is None:
+        columns_to_read = DEFAULT_COLUMNS_TO_READ
+    
     # Read coordinates and simulation parameters
-    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, COLUMNS_TO_READ)
+    coordinates_arr, timestep_arr, total_atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(file_list, skip_rows, columns_to_read)
     z_bin_width, z_bin_centers = calculate_z_bins_setup(zlo, zhi, z_bins)
 
     print(f"\nshape of coordinate_arr= {np.shape(coordinates_arr)}, length of coordinate_arr= {len(coordinates_arr)}")
@@ -918,7 +932,6 @@ def plot_displacement_timeseries(
         'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)'
     ]
     ncolumns = 4  # Number of columns for subplot grid
-    time_points = 100  # Number of points for time series analysis
     
     # Plot configuration defaults (inlined)
     colors = ['b', 'r', 'g', 'k']
@@ -1046,11 +1059,15 @@ def plot_displacement_timeseries(
 
 
 def main():
-    output_dir =  os.path.join("..", "..", "output", "ecellmodel")
+    output_dir =  os.path.join("..", "..", "usage", "ecellmodel", "output")
 
-    global COLUMNS_TO_READ
-    COLUMNS_TO_READ = (0,1,2,3,4,5,9,10,11,12,13,14,15,16) 
+    # Use EXTENDED_COLUMNS_TO_READ for comprehensive analysis in main script
+    columns_to_read = EXTENDED_COLUMNS_TO_READ
 
+    ## Can also use custom columns for specific analysis
+    # custom_columns = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    # columns_to_read = custom_columns
+    
     ## The following code block generates plots that track the evolution of the 
     # filament connectivity state, gap, and separation over time for each 
     # timeseries trajectory file in the file_list.
@@ -1059,13 +1076,6 @@ def main():
     TIME_STEP = 0.001
     DUMP_INTERVAL_STEPS = 500
 
-    MIN_SIM_STEP = 0
-    MAX_SIM_STEP = 500000
-    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
-    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-
-    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_points),'\n',time_points[-1])
     ###################################
 
     data_path = os.path.join("..", "..", "data","ecellmodel", "processed","trajectory_series", "*.lammpstrj")
@@ -1078,9 +1088,11 @@ def main():
 
     track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,output_dir=output_dir)
 
-    ## The following code block generates plots of atomic distributions
-    # and compares the displacements of Hf, O, and Ta for different temperatures
+    #####################################
 
+    ## The following code block generates plots of atomic charge distributions
+    # and compares the displacements of Hf, O, and Ta for different temperatures
+    
     ## Simulation parameters corresponding to the respective raw data
     TIME_STEP = 0.0002
     DUMP_INTERVAL_STEPS = 5000
@@ -1089,141 +1101,35 @@ def main():
     MAX_SIM_STEP = 2500000
     loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
     loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-
-    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_points),'\n',time_points[-1])
-    SKIP_ROWS_COORD= 9   
-    HISTOGRAM_BINS = 15
-    ###################################
-
-    analysis_name = f'temp_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "temp*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['300 K','900 K', '1300 K']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Hfmobilestc1.dat")
-    analysis_name = f'displacements_temp_Hf'
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['300 K','900 K', '1300 K']
-    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
-
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Omobilestc1.dat")
-    analysis_name = f'displacements_temp_O'
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['300 K','900 K', '1300 K']
-    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
-
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "*K_Tamobilestc1.dat")
-    analysis_name = f'displacements_temp_Ta'
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['300 K','900 K', '1300 K']
-    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
-
     
-    ## The following code block generates plots of atomic and charge distributions 
-    # and compares the displacements of Hf, O, and Ta for different temperatures   
-        ## Simulation parameters corresponding to the respective raw data
-    TIME_STEP = 0.0002
-    DUMP_INTERVAL_STEPS = 5000
-
-    MIN_SIM_STEP = 0
-    MAX_SIM_STEP = 2500000
-    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
-    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-
-    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_points),'\n',time_points[-1])
     SKIP_ROWS_COORD= 9   
     HISTOGRAM_BINS = 15
     ###################################
 
-    analysis_name = f'local_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "local2*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['initial','final']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    data_path = os.path.join("..", "..", "data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
-    analysis_name = f'displacements_atom_type'
+    data_path = os.path.join("..", "..","data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
+    analysis_name = 'displacements_atom_type'
     unsorted_file_list = glob.glob(data_path)
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['Hf','O', 'Ta']
     plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
+ 
 
-
-    analysis_name = f'local_charge_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..", "data","ecellmodel", "raw", "local2*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['initial','final']
-    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    
     analysis_name = f'local_charge_{HISTOGRAM_BINS}'
     data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "local2*.lammpstrj")
     unsorted_file_list = glob.glob(data_path)
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['initial','final']
-    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir,columns_to_read=columns_to_read)
 
-    data_path = os.path.join("..", "..","data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
-    analysis_name = f'displacements_atom_type'
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['Hf','O', 'Ta']
-    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
 
-    ## The following code block generates plots of atomic and charge distributions 
-    # and compares the displacements of Hf, O, and Ta for different temperatures   
-        ## Simulation parameters corresponding to the respective raw data
-    TIME_STEP = 0.001
-    DUMP_INTERVAL_STEPS = 500
-
-    MIN_SIM_STEP = 0
-    MAX_SIM_STEP = 500000
-
-    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
-    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-
-    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_points),'\n',time_points[-1])
-    SKIP_ROWS_COORD= 9   
-    HISTOGRAM_BINS = 15
+    ## The following code block generates plots of atomic distributions 
+    #  of Hf, O, and Ta for different end states corresponding to simulations
+    #  under different applied voltages. 
+    #  
+    ## Simulation parameters corresponding to the respective raw data
     ###################################
-
-    analysis_name = f'forming_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]forming*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['relaxed','formed']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    #####################################
-    # Following code block corresponds to analysis on new data files
-    #####################################
-    #####################################
-
-    ## The following code block generates plots of atomic and charge distributions 
-# and compares the displacements of Hf, O, and Ta for different temperatures  
-#  
-## Simulation parameters corresponding to the respective raw data
-###################################
 
     TIME_STEP = 0.001
     DUMP_INTERVAL_STEPS = 500
@@ -1234,35 +1140,9 @@ def main():
     loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
     loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
 
-    time_points = np.linspace(loop_start*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end*DUMP_INTERVAL_STEPS*TIME_STEP,loop_end-loop_start+1)
-    print(np.shape(time_points),'\n',time_points[-1])
     SKIP_ROWS_COORD= 9   
     HISTOGRAM_BINS = 15
     ###################################
-
-    analysis_name = f'forming_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]forming*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['relaxed0V','formed2V']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    analysis_name = f'post_forming_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]formed*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['formed2V','formed0V']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
-
-    analysis_name = f'set_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]set*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['formed0V','set-0.1V']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
 
     analysis_name = f'break_{HISTOGRAM_BINS}'
     data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]break*.lammpstrj")
@@ -1270,7 +1150,7 @@ def main():
     file_list = sorted(unsorted_file_list)
     print(analysis_name,file_list)
     labels = ['set-0.1V','break-0.5V']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir)
+    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir,columns_to_read=columns_to_read)
 
     
     exit()

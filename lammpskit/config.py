@@ -21,6 +21,11 @@ DISPLACEMENT_DATA_LABELS = [
     'z disp (A)', 'lateral disp (A)', 'outward disp vector (A)'
 ]
 
+# Default columns to read from LAMMPS coordinate files
+# Format: (id, type, charge, x, y, z, ...)
+DEFAULT_COLUMNS_TO_READ = (0, 1, 2, 3, 4, 5, 9, 10, 11, 12)  # Standard analysis columns
+EXTENDED_COLUMNS_TO_READ = (0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16)  # Extended analysis columns
+
 
 # =============================================================================
 # VALIDATION FUNCTIONS
