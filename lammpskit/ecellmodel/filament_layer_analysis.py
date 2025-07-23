@@ -1,12 +1,10 @@
 import os
-import glob
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from ovito.io import import_file
 import ovito.modifiers as om
-# Remove unused typing import since config classes are inlined
 
 # Import general utilities
 from ..io import read_coordinates
@@ -31,8 +29,7 @@ from ..config import (
     validate_chunks_parameter,
     validate_filepath,
     validate_cluster_parameters,
-    DEFAULT_COLUMNS_TO_READ,
-    EXTENDED_COLUMNS_TO_READ
+    DEFAULT_COLUMNS_TO_READ
 )
 
 # Import configuration settings (simplified - inline values directly)
@@ -1059,101 +1056,28 @@ def plot_displacement_timeseries(
 
 
 def main():
-    output_dir =  os.path.join("..", "..", "usage", "ecellmodel", "output")
-
-    # Use EXTENDED_COLUMNS_TO_READ for comprehensive analysis in main script
-    columns_to_read = EXTENDED_COLUMNS_TO_READ
-
-    ## Can also use custom columns for specific analysis
-    # custom_columns = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-    # columns_to_read = custom_columns
+    """
+    Minimal demonstration of LAMMPSKit basic functionality.
     
-    ## The following code block generates plots that track the evolution of the 
-    # filament connectivity state, gap, and separation over time for each 
-    # timeseries trajectory file in the file_list.
-
-    ## Simulation parameters corresponding to the respective raw data
-    TIME_STEP = 0.001
-    DUMP_INTERVAL_STEPS = 500
-
-    ###################################
-
-    data_path = os.path.join("..", "..", "data","ecellmodel", "processed","trajectory_series", "*.lammpstrj")
-    analysis_name = 'track_'
-    # data_path = "*.lammpstrj"
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print('The data_path is ',data_path)
-    print(analysis_name,file_list)
-
-    track_filament_evolution(file_list, analysis_name,TIME_STEP,DUMP_INTERVAL_STEPS,output_dir=output_dir)
-
-    #####################################
-
-    ## The following code block generates plots of atomic charge distributions
-    # and compares the displacements of Hf, O, and Ta for different temperatures
+    For complete examples with real data, see:
+    https://github.com/simantalahkar/lammpskit/tree/main/usage/ecellmodel
+    """
+    try:
+        from ... import __version__
+    except ImportError:
+        # Fallback if relative import fails
+        import lammpskit
+        __version__ = lammpskit.__version__
     
-    ## Simulation parameters corresponding to the respective raw data
-    TIME_STEP = 0.0002
-    DUMP_INTERVAL_STEPS = 5000
-
-    MIN_SIM_STEP = 0
-    MAX_SIM_STEP = 2500000
-    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
-    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-    
-    SKIP_ROWS_COORD= 9   
-    HISTOGRAM_BINS = 15
-    ###################################
-
-    data_path = os.path.join("..", "..","data","ecellmodel", "raw", "[1-9][A-Z][A-Za-z]mobilestc1.dat")
-    analysis_name = 'displacements_atom_type'
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['Hf','O', 'Ta']
-    plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count=0,output_dir=output_dir)
- 
-
-    analysis_name = f'local_charge_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "local2*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['initial','final']
-    plot_atomic_charge_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir,columns_to_read=columns_to_read)
-
-
-    ## The following code block generates plots of atomic distributions 
-    #  of Hf, O, and Ta for different end states corresponding to simulations
-    #  under different applied voltages. 
-    #  
-    ## Simulation parameters corresponding to the respective raw data
-    ###################################
-
-    TIME_STEP = 0.001
-    DUMP_INTERVAL_STEPS = 500
-
-    MIN_SIM_STEP = 0
-    MAX_SIM_STEP = 500000
-
-    loop_start = int(MIN_SIM_STEP / DUMP_INTERVAL_STEPS)
-    loop_end = int(MAX_SIM_STEP / DUMP_INTERVAL_STEPS)
-
-    SKIP_ROWS_COORD= 9   
-    HISTOGRAM_BINS = 15
-    ###################################
-
-    analysis_name = f'break_{HISTOGRAM_BINS}'
-    data_path =  os.path.join("..", "..","data","ecellmodel", "raw", "[1-9]break*.lammpstrj")
-    unsorted_file_list = glob.glob(data_path)
-    file_list = sorted(unsorted_file_list)
-    print(analysis_name,file_list)
-    labels = ['set-0.1V','break-0.5V']
-    plot_atomic_distribution(file_list,labels,SKIP_ROWS_COORD,HISTOGRAM_BINS,analysis_name,output_dir=output_dir,columns_to_read=columns_to_read)
-
-    
-    exit()
+    print("LAMMPSKit - Toolkit for MD simulations and analysis with LAMMPS")
+    print(f"Version: {__version__}")
+    print("")
+    print("Example usage:")
+    print("  from lammpskit.ecellmodel import plot_atomic_distribution")
+    print("  from lammpskit.config import DEFAULT_COLUMNS_TO_READ")
+    print("")
+    print("For complete examples, visit:")
+    print("  https://github.com/simantalahkar/lammpskit/tree/main/usage")
 
 if __name__ == "__main__":
     main()

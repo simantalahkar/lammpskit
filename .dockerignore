@@ -15,6 +15,7 @@ main.py
 supporting_docs/
 examples/
 data/
+usage/
 .git/
 .gitignore
 Dockerfile
