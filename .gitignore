@@ -5,16 +5,25 @@ build/
 dist/
 wheels/
 *.egg-info
+.coverage
+.pytest_cache/
 
 # Virtual environments
 .venv
 
-# Folders and files to be completed
+# Folders and files to be completed and used only in development
 # docs/
 outputs/
-# examples/
 main.py
 supporting_docs/
 examples/
 data/
-
+demo_output/
+temp_baseline/
+test_output/
+.dockerignore
+phase2_categorization_report.md
+phase3a_safe_removals_complete.md
+phase3b_questionable_modules_complete.md
+phase3c_over_engineering_simplification_complete.md
+streamlining_project_complete_summary.md
