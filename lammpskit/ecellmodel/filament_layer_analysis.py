@@ -442,7 +442,37 @@ def analyze_clusters(
         If the file does not exist.
     ValueError
         If no clusters are found or file is malformed for OVITO.
+    TypeError
+        If parameters have invalid types.
     """
+    import warnings
+    
+    # Parameter type validation
+    if not isinstance(filepath, str):
+        raise TypeError("filepath must be a string")
+    if not filepath:
+        raise ValueError("filepath cannot be empty")
+    
+    if not isinstance(z_filament_lower_limit, (int, float)):
+        raise TypeError("z_filament_lower_limit must be numeric (int or float)")
+    if not isinstance(z_filament_upper_limit, (int, float)):
+        raise TypeError("z_filament_upper_limit must be numeric (int or float)")
+    if not isinstance(thickness, (int, float)):
+        raise TypeError("thickness must be numeric (int or float)")
+    
+    # Parameter range validation (errors)
+    if z_filament_lower_limit >= z_filament_upper_limit:
+        raise ValueError(f"z_filament_lower_limit ({z_filament_lower_limit}) must be less than z_filament_upper_limit ({z_filament_upper_limit})")
+    if thickness <= 0:
+        raise ValueError(f"thickness ({thickness}) must be positive")
+    
+    # Parameter range validation (warnings)
+    if z_filament_lower_limit < 0:
+        warnings.warn(f"z_filament_lower_limit ({z_filament_lower_limit}) is negative, which might indicate coordinate system issues", UserWarning)
+    
+    if abs(z_filament_lower_limit) > 1000 or abs(z_filament_upper_limit) > 1000:
+        warnings.warn(f"Large z-coordinate values detected (z_lower={z_filament_lower_limit}, z_upper={z_filament_upper_limit}), which might indicate unit scale issues", UserWarning)
+    
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
     try:
