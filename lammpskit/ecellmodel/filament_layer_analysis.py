@@ -509,24 +509,12 @@ def plot_atomic_distribution(
         
     Notes
     -----
-    Electrochemical Analysis Applications:
-    - **Filament Characterization**: Hf distribution reveals conductive pathway formation
-    - **Vacancy Analysis**: O distribution shows ion migration and depletion regions
-    - **Matrix Stability**: Ta distribution indicates structural rearrangement
-    - **Interface Study**: Species profiles near electrodes (z-boundaries)
-    
-    Stoichiometric Interpretation:
-    - **Ideal HfTaO**: Balanced composition with uniform spatial distribution
-    - **Filament Formation**: Local Hf enrichment with O depletion
-    - **Interface Effects**: Composition gradients near electrode boundaries
-    - **Switching States**: Compositional differences between SET/RESET states
-    
-    Physical Context & Design:
-    The analysis implements the HfTaO atom type system:
-    - Type 2: Hf atoms (primary conductive species)
-    - Odd types: O atoms (vacancy formation, ion migration)  
-    - Even types (≠2): Ta atoms (matrix stabilization)
-    - Proportional factor 3.5: Normalization for stoichiometric analysis
+    Implementation Details:
+    The analysis implements the atom type system:
+    - Type 2: Hf atoms
+    - Odd types: O atoms  
+    - Even types (≠2): Ta atoms
+    - Proportional factor 3.5: Normalization for analysis
     
     Performance Characteristics:
     - **Memory Usage**: O(N_files × N_atoms × N_columns) for coordinate storage
@@ -813,12 +801,6 @@ def plot_atomic_charge_distribution(
     - **Metal Charges**: Indicate oxidation state changes and electron transfer
     - **Oxygen Charges**: Track ionic polarization and vacancy formation regions
     - **Temporal Evolution**: Initial vs. final states show switching-induced changes
-    
-    Physical Interpretation Guidelines:
-    - **Positive Regions**: Cation accumulation or anion depletion zones
-    - **Negative Regions**: Anion accumulation or cation depletion zones
-    - **Charge Gradients**: Drive ionic migration and filament formation processes
-    - **Interface Charges**: Control electron injection and device resistance states
     
     Mathematical Foundation:
     Raw charge distribution calculation:
@@ -1141,25 +1123,6 @@ def plot_displacement_comparison(
         
     Notes
     -----
-    Physical Interpretation & Applications:
-    
-    **Z-Displacement Analysis:**
-    - **Positive Values**: Ion migration toward anode (field-driven drift)
-    - **Negative Values**: Ion migration toward cathode (reverse field effects)
-    - **Magnitude Patterns**: Reveals migration hotspots and stagnation regions
-    - **Species Differences**: Hf, Ta, O show distinct mobility characteristics
-    
-    **Lateral Displacement Analysis:**
-    - **Radial Spreading**: Indicates thermal diffusion vs. directed migration
-    - **Confinement Effects**: Shows channel formation and lateral stability
-    - **Species Selectivity**: Different lateral mobilities affect filament morphology
-    
-    **Comparative Analysis Capabilities:**
-    - **Multi-Species Mobility**: Direct comparison of Hf, Ta, O displacement patterns
-    - **Field Dependence**: Voltage-dependent mobility characterization
-    - **Temporal Evolution**: Long-term stability and migration trend analysis
-    - **Interface Effects**: Electrode-oxide boundary phenomena assessment
-    
     Data Processing Methodology:
     
     **Final State Extraction:**
@@ -1188,24 +1151,6 @@ def plot_displacement_comparison(
     - **Visualization**: Leverages plot_multiple_cases() for comparative plotting
     - **Error Handling**: Inherits validation from displacement data reading functions
     - **Workflow Integration**: Compatible with plot_displacement_timeseries() analysis
-    
-    Electrochemical Memory Device Context:
-    Essential for characterizing key switching phenomena:
-    
-    **Filament Formation Analysis:**
-    - Hafnium migration patterns revealing conductive bridge formation
-    - Oxygen vacancy movement creating resistive switching pathways
-    - Tantalum matrix stability during electrochemical cycling
-    
-    **Field-Dependent Mobility:**
-    - Low-field regime: Thermal diffusion dominance
-    - Medium-field regime: Drift-diffusion balance  
-    - High-field regime: Field-driven migration dominance
-    
-    **Device Optimization Applications:**
-    - Electrode material selection based on species mobility
-    - Oxide thickness optimization for controlled migration
-    - Cycling voltage optimization for device reliability
     
     Examples
     --------
@@ -1548,24 +1493,6 @@ def analyze_clusters(
         separation = min_distance_between_clusters - cutoff_distance
         gap = z_direction_gap_between_clusters
     ```
-    
-    Physical Interpretation & Applications:
-    
-    **Filament Formation Analysis:**
-    - **Connected State (connection=1)**: Complete conductive bridge spans electrode separation
-    - **Disconnected State (connection=0)**: Incomplete filament with measurable gap
-    - **Filament Size**: Atom count correlates with conductance magnitude
-    - **Height/Depth**: Extent into dielectric/matrix regions
-    
-    **Switching Mechanism Characterization:**
-    - **SET Process**: connection evolves from 0→1, gap decreases to zero
-    - **RESET Process**: connection transitions 1→0, gap increases
-    - **Retention**: Stable connection state with consistent gap/separation = 0
-    
-    **Example Device Performance Metrics:**
-    - **Switching Completeness**: Ratio of connected frames in time series
-    - **Filament Stability**: Gap fluctuation magnitude during retention
-    - **Formation Efficiency**: Minimum cluster size for reliable switching
     
     **Radial Distribution Function (RDF) Analysis:**
     Characterizes local atomic structure and bonding environment
@@ -1991,25 +1918,6 @@ def track_filament_evolution(
     - **Frequency Metrics**: State occupation probabilities
     - **Trend Analysis**: Long-term evolution patterns
     
-    Physical Interpretation & Applications:
-    
-    **Switching Dynamics:**
-    - **Formation Phase**: Connection transitions from 0→1, gap decreases
-    - **Retention Phase**: Stable connection=1 with minimal gap fluctuation
-    - **Dissolution Phase**: Connection transitions from 1→0, gap increases
-    - **Cycling Behavior**: Repeated formation/dissolution cycles
-    
-    **Device Performance Metrics:**
-    - **Switching Reliability**: Frequency of successful connection formation
-    - **Retention Stability**: Gap fluctuation magnitude during connected state
-    - **Formation Speed**: Time required for connection=0→1 transition
-    - **Dissolution Dynamics**: Time required for connection=1→0 transition
-    
-    **Filament Morphology Evolution:**
-    - **Size Growth**: Atom count increase during formation
-    - **Height/Depth Evolution**: Filament penetration into the dielectric matrix progression
-    - **Structural Stability**: Size and position fluctuations during retention
-    
     Performance Characteristics:
     - **Processing Speed**: ~1-5 minutes per trajectory file depending on complexity
     - **Memory Usage**: O(N_frames × N_atoms) for trajectory sequence processing
@@ -2021,24 +1929,6 @@ def track_filament_evolution(
     - **Visualization**: Leverages plotting utilities for publication-ready time series
     - **Data Processing**: Compatible with displacement analysis and atomic distribution functions
     - **Workflow Integration**: Supports batch processing and automated analysis pipelines
-    
-    Electrochemical Memory Device Context:
-    Essential for understanding and optimizing key device characteristics:
-    
-    **Switching Mechanism Analysis:**
-    - Filament formation pathways and kinetics
-    - Electrode interface phenomena and nucleation sites
-    - Field-dependent formation/dissolution dynamics
-    
-    **Reliability Assessment:**
-    - Cycle-to-cycle switching consistency
-    - Long-term retention stability
-    - Endurance degradation mechanisms
-    
-    **Device Optimization:**
-    - Optimal voltage cycling protocols
-    - Electrode material selection criteria
-    - Oxide composition and thickness optimization
     
     Examples
     --------
@@ -2623,23 +2513,9 @@ def plot_displacement_timeseries(
     - **Resolution**: Determined by dump frequency in simulation output
     - **Range**: Defined by loop_start to loop_end parameters
     
-    Physical Interpretation by Data Index:
-    
-    **Displacement Magnitude Analysis (dataindex=0,3,4,5):**
-    - **Total Displacement**: Overall ion migration extent and pathways
-    - **Z-Displacement**: Field-driven migration along electrode axis
-    - **Lateral Displacement**: Thermal diffusion and confinement effects
-    - **Radial Displacement**: Cylindrical spreading patterns
-    
-    **Thermodynamic Property Analysis (dataindex=1,2):**
-    - **Density Evolution**: Mass redistribution and vacancy formation
-    - **Temperature Profiles**: Local heating and thermal transport
-    
-    **Electrochemical Context Applications:**
-    - **Filament Formation**: Track preferential migration pathways
-    - **Interface Phenomena**: Analyze electrode boundary effects
-    - **Field Distribution**: Visualize non-uniform field effects
-    - **Species Selectivity**: Compare Hf, Ta, O migration characteristics
+    Data Index Configuration:
+    - **Index 0,3,4,5**: Displacement magnitude components
+    - **Index 1,2**: Density and temperature data
     
     Performance Characteristics:
     - **Memory Usage**: O(N_files × N_loops × N_chunks × N_columns) for data storage
