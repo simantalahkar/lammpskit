@@ -43,7 +43,7 @@ The example data corresponds to various simulation setups:
 The script can be easily modified to:
 - Use different simulation parameters
 - Analyze custom data files
-- Apply different column configurations
+- Use different column configurations according to data and analysis.
 - Adjust analysis parameters
 
 See the script comments for detailed guidance on customization options.
