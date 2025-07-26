@@ -1,6 +1,6 @@
 [project]
 name = "lammpskit"
-version = "0.2.2"
+version = "1.0.0"
 description = "Toolkit for MD simulations and analysis with LAMMPS."
 readme = "README.md"
 requires-python = ">=3.12"

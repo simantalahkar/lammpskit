@@ -21,11 +21,12 @@
 └── .coverage                                    # Coverage report data
 ```
 
-## Documentation
+## Documentation & Reports
 ```
 ├── README.md                                    # Project overview and usage
 ├── CHANGELOG.md                                 # Version history and changes
 ├── LICENSE                                      # GPL-3.0-or-later license
+├── LAMMPSKIT_EVOLUTION_WORKFLOW.md              # Technical workflow documentation
 ├── phase2_categorization_report.md              # Refactoring analysis report
 ├── phase3a_safe_removals_complete.md            # Safe module removal report
 ├── phase3b_questionable_modules_complete.md     # Questionable module analysis
@@ -43,12 +44,130 @@ lammpskit/                                       # Main Python package
 │   └── lammps_readers.py                       # LAMMPS file format readers
 ├── plotting/                                   # General plotting utilities
 │   ├── __init__.py                             # Plotting module initialization
-│   └── utils.py                                # Core plotting functions (plot_multiple_cases)
+│   ├── utils.py                                # Core plotting functions (plot_multiple_cases)
+│   └── timeseries_plots.py                     # Time series plotting configurations and functions
 └── ecellmodel/                                 # Electrochemical cell simulation analysis
     ├── __init__.py                             # ECell module initialization
     ├── data_processing.py                      # Atom type selection and distributions
     └── filament_layer_analysis.py              # Main analysis workflows and OVITO integration
 ```
+
+## Test Suite
+```
+tests/                                          # Test directory (12 test files, 205 baseline images)
+├── test_config.py                              # Configuration validation tests
+├── test_io.py                                  # I/O functionality tests
+├── test_plotting.py                           # General plotting utility tests
+├── test_timeseries_plots.py                   # Time series plotting tests
+├── test_centralized_font_control.py           # Font control and styling tests
+├── baseline/                                   # Reference images for matplotlib tests
+│   └── *.png                                   # Baseline plot images for comparison (205 images)
+└── test_ecellmodel/                            # Electrochemical model tests
+    ├── test_analyze_clusters.py               # Cluster analysis tests
+    ├── test_data_processing.py                # Data processing function tests
+    ├── test_plot_atomic_charge_distribution.py # Charge distribution plotting tests
+    ├── test_plot_atomic_distribution.py       # Atomic distribution plotting tests
+    ├── test_plot_displacement_comparison.py   # Displacement comparison tests
+    ├── test_plot_displacement_timeseries.py   # Time series plotting tests
+    ├── test_track_filament_evolution.py       # Filament evolution tracking tests
+    ├── baseline/                               # ECell module baseline images
+    │   └── *.png                               # Specialized baseline images for electrochemical tests
+    └── test_data/                              # Test data files
+        ├── *.lammpstrj                         # LAMMPS trajectory files
+        ├── data_for_comparison/                # Displacement comparison test data
+        │   └── *.dat                           # Thermodynamic data files
+        ├── data_for_layer_analysis/            # Cluster analysis test data
+        │   └── *.lammpstrj                     # OVITO-compatible trajectory files
+        └── data_for_timeseries/                # Time series plotting test data
+            └── *.dat                           # Element-specific displacement data
+```
+
+## Usage Examples
+```
+usage/                                          # Usage examples and demonstrations
+└── ecellmodel/                                 # Electrochemical analysis examples
+    ├── README.md                               # Usage instructions and examples
+    ├── run_analysis.py                         # Main analysis demonstration script
+    ├── data/                                   # Example input data
+    │   └── ecellmodel/                         # Sample trajectory and data files
+    └── output/                                 # Example output files and plots
+```
+
+## Development & Build Artifacts
+```
+├── dist/                                       # Distribution packages (wheels, source)
+├── lammpskit.egg-info/                         # Package metadata
+├── demo_output/                                # Demonstration output files
+├── temp_baseline/                              # Temporary baseline images during testing
+├── test_output/                                # Test execution output files
+└── supporting_docs/                            # Development documentation and backups
+    ├── baseline_backup/                        # Backup of previous baseline images
+    ├── directory_backups/                      # Project structure backups
+    ├── examples/                               # Historical examples
+    ├── tests/                                  # Historical test files
+    ├── data/                                   # Development data files
+    ├── output/                                 # Development output
+    ├── prior_baseline/                         # Previous baseline versions
+    └── *.py, *.md, *.png                       # Various development files and reports
+```
+
+## Package Distribution Components
+
+### PyPI Package (via setup.py and MANIFEST.in)
+**Included in distribution:**
+- `lammpskit/` - Complete Python package
+- `README.md` - Project documentation
+- `LICENSE` - GPL-3.0-or-later license
+- `CHANGELOG.md` - Version history
+- `requirements.txt` - Runtime dependencies
+- `requirements-dev.txt` - Development dependencies
+- `setup.py` - Package setup configuration
+- `pyproject.toml` - Modern packaging configuration
+
+**Excluded from distribution:**
+- Tests (`tests/` excluded in setup.py)
+- Development documentation (`supporting_docs/`, phase reports)
+- Build artifacts (`dist/`, `*.egg-info/`)
+- Temporary files (`temp_baseline/`, `test_output/`)
+- Usage examples (`usage/` excluded in setup.py)
+
+### Docker Image (via Dockerfile and .dockerignore)
+**Included in Docker image:**
+- `lammpskit/` - Complete Python package
+- `README.md`, `LICENSE`, `CHANGELOG.md` - Documentation
+- `requirements.txt` - Runtime dependencies
+- `setup.py`, `pyproject.toml` - Installation files
+
+**Excluded from Docker image:**
+- All test files and data (`tests/`, `test_output/`)
+- Development files (`supporting_docs/`, phase reports)
+- Usage examples (`usage/`)
+- Build artifacts and caches
+- Virtual environments (`.venv/`)
+
+### GitHub Repository (via .gitignore)
+**Tracked in repository:**
+- Complete source code (`lammpskit/`)
+- All documentation (README, CHANGELOG, reports)
+- Test suite (`tests/`) with baseline images
+- Usage examples (`usage/`)
+- Configuration files (packaging, CI/CD)
+
+**Excluded from repository:**
+- Build artifacts (`dist/`, `*.egg-info/`)
+- Python caches (`__pycache__/`, `*.pyc`)
+- Virtual environments (`.venv/`)
+- Coverage reports (`.coverage`)
+- Temporary outputs (`temp_baseline/`, `test_output/`)
+- Development artifacts (`supporting_docs/`)
+
+## Key Architecture Notes
+
+- **Modular Design**: Clear separation between general utilities (io, plotting, config) and domain-specific analysis (ecellmodel)
+- **Comprehensive Testing**: 12 test files with 205 baseline images for visual regression testing
+- **HfTaO Atom Type System**: Type 2=Hf, odd types=O, even types (except 2)=Ta, types 5,6,9,10 also function as electrodes
+- **Version Consistency**: v0.2.2 maintained across all configuration files
+- **Distribution Strategy**: Core package distributed via PyPI, Docker image for reproducible environments, full development environment via GitHub
 
 ## Test Suite
 ```

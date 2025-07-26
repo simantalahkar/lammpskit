@@ -4,11 +4,14 @@
 
 ## Features
 
-- Utilities for reading and processing LAMMPS trajectory and data files
-- Functions for statistical analysis and visualization of simulation results
-- Tools for analyzing atomic distributions, charges, displacements, and clusters
-- Modular plotting utilities for scientific data
-- Example scripts for common analysis tasks
+- **Modular architecture** with separate I/O, plotting, and analysis components
+- **Comprehensive data processing** for LAMMPS trajectory and displacement files
+- **Advanced visualization tools** including timeseries plotting with font customization
+- **Atomic-scale analysis functions** for distributions, charges, displacements, and clusters
+- **Filament evolution tracking** for electrochemical simulation analysis
+- **Configuration management** with centralized settings and validation
+- **Complete example workflows** demonstrating real-test usage patterns
+- **Extensive test coverage** with visual regression testing for plots
 
 ## Installation
 
@@ -58,31 +61,79 @@ pip install .[dev]
 
 ## Function Summary Table
 
+### Core I/O Functions (`lammpskit.io.lammps_readers`)
 | Function                       | Purpose                                                        |
 |--------------------------------|----------------------------------------------------------------|
-| read_structure_info            | Parse trajectory metadata                                      |
-| read_coordinates               | Load coordinates and cell info                                 |
-| read_displacement_data         | Parse processed displacement data                              |
-| plot_multiple_cases            | General scientific plotting utility                            |
-| plot_atomic_distribution       | Analyze and plot atomic distributions                          |
-| plot_atomic_charge_distribution| Analyze and plot atomic charge distributions                   |
-| plot_displacement_comparison   | Compare displacement data across cases                         |
-| analyze_clusters               | Cluster analysis and filament property extraction              |
-| track_filament_evolution       | Track filament evolution over time                             |
-| plot_displacement_timeseries   | Plot time series of displacement data                          |
-| run_analysis                   | Main workflow orchestration                                    |
+| read_structure_info            | Parse trajectory metadata (timestep, atom count, box dims)    |
+| read_coordinates               | Load coordinates and cell info from trajectory files          |
+| read_displacement_data         | Parse processed displacement data with robust error handling   |
 
+### Analysis Functions (`lammpskit.ecellmodel.filament_layer_analysis`)
+| Function                       | Purpose                                                        |
+|--------------------------------|----------------------------------------------------------------|
+| analyze_clusters               | OVITO-based cluster analysis and filament property extraction |
+| track_filament_evolution       | Track filament connectivity, gap, and size over time          |
+| plot_atomic_distribution       | Analyze and plot atomic distributions by element type         |
+| plot_atomic_charge_distribution| Analyze and plot atomic charge distributions                   |
+| plot_displacement_comparison   | Compare displacement data across multiple cases               |
+| plot_displacement_timeseries   | Plot time series of displacement data with customization      |
+
+### Plotting Utilities (`lammpskit.plotting`)
+| Function                       | Purpose                                                        |
+|--------------------------------|----------------------------------------------------------------|
+| plot_multiple_cases            | General scientific plotting utility with flexible styling     |
+| timeseries_plots.*             | Centralized timeseries plotting with font and style control   |
+
+### Data Processing (`lammpskit.ecellmodel.data_processing`)
+| Function                       | Purpose                                                        |
+|--------------------------------|----------------------------------------------------------------|
+| Various validation functions   | Centralized input validation and error handling               |
+
+### Example Workflows (`usage/ecellmodel/`)
+| Script                         | Purpose                                                        |
+|--------------------------------|----------------------------------------------------------------|
+| run_analysis.py               | Complete workflow demonstrating 4 main analysis types        |
+
+
+## Quick Start
+
+### Using the Example Workflow
+
+LAMMPSKit v1.0.0 includes a comprehensive example workflow that demonstrates all major package capabilities:
+
+```python
+# Clone the repository and navigate to the usage example
+git clone https://github.com/simantalahkar/lammpskit.git
+cd lammpskit/usage/ecellmodel
+
+# Run the complete analysis workflow
+python run_analysis.py
+```
+
+This workflow demonstrates four main analysis types:
+1. **Filament Evolution Tracking** - Monitor filament connectivity and structural changes over time
+2. **Displacement Analysis** - Compare atomic displacements across different species (Hf, O, Ta)
+3. **Charge Distribution Analysis** - Analyze local charge distributions in electrochemical systems
+4. **Atomic Distribution Analysis** - Study atomic distributions under different applied voltages
+
+Generated plots and analysis results are saved to `usage/ecellmodel/output/`.
+
+### Package Structure
+
+LAMMPSKit v1.0.0 features a modular architecture:
+
+```
+lammpskit/
+├── io/                    # Data reading and I/O operations
+├── plotting/              # Visualization utilities and timeseries plots
+├── ecellmodel/           # Electrochemical analysis functions
+└── config.py             # Centralized configuration management
+```
 
 ## Docker Image
 
 An official Docker image for **lammpskit** is available on [Docker Hub](https://hub.docker.com/r/simantalahkar/lammpskit).
-Using the Docker container provides a portable, reproducible environment for running lammpskit anywhere Docker is supported.
-
-### Benefits
-
-- Portable and reproducible environment
-- All dependencies pre-installed
-- Easy to use on any system with Docker
+Using the Docker container provides a portable, reproducible environment with all dependencies pre-installed for running and testing lammpskit anywhere Docker is supported.
 
 ### How to Use
 
@@ -95,7 +146,7 @@ Using the Docker container provides a portable, reproducible environment for run
    ```
    Or pull a specific version:
    ```sh
-   docker pull simantalahkar/lammpskit:0.2.1
+   docker pull simantalahkar/lammpskit:1.0.0
    ```
 
 3. **Run the container with your local data mounted as a volume:**
@@ -163,14 +214,20 @@ Tests are not shipped with the PyPI package, but are available in the source rep
 
 ## Test Coverage
 
-Extensive test coverage is provided for all major functions, including edge cases and typical usage scenarios. Tests are located in the `tests/test_ecellmodel` folder in the GitHub repository and use `pytest` and `pytest-mpl` for automated validation and image comparison.
+LAMMPSKit v1.0.0 includes extensive test coverage with over 270 test functions and 205 baseline images for visual regression testing. Tests are organized by module and include edge cases and typical usage scenarios:
+
+- `tests/test_io.py` - I/O function validation
+- `tests/test_plotting.py` - General plotting utilities  
+- `tests/test_timeseries_plots.py` - Timeseries plotting functions
+- `tests/test_ecellmodel/` - Analysis function validation
+- `tests/test_config.py` - Configuration management
 
 To run tests locally:
 ```sh
 pip install .[dev]
 pytest
 ```
-Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
+Tests use `pytest` and `pytest-mpl` for automated validation and image comparison. Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
 
 
 ## Data Format Examples

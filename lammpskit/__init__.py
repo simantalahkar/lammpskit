@@ -65,7 +65,7 @@ General trajectory parsing and plotting:
 """
 
 # Version info
-__version__ = "0.2.2"
+__version__ = "1.0.0"
 
 # Import key modules for convenient access
 from . import io
