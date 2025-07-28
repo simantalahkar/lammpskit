@@ -15,7 +15,7 @@ build:
       - pip install --upgrade pip setuptools wheel
     post_install:
       # Verify installation
-      - python -c "import lammpskit; print('LAMMPSKit ', lammpskit.__version__, ' installed successfully')"
+      - python -c "import lammpskit; print('LAMMPSKit installed successfully')"
       - python -m sphinx --version
       - echo "Dependencies installed successfully"
 
