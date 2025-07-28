@@ -22,13 +22,41 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
+    - name: Install system dependencies for OVITO
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          libgl1-mesa-glx \
+          libglu1-mesa \
+          libxrender1 \
+          libxrandr2 \
+          libxss1 \
+          libxcursor1 \
+          libxcomposite1 \
+          libasound2 \
+          libxi6 \
+          libxtst6 \
+          qtbase5-dev \
+          libqt5gui5 \
+          libqt5widgets5 \
+          libqt5opengl5-dev \
+          libqt5core5a
+        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
         
-    - name: Run tests
+    - name: Set up environment for OVITO
       run: |
+        echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+        echo "OVITO_HEADLESS=1" >> $GITHUB_ENV
+        
+    - name: Run tests with virtual display
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         python -m pytest tests/ --cov=lammpskit --cov-report=xml --cov-report=html
         
     - name: Upload coverage to Codecov
@@ -50,17 +78,45 @@ jobs:
       with:
         python-version: '3.12'
         
+    - name: Install system dependencies for OVITO
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          libgl1-mesa-glx \
+          libglu1-mesa \
+          libxrender1 \
+          libxrandr2 \
+          libxss1 \
+          libxcursor1 \
+          libxcomposite1 \
+          libasound2 \
+          libxi6 \
+          libxtst6 \
+          qtbase5-dev \
+          libqt5gui5 \
+          libqt5widgets5 \
+          libqt5opengl5-dev \
+          libqt5core5a
+        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
         
+    - name: Set up environment for OVITO
+      run: |
+        echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+        echo "OVITO_HEADLESS=1" >> $GITHUB_ENV
+        
     - name: Verify Sphinx installation
       run: |
         python -m sphinx --version
         
-    - name: Build documentation
+    - name: Build documentation with virtual display
       run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         cd docs
         python -m sphinx -b html source build -W
         
