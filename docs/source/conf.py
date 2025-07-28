@@ -27,7 +27,7 @@ version = release
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    'sphinx.ext.autosummary',  # Re-enabled for hybrid approach
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
@@ -59,6 +59,7 @@ napoleon_use_rtype = True
 
 # Autosummary settings
 autosummary_generate = True
+autosummary_generate_overwrite = True
 
 # Type hints configuration
 typehints_fully_qualified = False
@@ -71,7 +72,7 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/stable/', None),
 }
 
-templates_path = ['_templates']
+templates_path = []
 exclude_patterns = []
 
 

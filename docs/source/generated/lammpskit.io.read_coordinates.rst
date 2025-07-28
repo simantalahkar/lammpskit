@@ -1,4 +1,4 @@
-﻿lammpskit.io.read\_coordinates
+lammpskit.io.read\_coordinates
 ==============================
 
 .. currentmodule:: lammpskit.io

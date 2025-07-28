@@ -12,7 +12,26 @@ from . import data_processing
 # Import main simulation analysis
 from .filament_layer_analysis import main
 
+# Import core filament analysis functions for direct access
+from .filament_layer_analysis import (
+    analyze_clusters,
+    track_filament_evolution,
+    plot_atomic_distribution,
+    plot_atomic_charge_distribution,
+    plot_displacement_comparison,
+    plot_displacement_timeseries,
+    read_displacement_data
+)
+
 __all__ = [
     'data_processing',
-    'main'
+    'main',
+    # Core filament analysis functions
+    'analyze_clusters',
+    'track_filament_evolution', 
+    'plot_atomic_distribution',
+    'plot_atomic_charge_distribution',
+    'plot_displacement_comparison',
+    'plot_displacement_timeseries',
+    'read_displacement_data'
 ]

@@ -1,4 +1,4 @@
-﻿lammpskit.io.read\_structure\_info
+lammpskit.io.read\_structure\_info
 ==================================
 
 .. currentmodule:: lammpskit.io

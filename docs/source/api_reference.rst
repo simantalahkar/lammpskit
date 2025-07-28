@@ -98,8 +98,8 @@ Functions for reading and parsing LAMMPS simulation output:
    :toctree: generated/
 
    lammpskit.io.read_structure_info
-   lammpskit.io.read_coordinates  
-   lammpskit.ecellmodel.filament_layer_analysis.read_displacement_data
+   lammpskit.io.read_coordinates
+   lammpskit.ecellmodel.read_displacement_data
 
 Analysis Functions
 ~~~~~~~~~~~~~~~~~~
@@ -109,45 +109,39 @@ Functions for scientific analysis of simulation data:
 .. autosummary::
    :toctree: generated/
 
-   lammpskit.ecellmodel.filament_layer_analysis.analyze_clusters
-   lammpskit.ecellmodel.filament_layer_analysis.track_filament_evolution
-   lammpskit.ecellmodel.filament_layer_analysis.plot_atomic_distribution
-   lammpskit.ecellmodel.filament_layer_analysis.plot_atomic_charge_distribution
-   lammpskit.ecellmodel.filament_layer_analysis.plot_displacement_comparison
+   lammpskit.ecellmodel.analyze_clusters
+   lammpskit.ecellmodel.track_filament_evolution
+   lammpskit.ecellmodel.plot_atomic_distribution
+   lammpskit.ecellmodel.plot_atomic_charge_distribution
+   lammpskit.ecellmodel.plot_displacement_comparison
 
 Plotting Functions
 ~~~~~~~~~~~~~~~~~~
 
 Functions for creating scientific visualizations:
 
-.. autosummary::
-   :toctree: generated/
-
-   lammpskit.plotting.plot_multiple_cases
-   lammpskit.plotting.create_time_series_plot
-   lammpskit.plotting.create_dual_axis_plot
-   lammpskit.plotting.save_and_close_figure
-   lammpskit.ecellmodel.filament_layer_analysis.plot_displacement_timeseries
+- :func:`lammpskit.plotting.plot_multiple_cases` - Create multi-case comparative plots
+- :func:`lammpskit.plotting.create_time_series_plot` - Create standardized time series plots
+- :func:`lammpskit.plotting.create_dual_axis_plot` - Create dual-axis correlation plots
+- :func:`lammpskit.plotting.save_and_close_figure` - Save and cleanup figure objects
+- :func:`lammpskit.ecellmodel.filament_layer_analysis.plot_displacement_timeseries` - Plot temporal displacement analysis
 
 Validation Functions
 ~~~~~~~~~~~~~~~~~~~~
 
 Functions for input validation and parameter checking:
 
-.. autosummary::
-   :toctree: generated/
+- :func:`lammpskit.config.validate_filepath` - Validate file paths and existence
+- :func:`lammpskit.config.validate_file_list` - Validate lists of file paths
+- :func:`lammpskit.config.validate_dataindex` - Validate data index parameters
+- :func:`lammpskit.config.validate_loop_parameters` - Validate loop iteration parameters
+- :func:`lammpskit.config.validate_chunks_parameter` - Validate chunk size parameters
+- :func:`lammpskit.config.validate_cluster_parameters` - Validate clustering analysis parameters
 
-   lammpskit.config.validate_filepath
-   lammpskit.config.validate_file_list
-   lammpskit.config.validate_dataindex
-   lammpskit.config.validate_loop_parameters
-   lammpskit.config.validate_chunks_parameter
-   lammpskit.config.validate_cluster_parameters
+Configuration Classes
+~~~~~~~~~~~~~~~~~~~~
 
-Data Classes
-~~~~~~~~~~~~
-
-Configuration classes for plotting:
+Configuration classes for plotting and analysis:
 
 .. autosummary::
    :toctree: generated/
