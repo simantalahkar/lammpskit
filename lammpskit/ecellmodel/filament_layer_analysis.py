@@ -4,8 +4,47 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from ovito.io import import_file
-import ovito.modifiers as om
+
+# Robust OVITO import with fallback for documentation builds
+try:
+    from ovito.io import import_file
+    import ovito.modifiers as om
+    OVITO_AVAILABLE = True
+except ImportError as e:
+    # Fallback for documentation builds or missing OVITO
+    import warnings
+    warnings.warn(f"OVITO not available: {e}. Some functionality will be limited.", ImportWarning)
+    OVITO_AVAILABLE = False
+    
+    # Create mock functions for documentation
+    def import_file(*args, **kwargs):
+        raise ImportError("OVITO not available - this function requires OVITO to be properly installed")
+    
+    class MockOvitoModifiers:
+        """Mock OVITO modifiers for documentation builds"""
+        
+        def __init__(self):
+            # Add commonly used OVITO modifiers as mock classes
+            self.CoordinationAnalysisModifier = self._create_mock_modifier("CoordinationAnalysisModifier")
+            self.ExpressionSelectionModifier = self._create_mock_modifier("ExpressionSelectionModifier")
+            self.ClusterAnalysisModifier = self._create_mock_modifier("ClusterAnalysisModifier")
+            self.DeleteSelectedModifier = self._create_mock_modifier("DeleteSelectedModifier")
+        
+        def _create_mock_modifier(self, name):
+            """Create a mock modifier class that accepts any parameters"""
+            class MockModifier:
+                def __init__(self, *args, **kwargs):
+                    self._name = name
+                    self._args = args
+                    self._kwargs = kwargs
+                
+                def __repr__(self):
+                    return f"Mock{self._name}({self._args}, {self._kwargs})"
+            
+            MockModifier.__name__ = f"Mock{name}"
+            return MockModifier
+    
+    om = MockOvitoModifiers()
 
 # Import general utilities
 from ..io import read_coordinates
@@ -1912,6 +1951,13 @@ def analyze_clusters(
     >>>
     >>> print(f"Evolution tracking completed with {len(evolution_plots)} plots")
     """
+    # Check OVITO availability before proceeding
+    if not OVITO_AVAILABLE:
+        raise ImportError(
+            "OVITO is required for cluster analysis but is not available. "
+            "Please install OVITO (pip install ovito>=3.12.4) to use this function."
+        )
+    
     # Validate input parameters using centralized functions
     validate_filepath(filepath)
     validate_cluster_parameters(z_filament_lower_limit, z_filament_upper_limit, thickness)

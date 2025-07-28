@@ -50,6 +50,17 @@ autodoc_default_options = {
     "exclude-members": "__weakref__",
 }
 
+# Mock imports for packages that may not be available during documentation builds
+autodoc_mock_imports = [
+    "ovito",
+    "ovito.io",
+    "ovito.modifiers",
+]
+
+# Continue on import errors
+autodoc_inherit_docstrings = True
+autodoc_preserve_defaults = True
+
 # Napoleon settings for Google/NumPy docstrings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
