@@ -1,6 +1,8 @@
 API Reference
 =============
 
+.. currentmodule:: lammpskit
+
 This section provides comprehensive documentation for all LAMMPSKit modules, functions, and classes.
 
 Package Overview
@@ -97,9 +99,9 @@ Functions for reading and parsing LAMMPS simulation output:
 .. autosummary::
    :toctree: generated/
 
-   lammpskit.io.read_structure_info
-   lammpskit.io.read_coordinates
-   lammpskit.ecellmodel.read_displacement_data
+   io.read_structure_info
+   io.read_coordinates
+   ecellmodel.read_displacement_data
 
 Analysis Functions
 ~~~~~~~~~~~~~~~~~~
@@ -109,11 +111,11 @@ Functions for scientific analysis of simulation data:
 .. autosummary::
    :toctree: generated/
 
-   lammpskit.ecellmodel.analyze_clusters
-   lammpskit.ecellmodel.track_filament_evolution
-   lammpskit.ecellmodel.plot_atomic_distribution
-   lammpskit.ecellmodel.plot_atomic_charge_distribution
-   lammpskit.ecellmodel.plot_displacement_comparison
+   ecellmodel.analyze_clusters
+   ecellmodel.track_filament_evolution
+   ecellmodel.plot_atomic_distribution
+   ecellmodel.plot_atomic_charge_distribution
+   ecellmodel.plot_displacement_comparison
 
 Plotting Functions
 ~~~~~~~~~~~~~~~~~~
@@ -146,5 +148,5 @@ Configuration classes for plotting and analysis:
 .. autosummary::
    :toctree: generated/
 
-   lammpskit.plotting.TimeSeriesPlotConfig
-   lammpskit.plotting.DualAxisPlotConfig
+   plotting.TimeSeriesPlotConfig
+   plotting.DualAxisPlotConfig

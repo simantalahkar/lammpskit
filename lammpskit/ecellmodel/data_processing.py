@@ -515,7 +515,9 @@ def calculate_charge_distributions(
     - Interface charges: Control electron injection and device resistance
     
     Mathematical Foundation:
-    Raw charge distribution:
+    
+    Raw charge distribution::
+    
         Q_species(z) = Σ q_i * δ(z_i - z)
         
     Mean charge calculation:

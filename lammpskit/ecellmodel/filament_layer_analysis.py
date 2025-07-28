@@ -803,10 +803,13 @@ def plot_atomic_charge_distribution(
     - **Temporal Evolution**: Initial vs. final states show switching-induced changes
     
     Mathematical Foundation:
-    Raw charge distribution calculation:
+    
+    Raw charge distribution calculation::
+    
         Q(z) = Σ q_i × δ(z_i - z_bin)
         
-    Mean charge per species:
+    Mean charge per species::
+    
         <q>_species(z) = Q_species(z) / N_species(z)
         
     Where safe division prevents numerical errors when N_species(z) = 0.
@@ -1437,8 +1440,9 @@ def analyze_clusters(
         - **fil_size_down** (int): Number of atoms in bottom filament cluster
         - **fil_height** (float): Maximum z-coordinate of bottom cluster (Å)  
         - **rdf_down** (np.ndarray): Radial distribution function data (shape: [N_bins, 2])
-          - Column 0: Radial distance (Å)
-          - Column 1: RDF intensity
+        
+          * Column 0: Radial distance (Å)
+          * Column 1: RDF intensity
         
         **Upper Filament Characterization:**
         - **fil_size_up** (int): Number of atoms in top filament cluster
@@ -1468,11 +1472,12 @@ def analyze_clusters(
     4. **Upper Filament Pipeline**: Top electrode region analysis
     
     **Coordination Analysis Framework:**
-    ```
-    Cutoff Distance: 2.7 Å (first neighbor shell for metallic bonds)
-    Coordination Threshold: <6 (under-coordinated atoms for filament detection)
-    Clustering Cutoff: 3.9 Å (metallic cluster connectivity distance)
-    ```
+    
+    ::
+    
+        Cutoff Distance: 2.7 Å (first neighbor shell for metallic bonds)
+        Coordination Threshold: <6 (under-coordinated atoms for filament detection)
+        Clustering Cutoff: 3.9 Å (metallic cluster connectivity distance)
     
     **Species Selection Criteria:**
     The analysis targets metallic and under-coordinated species:
@@ -1483,27 +1488,30 @@ def analyze_clusters(
     - **Types 5, 6, 9, 10**: Electrode species
 
     **Connectivity Determination Algorithm:**
-    ```python
-    if z_min < z_lower_limit and z_max > z_upper_limit:
-        connection_state = 1  # Continuous bridge formed
-        separation = 0.0
-        gap = 0.0
-    else:
-        connection_state = 0  # Discontinuous filament
-        separation = min_distance_between_clusters - cutoff_distance
-        gap = z_direction_gap_between_clusters
-    ```
+    
+    ::
+    
+        if z_min < z_lower_limit and z_max > z_upper_limit:
+            connection_state = 1  # Continuous bridge formed
+            separation = 0.0
+            gap = 0.0
+        else:
+            connection_state = 0  # Discontinuous filament
+            separation = min_distance_between_clusters - cutoff_distance
+            gap = z_direction_gap_between_clusters
     
     **Radial Distribution Function (RDF) Analysis:**
     Characterizes local atomic structure and bonding environment
     
-    Performance Characteristics:
+    **Performance Characteristics:**
+    
     - **Processing Time**: 5-30s per trajectory frame depending on atom count
     - **Memory Usage**: O(N_atoms × N_neighbors) for coordination analysis
     - **Accuracy**: Sub-angstrom precision for cluster boundary detection
     - **Scalability**: Efficient for trajectories up to ~10⁶ atoms per frame
     
-    Integration with LAMMPSKit Ecosystem:
+    **Integration with LAMMPSKit Ecosystem:**
+    
     - **File Compatibility**: Direct integration with LAMMPS trajectory formats
     - **Parameter Validation**: Uses config module validation functions
     - **Pipeline Integration**: Compatible with track_filament_evolution() workflows
@@ -2466,8 +2474,7 @@ def plot_displacement_timeseries(
         Dictionary containing the generated matplotlib Figure object:
         
         **Time Series Visualization:**
-        - **'displacement_timeseries'**: Multi-panel grid plot with comprehensive 
-          spatially-resolved temporal analysis
+        - **'displacement_timeseries'**: Multi-panel grid plot with comprehensive spatially-resolved temporal analysis
         
         **Plot Structure:**
         - **Rows**: Each row represents a spatial bin (z-position)

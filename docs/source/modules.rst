@@ -5,4 +5,3 @@ lammpskit
    :maxdepth: 4
 
    lammpskit
-   setup

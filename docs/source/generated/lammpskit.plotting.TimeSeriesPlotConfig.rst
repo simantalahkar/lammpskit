@@ -1,4 +1,4 @@
-﻿lammpskit.plotting.TimeSeriesPlotConfig
+lammpskit.plotting.TimeSeriesPlotConfig
 =======================================
 
 .. currentmodule:: lammpskit.plotting

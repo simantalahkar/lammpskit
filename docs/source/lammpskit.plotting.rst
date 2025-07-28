@@ -114,3 +114,4 @@ Module contents
    :members:
    :show-inheritance:
    :undoc-members:
+   :no-index:

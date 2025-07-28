@@ -1,4 +1,4 @@
-﻿lammpskit.plotting.DualAxisPlotConfig
+lammpskit.plotting.DualAxisPlotConfig
 =====================================
 
 .. currentmodule:: lammpskit.plotting
