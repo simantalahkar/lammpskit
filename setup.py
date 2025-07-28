@@ -38,7 +38,10 @@ setup(
             "requests-toolbelt>=1.0.0",
             "rich>=14.0.0",
             "setuptools>=80.9.0",
-            "twine>=6.1.0"
+            "twine>=6.1.0",
+            "sphinx>=8.2.3",
+            "sphinx-autodoc-typehints>=3.2.0",
+            "sphinx-rtd-theme>=3.0.2"
         ]
     },
     python_requires=">=3.12",
