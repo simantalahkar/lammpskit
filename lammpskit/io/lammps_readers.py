@@ -17,7 +17,7 @@ File Format Support
 -------------------
 Supports standard LAMMPS dump format with headers:
 - ITEM: TIMESTEP
-- ITEM: NUMBER OF ATOMS  
+- ITEM: NUMBER OF ATOMS
 - ITEM: BOX BOUNDS [units]
 - ITEM: ATOMS [column headers]
 
@@ -42,7 +42,7 @@ Load coordinates for analysis:
 
 >>> from lammpskit.config import DEFAULT_COLUMNS_TO_READ
 >>> coords, timesteps, atoms, xlo, xhi, ylo, yhi, zlo, zhi = read_coordinates(
-...     ['dump1.lammpstrj', 'dump2.lammpstrj'], skip_rows=9, 
+...     ['dump1.lammpstrj', 'dump2.lammpstrj'], skip_rows=9,
 ...     columns_to_read=DEFAULT_COLUMNS_TO_READ)
 """
 
@@ -72,10 +72,10 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
     -------
     timestep : int
         Simulation timestep number. Used for temporal analysis and file sequencing.
-    total_atoms : int  
+    total_atoms : int
         Total number of atoms in simulation. Critical for memory allocation and validation.
     xlo, xhi : float
-        Lower and upper x-bounds of simulation box (Angstroms). 
+        Lower and upper x-bounds of simulation box (Angstroms).
         Defines spatial domain for analysis.
     ylo, yhi : float
         Lower and upper y-bounds of simulation box (Angstroms).
@@ -125,7 +125,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
     """
     skip = 1
     try:
-        with open(filepath, "r", encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             # Skip header lines before timestep
             for _ in range(skip):
                 try:
@@ -136,7 +136,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for Timestep: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
+            c0 = re.split(r"\s+|\s|, |,", line)
             c = [ele for ele in c0 if ele.strip()]
             try:
                 timestep = int(c[0])
@@ -152,7 +152,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for total atoms: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
+            c0 = re.split(r"\s+|\s|, |,", line)
             c = [ele for ele in c0 if ele.strip()]
             try:
                 total_atoms = int(c[0])
@@ -169,7 +169,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for x bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
+            c0 = re.split(r"\s+|\s|, |,", line)
             c = [ele for ele in c0 if ele.strip()]
             try:
                 xlo = float(c[0])
@@ -181,7 +181,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for y bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
+            c0 = re.split(r"\s+|\s|, |,", line)
             c = [ele for ele in c0 if ele.strip()]
             try:
                 ylo = float(c[0])
@@ -193,7 +193,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
             line = f.readline()
             if line == "":
                 raise EOFError(f"Missing data for z bounds: {filepath}")
-            c0 = re.split(r'\s+|\s|, |,', line)
+            c0 = re.split(r"\s+|\s|, |,", line)
             c = [ele for ele in c0 if ele.strip()]
             try:
                 zlo = float(c[0])
@@ -208,9 +208,7 @@ def read_structure_info(filepath: str) -> Tuple[int, int, float, float, float, f
 
 
 def read_coordinates(
-    file_list: list[str],
-    skip_rows: int,
-    columns_to_read: Tuple[int, ...]
+    file_list: list[str], skip_rows: int, columns_to_read: Tuple[int, ...]
 ) -> Tuple[np.ndarray, np.ndarray, int, float, float, float, float, float, float]:
     """
     Load atomic coordinates and metadata from multiple LAMMPS trajectory files.
@@ -244,7 +242,7 @@ def read_coordinates(
         Number of atoms per file. Validated for consistency across all files.
     xlo, xhi : float
         Simulation box x-bounds in Angstroms. Used for periodic boundary calculations.
-    ylo, yhi : float  
+    ylo, yhi : float
         Simulation box y-bounds in Angstroms. Essential for spatial analysis setup.
     zlo, zhi : float
         Simulation box z-bounds in Angstroms. Critical for electrode separation in
@@ -264,7 +262,7 @@ def read_coordinates(
     Memory complexity: O(F * N * C) where F=files, N=atoms, C=columns
     Time complexity: O(F * N) for coordinate loading
     Memory optimization: Use column selection to reduce memory footprint by ~70%
-    
+
     For large datasets (>1GB):
     - Use DEFAULT_COLUMNS_TO_READ instead of EXTENDED_COLUMNS_TO_READ
     - Process files in smaller batches if memory constraints exist
@@ -276,7 +274,7 @@ def read_coordinates(
     - Electrode separation: zhi - zlo (typically 20-100 Angstroms)
     - Atom types: 2=Hf, odd=O, even(≠2)=Ta, {5,6,9,10}=electrodes
     - Time series: Multiple files representing voltage cycling or SET/RESET processes
-    
+
     Examples
     --------
     Load coordinate sequence for filament analysis:
@@ -306,7 +304,7 @@ def read_coordinates(
     print(file_list)
     # Validate input parameters using centralized functions
     validate_file_list(file_list)
-    
+
     timestep_arr: list[int] = []
     coordinates: list[np.ndarray] = []
     for filepath in file_list:
@@ -316,12 +314,7 @@ def read_coordinates(
         try:
             # Read atomic coordinates
             coords = np.loadtxt(
-                filepath,
-                delimiter=' ',
-                comments='#',
-                skiprows=skip_rows,
-                max_rows=total_atoms,
-                usecols=columns_to_read
+                filepath, delimiter=" ", comments="#", skiprows=skip_rows, max_rows=total_atoms, usecols=columns_to_read
             )
         except ValueError as e:
             raise ValueError(
@@ -331,9 +324,4 @@ def read_coordinates(
             raise EOFError(f"File {filepath} has fewer atom lines ({coords.shape[0]}) than expected ({total_atoms})")
         coordinates.append(coords)
     # Return arrays and simulation parameters
-    return (
-        np.array(coordinates),
-        np.array(timestep_arr),
-        total_atoms,
-        xlo, xhi, ylo, yhi, zlo, zhi
-    )
+    return (np.array(coordinates), np.array(timestep_arr), total_atoms, xlo, xhi, ylo, yhi, zlo, zhi)

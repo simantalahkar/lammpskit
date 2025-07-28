@@ -12,7 +12,7 @@ io : module
     LAMMPS trajectory file readers and data parsers. Handles standard LAMMPS dump formats
     with automatic column detection and efficient memory management for large datasets.
 
-plotting : module  
+plotting : module
     Scientific visualization utilities with standardized styling and publication-ready
     output. Includes time series analysis, dual-axis plots, and statistical overlays.
 
@@ -27,7 +27,7 @@ ecellmodel : module
 Target Applications
 -------------------
 - Electrochemical memory device simulations (ReRAM, memristors).
-- Ion transport and defect migration studies.  
+- Ion transport and defect migration studies.
 - Phase transition analysis in oxide materials.
 - General LAMMPS trajectory post-processing.
 
@@ -74,8 +74,8 @@ from . import config
 from . import ecellmodel
 
 __all__ = [
-    'io',
-    'plotting', 
-    'config',
-    'ecellmodel',
+    "io",
+    "plotting",
+    "config",
+    "ecellmodel",
 ]

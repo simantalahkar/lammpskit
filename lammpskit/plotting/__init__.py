@@ -13,16 +13,16 @@ from .timeseries_plots import (
     create_dual_axis_plot,
     save_and_close_figure,
     calculate_mean_std_label,
-    calculate_frequency_label
+    calculate_frequency_label,
 )
 
 __all__ = [
-    'plot_multiple_cases',
-    'TimeSeriesPlotConfig',
-    'DualAxisPlotConfig', 
-    'create_time_series_plot',
-    'create_dual_axis_plot',
-    'save_and_close_figure',
-    'calculate_mean_std_label',
-    'calculate_frequency_label'
+    "plot_multiple_cases",
+    "TimeSeriesPlotConfig",
+    "DualAxisPlotConfig",
+    "create_time_series_plot",
+    "create_dual_axis_plot",
+    "save_and_close_figure",
+    "calculate_mean_std_label",
+    "calculate_frequency_label",
 ]
