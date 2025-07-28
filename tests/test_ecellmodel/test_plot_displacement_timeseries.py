@@ -4,8 +4,12 @@ import tempfile
 import pytest
 from lammpskit.ecellmodel.filament_layer_analysis import plot_displacement_timeseries
 
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is in tests/test_ecellmodel/, the baseline is one level up
+BASELINE_DIR_RELATIVE = "../baseline"
+
 @pytest.mark.parametrize("dataindex", range(-6,0))
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_displacement_timeseries(tmp_path, dataindex):
     # Prepare file list and labels
     data_dir = os.path.join(os.path.dirname(__file__), "test_data", "data_for_timeseries")

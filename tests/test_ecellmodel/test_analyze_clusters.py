@@ -1,10 +1,15 @@
 import numpy as np
 import pytest
 import warnings
+from pathlib import Path
 from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
 
+# Get the directory containing this test file
+TEST_DIR = Path(__file__).parent
+TEST_DATA_DIR = TEST_DIR / "test_data" / "data_for_layer_analysis"
+
 def test_analyze_clusters_output_values():
-    filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/3set-0.1V.500000.lammpstrj"
+    filepath = str(TEST_DATA_DIR / "3set-0.1V.500000.lammpstrj")
     result = analyze_clusters(filepath)
     assert isinstance(result, tuple)
     assert len(result) == 10
@@ -25,22 +30,22 @@ def test_analyze_clusters_output_values():
     assert gap == 0
 
 def test_analyze_clusters_missing_file():
-    missing_path = "tests/test_ecellmodel/test_data/data_for_layer_analysis/nonexistent_file.lammpstrj"
+    missing_path = str(TEST_DATA_DIR / "nonexistent_file.lammpstrj")
     with pytest.raises(FileNotFoundError) as excinfo:
         analyze_clusters(missing_path)
     assert "File not found" in str(excinfo.value)
 
 def test_analyze_clusters_malformed_file():
     # Create a temporary file with invalid content
-    filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/malformed-0.1V.500000.lammpstrj"
+    filepath = str(TEST_DATA_DIR / "malformed-0.1V.500000.lammpstrj")
     with pytest.raises(ValueError) as excinfo:    
-        result = analyze_clusters(filepath)
+        analyze_clusters(filepath)
     assert "Malformed or unreadable file for OVITO" in str(excinfo.value)
 
 def test_analyze_clusters_no_clusters():
     # This file should be a valid LAMMPS trajectory file with no atoms,
     # or only atoms that do not match the selection criteria.
-    filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/no_clusters-0.1V.500000.lammpstrj"
+    filepath = str(TEST_DATA_DIR / "no_clusters-0.1V.500000.lammpstrj")
     with pytest.raises(ValueError) as excinfo:
         analyze_clusters(filepath)
     assert "No clusters found in file" in str(excinfo.value)
@@ -59,7 +64,7 @@ class TestAnalyzeClustersParameterValidation:
 
     def setup_method(self):
         """Set up valid test data for validation tests."""
-        self.valid_filepath = "tests/test_ecellmodel/test_data/data_for_layer_analysis/3set-0.1V.500000.lammpstrj"
+        self.valid_filepath = str(TEST_DATA_DIR / "3set-0.1V.500000.lammpstrj")
         self.valid_z_lower = 5.0
         self.valid_z_upper = 23.0
         self.valid_thickness = 21.0

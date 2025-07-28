@@ -181,4 +181,11 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
+    "visual: marks tests as visual regression tests",
+    "mpl_image_compare: marks tests for matplotlib image comparison with centralized baselines"
 ]
+
+# Centralized baseline configuration for visual regression testing
+# All baseline images stored in tests/baseline/ regardless of test file location
+# Root level tests: baseline_dir="baseline"  
+# Subdirectory tests: baseline_dir="../baseline"

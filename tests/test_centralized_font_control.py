@@ -18,6 +18,10 @@ from lammpskit.plotting.timeseries_plots import (
     calculate_mean_std_label
 )
 
+# Get baseline directory relative to tests root (works from any execution context)  
+# Since this test file is directly in tests/, the baseline is in the same directory level
+BASELINE_DIR_RELATIVE = "baseline"
+
 
 @pytest.fixture
 def sample_font_data():
@@ -81,7 +85,7 @@ class TestCentralizedFontControl:
         assert dual_config.fontsize_ticks == 9
         assert dual_config.fontsize_legend == 7
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_standard_font_sizes(self, sample_font_data):
         """Test time series plot with standard uniform font sizes."""
         config = TimeSeriesPlotConfig(
@@ -103,7 +107,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_large_font_sizes(self, sample_font_data):
         """Test time series plot with large uniform font sizes."""
         config = TimeSeriesPlotConfig(
@@ -125,7 +129,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_mixed_font_size_overrides(self, sample_font_data):
         """Test time series plot with individual font size overrides."""
         standard_config = TimeSeriesPlotConfig(
@@ -151,7 +155,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_dual_axis_uniform_fonts(self, sample_font_data):
         """Test dual-axis plot with uniform font control."""
         config = DualAxisPlotConfig(
@@ -176,7 +180,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_dual_axis_font_overrides(self, sample_font_data):
         """Test dual-axis plot with selective font size overrides."""
         config = DualAxisPlotConfig(
@@ -204,7 +208,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_presentation_ready_fonts(self, sample_font_data):
         """Test time series plot with presentation-ready larger fonts."""
         config = TimeSeriesPlotConfig(
@@ -226,7 +230,7 @@ class TestCentralizedFontControl:
         
         return fig
     
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
     def test_compact_fonts_for_subfigures(self, sample_font_data):
         """Test time series plot with compact fonts suitable for subfigures."""
         config = TimeSeriesPlotConfig(

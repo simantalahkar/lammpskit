@@ -73,24 +73,25 @@ lammpskit/                                       # Main Python package
 
 ## Test Suite
 ```
-tests/                                          # Test directory (12 test files, 205 baseline images)
+tests/                                          # Test directory (12 test files, 205+ baseline images)
+├── __init__.py                                 # Test package documentation and centralized baseline approach
+├── conftest.py                                 # Shared pytest configuration and fixtures
 ├── test_config.py                              # Configuration validation tests
 ├── test_io.py                                  # I/O functionality tests
 ├── test_plotting.py                           # General plotting utility tests
 ├── test_timeseries_plots.py                   # Time series plotting tests
 ├── test_centralized_font_control.py           # Font control and styling tests
-├── baseline/                                   # Reference images for matplotlib tests
-│   └── *.png                                   # Baseline plot images for comparison (205 images)
+├── baseline/                                   # Centralized reference images for all matplotlib tests
+│   └── *.png                                   # All baseline plot images for comparison (205+ images)
 └── test_ecellmodel/                            # Electrochemical model tests
-    ├── test_analyze_clusters.py               # Cluster analysis tests
-    ├── test_data_processing.py                # Data processing function tests
-    ├── test_plot_atomic_charge_distribution.py # Charge distribution plotting tests
-    ├── test_plot_atomic_distribution.py       # Atomic distribution plotting tests
-    ├── test_plot_displacement_comparison.py   # Displacement comparison tests
-    ├── test_plot_displacement_timeseries.py   # Time series plotting tests
-    ├── test_track_filament_evolution.py       # Filament evolution tracking tests
-    ├── baseline/                               # ECell module baseline images
-    │   └── *.png                               # Specialized baseline images for electrochemical tests
+    ├── test_analyze_clusters.py               # Cluster analysis tests (uses ../baseline)
+    ├── test_data_processing.py                # Data processing function tests (uses ../baseline)
+    ├── test_plot_atomic_charge_distribution.py # Charge distribution plotting tests (uses ../baseline)
+    ├── test_plot_atomic_distribution.py       # Atomic distribution plotting tests (uses ../baseline)
+    ├── test_plot_displacement_comparison.py   # Displacement comparison tests (uses ../baseline)
+    ├── test_plot_displacement_timeseries.py   # Time series plotting tests (uses ../baseline)
+    ├── test_track_filament_evolution.py       # Filament evolution tracking tests (uses ../baseline)
+    └── test_data/                              # Test data files
     └── test_data/                              # Test data files
         ├── *.lammpstrj                         # LAMMPS trajectory files
         ├── data_for_comparison/                # Displacement comparison test data

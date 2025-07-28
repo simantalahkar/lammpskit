@@ -1,0 +1,272 @@
+name: Docker-based Tests and Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [published]
+
+env:
+  IMAGE_NAME: simantalahkar/lammpskit
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]  # Using Dockerfile base, which is Python 3.12
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.IMAGE_NAME }}:test-${{ matrix.python-version }} .
+        
+    - name: Create test container with volume mounts
+      run: |
+        docker run -d --name test_container_${{ matrix.python-version }} \
+          -v $PWD/tests:/app/tests \
+          -v $PWD/supporting_docs:/app/supporting_docs \
+          -v $PWD/usage:/app/usage \
+          -e QT_QPA_PLATFORM=offscreen \
+          -e OVITO_HEADLESS=1 \
+          ${{ env.IMAGE_NAME }}:test-${{ matrix.python-version }} \
+          bash -c "sleep infinity"
+        
+    - name: Install testing dependencies in container
+      run: |
+        docker exec test_container_${{ matrix.python-version }} pip install --no-cache-dir \
+          pytest>=8.4.1 \
+          pytest-cov>=6.2.1 \
+          pytest-mpl>=0.17.0 \
+          coverage>=7.9.1
+          
+    - name: Verify OVITO and LAMMPSKit in container
+      run: |
+        docker exec test_container_${{ matrix.python-version }} python -c "
+          import ovito
+          print('OVITO version:', ovito.version)
+          import lammpskit
+          print('LAMMPSKit version:', lammpskit.__version__)
+          from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
+          print('analyze_clusters function imported successfully')
+        "
+          
+    - name: Create baseline directory for visual regression tests
+      run: |
+        docker exec test_container_${{ matrix.python-version }} mkdir -p /app/tests/baseline
+        
+    - name: Generate baseline images for pytest-mpl (centralized approach)
+      run: |
+        docker exec test_container_${{ matrix.python-version }} bash -c "
+          cd /app && pytest --mpl-generate-path=tests/baseline tests/ || true
+        "
+      # Note: Centralized baseline approach ensures all test modules use tests/baseline/
+      # regardless of their location in the test directory structure
+        
+    - name: Run visual regression tests with centralized baseline directory
+      run: |
+        docker exec test_container_${{ matrix.python-version }} bash -c "
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          cd /app && pytest --mpl --mpl-baseline-path=tests/baseline \
+            --cov=lammpskit --cov-report=xml --cov-report=html \
+            tests/
+        "
+      # Note: --mpl-baseline-path=tests/baseline works with both root-level tests 
+      # (baseline_dir='baseline') and subdirectory tests (baseline_dir='../baseline')
+          
+    - name: Copy coverage reports from container
+      run: |
+        docker cp test_container_${{ matrix.python-version }}:/app/coverage.xml ./coverage-${{ matrix.python-version }}.xml
+        docker cp test_container_${{ matrix.python-version }}:/app/htmlcov ./htmlcov-${{ matrix.python-version }}
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage-${{ matrix.python-version }}.xml
+        flags: unittests-python${{ matrix.python-version }}
+        name: codecov-python${{ matrix.python-version }}
+        token: ${{ secrets.CODECOV_TOKEN }}
+        
+    - name: Clean up container
+      if: always()
+      run: |
+        docker rm -f test_container_${{ matrix.python-version }} || true
+        
+  docker-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.IMAGE_NAME }}:docs .
+        
+    - name: Create docs container with volume mounts
+      run: |
+        docker run -d --name docs_container \
+          -v $PWD/docs:/app/docs \
+          -e QT_QPA_PLATFORM=offscreen \
+          -e OVITO_HEADLESS=1 \
+          ${{ env.IMAGE_NAME }}:docs \
+          bash -c "sleep infinity"
+          
+    - name: Install documentation dependencies in container
+      run: |
+        docker exec docs_container pip install --no-cache-dir \
+          sphinx>=8.2.3 \
+          sphinx-autodoc-typehints>=3.2.0 \
+          sphinx-rtd-theme>=3.0.2 \
+          sphinx-copybutton>=0.5.2 \
+          myst-parser>=5.1.0
+          
+    - name: Verify installation in container
+      run: |
+        docker exec docs_container python -c "
+          import lammpskit
+          print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))
+          import ovito
+          print('OVITO version:', ovito.version)
+        "
+        docker exec docs_container python -m sphinx --version
+        
+    - name: Build documentation in container
+      run: |
+        docker exec docs_container bash -c "
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          cd /app/docs && python -m sphinx -b html source build -W
+        "
+        
+    - name: Check documentation links in container
+      run: |
+        docker exec docs_container bash -c "cd /app/docs && python -m sphinx -b linkcheck source build"
+        
+    - name: Copy documentation from container
+      run: |
+        docker cp docs_container:/app/docs/build ./docs-build
+        
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-html
+        path: docs-build/
+        retention-days: 30
+        
+    - name: Setup Pages (only on main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/configure-pages@v5
+      
+    - name: Upload artifact (only on main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs-build/
+        
+    - name: Clean up container
+      if: always()
+      run: |
+        docker rm -f docs_container || true
+
+  deploy-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: docker-docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-pypi:
+    if: github.event_name == 'release'
+    needs: [docker-test, docker-docs]
+    runs-on: ubuntu-latest
+    environment: 
+      name: pypi
+      url: https://pypi.org/p/lammpskit
+    permissions:
+      id-token: write  # For trusted publishing
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image for deployment
+      run: |
+        docker build -t ${{ env.IMAGE_NAME }}:deploy .
+        
+    - name: Create deployment container
+      run: |
+        docker run -d --name deploy_container \
+          ${{ env.IMAGE_NAME }}:deploy \
+          bash -c "sleep infinity"
+          
+    - name: Copy distribution files from container
+      run: |
+        docker cp deploy_container:/app/dist ./dist
+        
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: dist/
+        
+    - name: Clean up container
+      if: always()
+      run: |
+        docker rm -f deploy_container || true
+
+  deploy-docker:
+    if: github.event_name == 'release'
+    needs: [docker-test, docker-docs]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Extract version from release
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "version_clean=${VERSION#v}" >> $GITHUB_OUTPUT
+        
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version_clean }}
+          ${{ env.IMAGE_NAME }}:latest
+        platforms: linux/amd64,linux/arm64

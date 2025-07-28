@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Enhanced
+- **Visual Regression Testing**: Modernized pytest-mpl infrastructure with centralized baseline directory approach
+- **Cross-Platform Compatibility**: Implemented relative path resolution for consistent test behavior across Windows, Linux, macOS, and Docker environments
+- **Test Infrastructure**: Added comprehensive test package documentation (`tests/__init__.py`) and shared pytest configuration (`tests/conftest.py`)
+- **Documentation Coverage**: Updated README.md, CONTRIBUTING.md, and PROJECT_STRUCTURE.md with detailed visual regression testing guidelines
+
 ## [1.1.0] - 2025-07-28
 
 ### Added

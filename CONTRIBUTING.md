@@ -36,7 +36,14 @@ This project follows the [Python Community Code of Conduct](https://www.python.o
 3. Update documentation if needed
 4. Run tests locally:
    ```bash
+   # Run all tests
    python -m pytest tests/
+   
+   # Run with visual regression testing
+   python -m pytest tests/ --mpl
+   
+   # Run with coverage
+   python -m pytest tests/ --cov=lammpskit --cov-report=html
    ```
 5. Build documentation to check for errors:
    ```bash
@@ -60,11 +67,86 @@ This project follows the [Python Community Code of Conduct](https://www.python.o
 - Include scientific context and examples
 - Update user documentation for new features
 
-### Testing
+### Testing Guidelines
+
+#### General Testing Requirements
 - Write tests for all new functionality
-- Maintain or improve test coverage
+- Maintain or improve test coverage (target: >90%)
 - Use pytest for testing framework
-- Include visual regression tests for plotting functions
+- Follow existing test patterns and naming conventions
+
+#### Visual Regression Testing for Plotting Functions
+
+LAMMPSKit uses a **centralized baseline approach** for visual regression testing. All baseline images are stored in `tests/baseline/` regardless of where the test files are located.
+
+**For New Plotting Functions:**
+
+1. **Add visual regression test** using the centralized baseline pattern:
+   ```python
+   # Determine relative path based on test file location
+   # Root level (tests/test_*.py): 
+   BASELINE_DIR_RELATIVE = "baseline"
+   
+   # Subdirectory (tests/test_ecellmodel/test_*.py):
+   BASELINE_DIR_RELATIVE = "../baseline"
+   
+   @pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
+   def test_your_plotting_function(tmp_path):
+       # Your test implementation
+       fig = your_plotting_function(test_data)
+       return fig
+   ```
+
+2. **Generate baseline images** for your new tests:
+   ```bash
+   # Generate baselines for new tests
+   pytest --mpl-generate-path=tests/baseline tests/test_your_file.py::test_your_function
+   
+   # Verify baselines were created correctly
+   pytest --mpl tests/test_your_file.py::test_your_function
+   ```
+
+3. **Update baselines** when plot functions change intentionally:
+   ```bash
+   # Regenerate all baselines
+   pytest --mpl-generate-path=tests/baseline tests/
+   
+   # Regenerate specific test baselines
+   pytest --mpl-generate-path=tests/baseline tests/test_specific.py
+   ```
+
+**Directory Structure:**
+```
+tests/
+├── baseline/                    # All baseline images (centralized)
+├── test_plotting.py            # Root level → "baseline"
+├── test_timeseries_plots.py    # Root level → "baseline" 
+├── test_ecellmodel/            # Subdirectory tests
+│   ├── test_plot_*.py          # Subdirectory → "../baseline"
+│   └── test_data/              # Test data files
+└── conftest.py                 # Shared configuration
+```
+
+**Why Centralized Baselines?**
+- **Cross-platform compatibility**: Works on Windows, Linux, macOS
+- **Container compatibility**: Identical behavior in Docker and local environments
+- **Maintainability**: Single location for all visual regression references
+- **CI/CD integration**: Simplified path handling in automated testing
+
+**Testing Commands:**
+```bash
+# Test everything with visual regression
+pytest --mpl
+
+# Generate new baselines (after intentional plot changes)
+pytest --mpl-generate-path=tests/baseline tests/
+
+# Test specific plotting module
+pytest --mpl tests/test_plotting.py
+
+# Local development with coverage
+pytest --mpl --cov=lammpskit --cov-report=html tests/
+```
 
 ## Scientific Contributions
 

@@ -216,22 +216,70 @@ pytest
 Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
 
 
-## Test Coverage
+## Test Coverage & Visual Regression Testing
 
-LAMMPSKit v1.1.0 includes extensive test coverage with over 270 test functions and 205 baseline images for visual regression testing. Tests are organized by module and include edge cases and typical usage scenarios:
+LAMMPSKit v1.1.0 includes extensive test coverage with over 270 test functions and 90+ baseline images for visual regression testing. The test suite uses a **centralized baseline approach** for consistent and maintainable visual regression testing.
 
+### Test Organization
 - `tests/test_io.py` - I/O function validation
 - `tests/test_plotting.py` - General plotting utilities  
 - `tests/test_timeseries_plots.py` - Timeseries plotting functions
-- `tests/test_ecellmodel/` - Analysis function validation
+- `tests/test_centralized_font_control.py` - Font and styling consistency
+- `tests/test_ecellmodel/` - Analysis function validation (subdirectory)
 - `tests/test_config.py` - Configuration management
+- `tests/baseline/` - **Centralized baseline images for all visual tests**
 
-To run tests locally:
+### Running Tests Locally
 ```sh
+# Install with development dependencies
 pip install .[dev]
+
+# Run all tests
 pytest
+
+# Run with visual regression testing
+pytest --mpl
+
+# Generate new baseline images (when plots change intentionally)
+pytest --mpl-generate-path=tests/baseline tests/
+
+# Run tests with coverage
+pytest --cov=lammpskit --cov-report=html
 ```
-Tests use `pytest` and `pytest-mpl` for automated validation and image comparison. Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
+
+### Visual Regression Testing Architecture
+
+**Centralized Baseline Directory Structure:**
+```
+tests/
+├── baseline/                    # All baseline images (centralized)
+├── test_*.py                   # Root level tests → "baseline"
+├── test_ecellmodel/            # Subdirectory tests → "../baseline"
+│   └── test_*.py              # Use relative paths to centralized location
+└── conftest.py                # Shared pytest configuration
+```
+
+**Key Benefits:**
+- **Cross-platform compatibility**: Relative paths work on Windows, Linux, macOS
+- **Container compatibility**: Works identically in Docker and local environments  
+- **Maintainability**: Single location for all baseline images
+- **CI/CD integration**: Simplified path handling in GitHub Actions and Docker
+
+**Implementation Pattern:**
+```python
+# For tests in tests/ directory (root level)
+BASELINE_DIR_RELATIVE = "baseline"
+
+# For tests in tests/test_ecellmodel/ directory (subdirectory)  
+BASELINE_DIR_RELATIVE = "../baseline"
+
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
+def test_plotting_function():
+    # Test implementation returns matplotlib figure
+    return figure
+```
+
+Tests use `pytest`, `pytest-mpl`, and `pytest-cov` for automated validation, image comparison, and coverage analysis. The centralized baseline approach ensures consistent visual regression testing across all development and CI/CD environments.
 
 
 ## Data Format Examples

@@ -52,3 +52,11 @@ phase3b_questionable_modules_complete.md
 phase3c_over_engineering_simplification_complete.md
 streamlining_project_complete_summary.md
 LAMMPSKIT_EVOLUTION_WORKFLOW.md
+
+# Development documentation files (not needed in container)
+DOCKER_CI_STRATEGY.md
+DOCKERFILE_OPTIMIZATION.md
+TEST_PATH_RESOLUTION_GUIDE.md
+DOCUMENTATION_WORKFLOW.md
+INSTALLATION_METHODS.md
+FILE_EXCLUSION_STRATEGY.md

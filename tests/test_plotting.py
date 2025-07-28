@@ -6,7 +6,11 @@ from lammpskit.plotting import plot_multiple_cases
 
 import pytest
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is directly in tests/, the baseline is in the same directory level
+BASELINE_DIR_RELATIVE = "baseline"
+
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_single_1d(tmp_path):
     # Synthetic data: single case
     x = np.linspace(0, 10, 20)
@@ -34,7 +38,7 @@ def test_plot_multiple_cases_single_1d(tmp_path):
 
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_multi_2d(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(0, 10, 20)
@@ -51,7 +55,7 @@ def test_plot_multiple_cases_multi_2d(tmp_path):
     fig = plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_2d_x_1d_y(tmp_path):
     # Synthetic data: two x cases, one y
     x1 = np.linspace(0, 10, 20)
@@ -67,7 +71,7 @@ def test_plot_multiple_cases_2d_x_1d_y(tmp_path):
     fig = plot_multiple_cases(x_arr, y, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_1d_x_2d_y(tmp_path):
     # Synthetic data: one x, two y cases
     x = np.linspace(0, 10, 20)
@@ -83,7 +87,7 @@ def test_plot_multiple_cases_1d_x_2d_y(tmp_path):
     fig = plot_multiple_cases(x, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, output_dir=tmp_path)
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_with_kwargs(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(0, 10, 20)
@@ -107,7 +111,7 @@ def test_plot_multiple_cases_with_kwargs(tmp_path):
     )
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_with_xaxis_yaxis(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(-5, 5, 20)
@@ -129,7 +133,7 @@ def test_plot_multiple_cases_with_xaxis_yaxis(tmp_path):
     )
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_with_limit_hilo_kwargs(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(-5, 5, 20)
@@ -153,7 +157,7 @@ def test_plot_multiple_cases_with_limit_hilo_kwargs(tmp_path):
     )
     return fig
 
-@pytest.mark.mpl_image_compare(baseline_dir="test_ecellmodel/baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_multiple_cases_with_limit_kwargs(tmp_path):
     # Synthetic data: two cases
     x = np.linspace(-5, 5, 20)

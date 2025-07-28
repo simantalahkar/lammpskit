@@ -3,6 +3,26 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install system dependencies for OVITO and display support
+RUN apt-get update && apt-get install -y \
+    xvfb \
+    libgl1-mesa-glx \
+    libglu1-mesa \
+    libxrender1 \
+    libxrandr2 \
+    libxss1 \
+    libxcursor1 \
+    libxcomposite1 \
+    libasound2 \
+    libxi6 \
+    libxtst6 \
+    qtbase5-dev \
+    libqt5gui5 \
+    libqt5widgets5 \
+    libqt5opengl5-dev \
+    libqt5core5a \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install key build tools and runtime dependencies 
 RUN pip install --no-cache-dir setuptools wheel twine build numpy>=2.3.1 matplotlib>=3.10.3 ovito>=3.12.4
 
@@ -15,11 +35,16 @@ COPY pyproject.toml /app/
 COPY README.md /app/
 COPY LICENSE /app/
 COPY setup.py /app/
-COPY .dockerignore /app/
+#COPY .dockerignore /app/
 COPY CHANGELOG.md /app/
-COPY docs /app/docs/
-COPY docs/* /app/docs/
+#COPY docs /app/docs/
+#COPY docs/* /app/docs/
 COPY lammpskit /app/lammpskit
+
+# Copy test infrastructure for development and CI/CD usage
+# Includes centralized baseline directory at tests/baseline/ for visual regression testing
+# This ensures consistent pytest-mpl behavior across local and container environments
+COPY tests /app/tests
 
 
 # Build the package (creates dist/*.whl)

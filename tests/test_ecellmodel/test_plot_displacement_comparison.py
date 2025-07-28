@@ -3,12 +3,16 @@ import glob
 import pytest
 from lammpskit.ecellmodel.filament_layer_analysis import plot_displacement_comparison
 
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is in tests/test_ecellmodel/, the baseline is one level up
+BASELINE_DIR_RELATIVE = "../baseline"
+
 @pytest.mark.parametrize("fig_key", [
     "z_displacement",
     "z_magnitude",
     "lateral_displacement",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_displacement_comparison_atom_type(tmp_path, fig_key):
     # First case: [1-9][A-Z][a-z]mobilestc1.dat, labels Hf, O, Ta
     data_dir = os.path.join(os.path.dirname(__file__), "test_data", "data_for_comparison")
@@ -35,7 +39,7 @@ def test_plot_displacement_comparison_atom_type(tmp_path, fig_key):
     "z_magnitude",
     "lateral_displacement",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_displacement_comparison_temperature(tmp_path, fig_key):
     # Second case: *_Hfmobilestc1.dat, labels 300K, 900K, 1300K
     data_dir = os.path.join(os.path.dirname(__file__), "test_data", "data_for_comparison")

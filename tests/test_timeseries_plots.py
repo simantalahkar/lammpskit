@@ -17,6 +17,10 @@ from lammpskit.plotting import (
     calculate_frequency_label
 )
 
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is directly in tests/, the baseline is in the same directory level  
+BASELINE_DIR_RELATIVE = "baseline"
+
 
 @pytest.fixture
 def sample_time_data():
@@ -29,7 +33,7 @@ def sample_time_data():
     }
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_time_series_plot_line_and_scatter(sample_time_data):
     """Test time series plot with both line and scatter elements."""
     config = TimeSeriesPlotConfig(include_line=True, include_scatter=True)
@@ -48,7 +52,7 @@ def test_time_series_plot_line_and_scatter(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_time_series_plot_scatter_only(sample_time_data):
     """Test time series plot with scatter only."""
     config = TimeSeriesPlotConfig(include_line=False, include_scatter=True)
@@ -68,7 +72,7 @@ def test_time_series_plot_scatter_only(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_time_series_plot_line_only(sample_time_data):
     """Test time series plot with line only."""
     config = TimeSeriesPlotConfig(include_line=True, include_scatter=False)
@@ -86,7 +90,7 @@ def test_time_series_plot_line_only(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_time_series_plot_with_frequency_label(sample_time_data):
     """Test time series plot with frequency-based statistics label."""
     config = TimeSeriesPlotConfig(include_line=True, include_scatter=True)
@@ -109,7 +113,7 @@ def test_time_series_plot_with_frequency_label(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_dual_axis_plot_default_config(sample_time_data):
     """Test dual axis plot with default configuration."""
     primary_label = calculate_mean_std_label(sample_time_data['y_data1'], "primary_metric")
@@ -130,7 +134,7 @@ def test_dual_axis_plot_default_config(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_dual_axis_plot_custom_config(sample_time_data):
     """Test dual axis plot with custom configuration."""
     config = DualAxisPlotConfig(
@@ -162,7 +166,7 @@ def test_dual_axis_plot_custom_config(sample_time_data):
     return fig
 
 
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_dual_axis_plot_filament_style(sample_time_data):
     """Test dual axis plot mimicking filament analysis style."""
     # Use exact same configuration as track_filament_evolution

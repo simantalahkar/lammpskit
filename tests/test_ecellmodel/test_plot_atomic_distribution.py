@@ -3,6 +3,10 @@ import glob
 import pytest
 from lammpskit.ecellmodel.filament_layer_analysis import plot_atomic_distribution
 
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is in tests/test_ecellmodel/, the baseline is one level up
+BASELINE_DIR_RELATIVE = "../baseline"
+
 @pytest.mark.parametrize("fig_key", [
     "stoichiometry",
     "initial_stoichiometry",
@@ -11,7 +15,7 @@ from lammpskit.ecellmodel.filament_layer_analysis import plot_atomic_distributio
     "Ta",
     "O",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_atomic_distribution_figures(tmp_path, fig_key):
     # Prepare file list as before
     data_dir = os.path.join(os.path.dirname(__file__), "test_data")
@@ -42,7 +46,7 @@ def test_plot_atomic_distribution_figures(tmp_path, fig_key):
     "Ta",
     "O",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_atomic_distribution_figures_3files(tmp_path, fig_key):
     # Prepare file list for 3 files starting with "temp"
     data_dir = os.path.join(os.path.dirname(__file__), "test_data")
@@ -74,7 +78,7 @@ def test_plot_atomic_distribution_figures_3files(tmp_path, fig_key):
     "Ta",
     "O",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_atomic_distribution_figures_nfiles(tmp_path, nfiles, labels, analysis_name, fig_key):
     data_dir = os.path.join(os.path.dirname(__file__), "test_data")
     file_list = sorted(glob.glob(os.path.join(data_dir, "[0-9]*.lammpstrj")))[:nfiles]

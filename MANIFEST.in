@@ -45,3 +45,12 @@ exclude .coverage
 exclude coverage.xml
 recursive-exclude htmlcov *
 recursive-exclude supporting_docs *
+
+# Exclude development documentation files from PyPI package
+exclude DOCKER_CI_STRATEGY.md
+exclude DOCKERFILE_OPTIMIZATION.md
+exclude TEST_PATH_RESOLUTION_GUIDE.md
+exclude DOCUMENTATION_WORKFLOW.md
+exclude INSTALLATION_METHODS.md
+exclude LAMMPSKIT_EVOLUTION_WORKFLOW.md
+exclude FILE_EXCLUSION_STRATEGY.md

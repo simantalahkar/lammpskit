@@ -3,6 +3,10 @@ import glob
 import pytest
 from lammpskit.ecellmodel.filament_layer_analysis import plot_atomic_charge_distribution
 
+# Get baseline directory relative to tests root (works from any execution context)
+# Since this test file is in tests/test_ecellmodel/, the baseline is one level up
+BASELINE_DIR_RELATIVE = "../baseline"
+
 @pytest.mark.parametrize("nfiles,labels,analysis_name", [
     (4, ["traj1", "traj2", "traj3", "traj4"], "test_atomic_charge_4files"),
     (3, ["traj1", "traj2", "traj3"], "test_atomic_charge_3files"),
@@ -18,7 +22,7 @@ from lammpskit.ecellmodel.filament_layer_analysis import plot_atomic_charge_dist
     "oxygen_charge",
     "initial_oxygen_charge",
 ])
-@pytest.mark.mpl_image_compare(baseline_dir="baseline", remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
 def test_plot_atomic_charge_distribution_figures(tmp_path, nfiles, labels, analysis_name, fig_key):
     data_dir = os.path.join(os.path.dirname(__file__), "test_data")
     file_list = sorted(glob.glob(os.path.join(data_dir, "[0-9]*.lammpstrj")))[:nfiles]
