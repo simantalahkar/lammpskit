@@ -195,7 +195,7 @@ We especially welcome contributions from researchers working with:
 
 ## Questions and Support
 
-- **Documentation**: Check the [documentation](https://lammpskit.readthedocs.io/) first
+- **Documentation**: Check the [documentation](https://lammpskit.readthedocs.io/en/latest/) first
 - **Issues**: Use GitHub Issues for bug reports and feature requests
 - **Discussions**: Use GitHub Discussions for questions and general discussion
 - **Email**: Contact maintainers for sensitive issues

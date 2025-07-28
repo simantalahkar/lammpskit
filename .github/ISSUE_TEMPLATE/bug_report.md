@@ -34,7 +34,7 @@ Paste the full error traceback here
 **Environment (please complete the following information):**
  - OS: [e.g. Ubuntu 22.04, Windows 11, macOS 14]
  - Python version: [e.g. 3.12.0]
- - LAMMPSKit version: [e.g. 1.1.0]
+ - LAMMPSKit version: [e.g. 1.2.0]
  - OVITO version: [e.g. 3.12.4]
 
 **Additional context**

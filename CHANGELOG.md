@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-07-29
+
 ### Enhanced
 - **Visual Regression Testing**: Modernized pytest-mpl infrastructure with centralized baseline directory approach
 - **Cross-Platform Compatibility**: Implemented relative path resolution for consistent test behavior across Windows, Linux, macOS, and Docker environments
 - **Test Infrastructure**: Added comprehensive test package documentation (`tests/__init__.py`) and shared pytest configuration (`tests/conftest.py`)
 - **Documentation Coverage**: Updated README.md, CONTRIBUTING.md, and PROJECT_STRUCTURE.md with detailed visual regression testing guidelines
+- **Documentation Links**: Upgraded all references to point to https://lammpskit.readthedocs.io/en/latest/ for better version-specific documentation access
 
 ### Fixed
 - **Docker Build**: Removed unnecessary `COPY tests` from Dockerfile to prevent GitHub Actions build failures; tests now exclusively use volume mounts for better development workflow
@@ -20,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation Build Permissions**: Fixed "Permission denied" error in Sphinx documentation build by running docs container as root user for volume mount compatibility
 - **Documentation RST Files**: Fixed malformed RST files including title underlines, duplicate content, and corrupted automodule directives
 - **Coverage Database Permissions**: Fixed SQLite database permission errors by running test container as root user to avoid coverage file access issues
+- **ReadTheDocs Build**: Fixed shell parsing errors in .readthedocs.yaml by simplifying Python command syntax to avoid nested quote issues
+
+### Changed
+- **Version**: Upgraded to v1.2.0 to reflect comprehensive CI/CD infrastructure improvements and documentation enhancements
 
 ## [1.1.0] - 2025-07-28
 
@@ -33,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhanced
 - **Project Metadata**: Added comprehensive package classifiers, keywords, and enhanced project URLs
 - **Development Workflow**: Local CI/CD testing script for pre-deployment validation
-- **Documentation Links**: Updated all references to point to https://lammpskit.readthedocs.io/
+- **Documentation Links**: Updated all references to point to https://lammpskit.readthedocs.io/en/latest/
 
 ### Changed
 - **Version**: Upgraded to v1.1.0 to reflect comprehensive project modernization

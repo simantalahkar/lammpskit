@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="lammpskit",
-    version="1.1.0",
+    version="1.2.0",
     description="Toolkit for MD simulations and analysis with LAMMPS - specialized for electrochemical memory device characterization.",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -10,7 +10,7 @@ setup(
     author_email="simantalahkar@hotmail.com",
     url="https://github.com/simantalahkar/lammpskit",
     project_urls={
-        "Documentation": "https://lammpskit.readthedocs.io/",
+        "Documentation": "https://lammpskit.readthedocs.io/en/latest/",
         "Source": "https://github.com/simantalahkar/lammpskit",
         "Bug Tracker": "https://github.com/simantalahkar/lammpskit/issues",
         "Changelog": "https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md",

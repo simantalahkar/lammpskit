@@ -1,7 +1,7 @@
 [project]
 name = "lammpskit"
-version = "1.1.0"
-description = "Toolkit for MD simulations and analysis with LAMMPS - specialized for electrochemical memory device characterization and filament analysis."
+version = "1.2.0"
+description = "A Python toolkit for advanced LAMMPS data processing and scientific simulation analysis."
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "GPL-3.0-or-later"}
@@ -70,7 +70,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/simantalahkar/lammpskit"
-Documentation = "https://lammpskit.readthedocs.io/"
+Documentation = "https://lammpskit.readthedocs.io/en/latest/"
 Source = "https://github.com/simantalahkar/lammpskit"
 "Bug Tracker" = "https://github.com/simantalahkar/lammpskit/issues"
 "Changelog" = "https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md"

@@ -96,7 +96,7 @@ pip install -e . && pip install -r requirements-dev.txt
 
 ### Using the Example Workflow
 
-LAMMPSKit v1.1.0 includes a comprehensive example workflow that demonstrates all major package capabilities:
+LAMMPSKit v1.2.0 includes a comprehensive example workflow that demonstrates all major package capabilities:
 
 ```python
 # Clone the repository and navigate to the usage example
@@ -117,7 +117,7 @@ Generated plots and analysis results are saved to `usage/ecellmodel/output/`.
 
 ### Package Structure
 
-LAMMPSKit v1.1.0 features a modular architecture:
+LAMMPSKit v1.2.0 features a modular architecture:
 
 ```
 lammpskit/
@@ -143,7 +143,7 @@ Using the Docker container provides a portable, reproducible environment with al
    ```
    Or pull a specific version:
    ```sh
-   docker pull simantalahkar/lammpskit:1.1.0
+   docker pull simantalahkar/lammpskit:1.2.0
    ```
 
 3. **Run the container with your local data mounted as a volume:**
@@ -218,7 +218,7 @@ Tests are not shipped with the PyPI package, but are available in the source rep
 
 ## Test Coverage & Visual Regression Testing
 
-LAMMPSKit v1.1.0 includes extensive test coverage with over 270 test functions and 90+ baseline images for visual regression testing. The test suite uses a **centralized baseline approach** for consistent and maintainable visual regression testing.
+LAMMPSKit v1.2.0 includes extensive test coverage with over 270 test functions and 90+ baseline images for visual regression testing. The test suite uses a **centralized baseline approach** for consistent and maintainable visual regression testing.
 
 ### Test Organization
 - `tests/test_io.py` - I/O function validation
@@ -369,5 +369,5 @@ Simanta Lahkar
 ## Links
 
 - [Homepage](https://github.com/simantalahkar/lammpskit)
-- [Documentation](https://lammpskit.readthedocs.io/)
+- [Documentation](https://lammpskit.readthedocs.io/en/latest/)
 - [Changelog](./CHANGELOG.md)
