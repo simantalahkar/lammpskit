@@ -100,6 +100,11 @@ docker run --rm `
 - **Virtual Display Support**: Xvfb pre-installed for headless operations
 - **No Runtime Installation**: System dependencies already available
 
+### Volume-Based Testing
+- **Tests Not Copied**: Test files mounted as volumes for live updates
+- **Baseline Management**: Tests/baseline directory accessible via volume mounts
+- **Development Friendly**: Change tests locally, immediately available in container
+
 ### Simplified Commands
 - **Removed**: Complex system dependency installation steps
 - **Faster**: No need to update package lists or install system packages
@@ -114,6 +119,7 @@ docker run --rm `
 - [ ] Tests run without ImportError exceptions
 - [ ] Documentation builds successfully
 - [ ] Volume mounts work (test files accessible in container)
+- [ ] Baseline directory accessible at `/app/tests/baseline/` in container
 - [ ] Virtual display (Xvfb) starts properly
 - [ ] Coverage reports generate correctly
 

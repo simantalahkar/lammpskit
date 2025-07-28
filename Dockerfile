@@ -41,11 +41,9 @@ COPY CHANGELOG.md /app/
 #COPY docs/* /app/docs/
 COPY lammpskit /app/lammpskit
 
-# Copy test infrastructure for development and CI/CD usage
-# Includes centralized baseline directory at tests/baseline/ for visual regression testing
-# This ensures consistent pytest-mpl behavior across local and container environments
-COPY tests /app/tests
-
+# Note: Test infrastructure (tests/) is mounted as volume during CI/CD
+# This ensures tests use the latest code without rebuilding the Docker image
+# Volume mount in CI: -v ${PWD}/tests:/app/tests
 
 # Build the package (creates dist/*.whl)
 RUN python -m build
