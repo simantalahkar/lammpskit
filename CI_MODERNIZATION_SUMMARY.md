@@ -63,8 +63,9 @@ Successfully modernized LAMMPSKit's CI/CD infrastructure from problematic native
 
 ### Volume Mount Strategy
 - **Benefits**: Test files accessible without modifying Docker image
-- **Implementation**: `-v $PWD/tests:/app/tests` pattern
+- **Implementation**: `-v $PWD/tests:/app/tests` pattern for live test updates
 - **Coverage**: Includes all test directories and supporting files
+- **Build Optimization**: Tests not copied into image, reducing build time and size
 
 ### Environment Variables
 - `QT_QPA_PLATFORM=offscreen`: Enables headless Qt operations

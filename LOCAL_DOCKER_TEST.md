@@ -27,10 +27,10 @@ docker exec test_container pip install `
 
 # Verify OVITO and LAMMPSKit
 docker exec test_container python -c "
-  import ovito; print('OVITO version:', ovito.version)
-  import lammpskit; print('LAMMPSKit version:', lammpskit.__version__)
-  from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
-  print('analyze_clusters function imported successfully')
+import ovito; print('OVITO version:', ovito.version)
+import lammpskit; print('LAMMPSKit version:', lammpskit.__version__)
+from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
+print('analyze_clusters function imported successfully')
 "
 
 # Run tests (from project root directory within container)

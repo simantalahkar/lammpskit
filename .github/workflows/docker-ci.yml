@@ -51,12 +51,12 @@ jobs:
     - name: Verify OVITO and LAMMPSKit in container
       run: |
         docker exec test_container_${{ matrix.python-version }} python -c "
-          import ovito
-          print('OVITO version:', ovito.version)
-          import lammpskit
-          print('LAMMPSKit version:', lammpskit.__version__)
-          from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
-          print('analyze_clusters function imported successfully')
+        import ovito
+        print('OVITO version:', ovito.version)
+        import lammpskit
+        print('LAMMPSKit version:', lammpskit.__version__)
+        from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
+        print('analyze_clusters function imported successfully')
         "
           
     - name: Create baseline directory for visual regression tests
@@ -135,10 +135,10 @@ jobs:
     - name: Verify installation in container
       run: |
         docker exec docs_container python -c "
-          import lammpskit
-          print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))
-          import ovito
-          print('OVITO version:', ovito.version)
+        import lammpskit
+        print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))
+        import ovito
+        print('OVITO version:', ovito.version)
         "
         docker exec docs_container python -m sphinx --version
         

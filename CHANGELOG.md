@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test Infrastructure**: Added comprehensive test package documentation (`tests/__init__.py`) and shared pytest configuration (`tests/conftest.py`)
 - **Documentation Coverage**: Updated README.md, CONTRIBUTING.md, and PROJECT_STRUCTURE.md with detailed visual regression testing guidelines
 
+### Fixed
+- **Docker Build**: Removed unnecessary `COPY tests` from Dockerfile to prevent GitHub Actions build failures; tests now exclusively use volume mounts for better development workflow
+- **CI/CD Python Indentation**: Fixed IndentationError in GitHub Actions workflow by correcting Python command indentation in docker exec statements
+
 ## [1.1.0] - 2025-07-28
 
 ### Added
