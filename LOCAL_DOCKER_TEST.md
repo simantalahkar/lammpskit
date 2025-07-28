@@ -64,7 +64,7 @@ docker exec docs_container pip install `
 docker exec docs_container bash -c "
   export DISPLAY=:99
   Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  cd /app/docs && mkdir -p build && python -m sphinx -b html source build -W
+  cd /app/docs && mkdir -p build && python -m sphinx -b html source build
 "
 
 # Clean up

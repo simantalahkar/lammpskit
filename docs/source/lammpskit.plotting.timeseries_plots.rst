@@ -1,5 +1,5 @@
 lammpskit.plotting.timeseries\_plots module
-==========================================
+============================================
 
 Centralized plotting functions for time series analysis. This module provides reusable plotting functions for creating standardized time series and dual-axis plots with consistent styling and configuration management.
 
@@ -135,7 +135,7 @@ Statistical label generation:
    print(freq_label)  # "Connected: 70.2%"
 
 Font Control Examples
---------------------
+---------------------
 
 Individual font size control:
 
@@ -208,12 +208,6 @@ Related Functions
 
 Module Documentation
 --------------------
-
-.. automodule:: lammpskit.plotting.timeseries_plots
-   :members:
-   :show-inheritance:
-   :undoc-members:it.plotting.timeseries\_plots module
-===========================================
 
 .. automodule:: lammpskit.plotting.timeseries_plots
    :members:

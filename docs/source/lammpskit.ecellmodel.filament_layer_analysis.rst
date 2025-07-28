@@ -67,7 +67,7 @@ Complete workflow for filament formation analysis:
    )
 
 Connectivity Analysis Examples
------------------------------
+------------------------------
 
 **Basic Connectivity Analysis**:
 

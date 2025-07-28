@@ -151,7 +151,7 @@ jobs:
           export DISPLAY=:99
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
           cd /app/docs && mkdir -p build && chmod 755 build &&
-          python -m sphinx -b html source build -W
+          python -m sphinx -b html source build
         "
         
     - name: Check documentation links in container

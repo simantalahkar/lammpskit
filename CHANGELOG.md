@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI/CD Python Indentation**: Fixed IndentationError in GitHub Actions workflow by correcting Python command indentation in docker exec statements
 - **CI/CD pytest Command**: Fixed "pytest: command not found" error by using `python -m pytest` instead of direct `pytest` command in Docker containers
 - **Documentation Build Permissions**: Fixed "Permission denied" error in Sphinx documentation build by running docs container as root user for volume mount compatibility
+- **Documentation RST Files**: Fixed malformed RST files including title underlines, duplicate content, and corrupted automodule directives
 
 ## [1.1.0] - 2025-07-28
 

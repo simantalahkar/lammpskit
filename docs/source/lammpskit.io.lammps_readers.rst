@@ -1,14 +1,4 @@
-lamLAMMPS trajectory file readers for efficient data loading and processing. This module provides optimized functions for reading LAMMPS dump files with support for large trajectories and selective data loading.
-
-Key Functions
--------------
-
-The module provides functions for:
-
-- **Structure information reading** from LAMMPS dump files
-- **Coordinate data reading** with selective column loading
-- **Memory-efficient processing** for large trajectory files
-- **Standard LAMMPS format support** with flexible parsinglammps\_readers module
+lammpskit.io.lammps\_readers module
 ===================================
 
 LAMMPS trajectory file readers for molecular dynamics analysis. This module provides the core I/O functionality for parsing LAMMPS dump files and extracting simulation metadata with robust error handling.
@@ -81,4 +71,3 @@ Module Documentation
    :members:
    :show-inheritance:
    :undoc-members:
-   :no-index:
