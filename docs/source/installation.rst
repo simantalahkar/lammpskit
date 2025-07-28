@@ -191,5 +191,5 @@ Troubleshooting
 
 .. code-block:: bash
 
-   python -c "import lammpskit; print(f'LAMMPSKit {lammpskit.__version__} installed successfully')"
+   python -c "import lammpskit; print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))"
    python -m sphinx --version  # For development installations

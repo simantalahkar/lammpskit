@@ -2,9 +2,9 @@ name: Build and Deploy Documentation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 permissions:
   contents: read
@@ -35,11 +35,24 @@ jobs:
     - name: Verify Sphinx installation
       run: |
         python -m sphinx --version
+        python -c "import lammpskit; print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))"
         
     - name: Build documentation
       run: |
         cd docs
-        python -m sphinx -b html source build
+        python -m sphinx -b html source build -W
+        
+    - name: Check documentation links
+      run: |
+        cd docs
+        python -m sphinx -b linkcheck source build
+        
+    - name: Upload documentation artifacts (for all builds)
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-html
+        path: docs/build/
+        retention-days: 30
         
     - name: Setup Pages (only on main branch)
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -50,6 +63,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: docs/build
+        
         
   deploy:
     environment:
