@@ -43,5 +43,5 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/simantalahkar/lammpskit"
-Documentation = "https://github.com/simantalahkar/lammpskit#readme"
+Documentation = "https://lammpskit.readthedocs.io/"
 Source = "https://github.com/simantalahkar/lammpskit"

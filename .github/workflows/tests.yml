@@ -1,0 +1,96 @@
+name: Tests and Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+        
+    - name: Run tests
+      run: |
+        python -m pytest tests/ --cov=lammpskit --cov-report=xml --cov-report=html
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+        
+    - name: Build documentation
+      run: |
+        cd docs
+        python -m sphinx -b html source build -W
+        
+    - name: Check documentation links
+      run: |
+        cd docs
+        python -m sphinx -b linkcheck source build
+        
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+        pip install flake8 black isort mypy
+        
+    - name: Run code formatting check
+      run: |
+        black --check --diff lammpskit/
+        isort --check-only --diff lammpskit/
+        
+    - name: Run linting
+      run: |
+        flake8 lammpskit/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 lammpskit/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Run type checking
+      run: |
+        mypy lammpskit/ --ignore-missing-imports

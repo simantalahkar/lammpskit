@@ -1,0 +1,21 @@
+# Global owners - these people will be requested for review on all PRs
+* @simantalahkar
+
+# Documentation changes
+/docs/ @simantalahkar
+*.md @simantalahkar
+*.rst @simantalahkar
+
+# Core package code
+/lammpskit/ @simantalahkar
+
+# Configuration and build files
+pyproject.toml @simantalahkar
+setup.py @simantalahkar
+requirements*.txt @simantalahkar
+
+# CI/CD workflows
+/.github/ @simantalahkar
+
+# Tests
+/tests/ @simantalahkar
