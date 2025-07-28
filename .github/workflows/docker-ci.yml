@@ -142,7 +142,7 @@ jobs:
       run: |
         docker exec docs_container python -c "
         import lammpskit
-        print('LAMMPSKit {} installed successfully'.format(lammpskit.__version__))
+        print('LAMMPSKit installed successfully, version:', lammpskit.__version__)
         import ovito
         print('OVITO version:', ovito.version)
         "
