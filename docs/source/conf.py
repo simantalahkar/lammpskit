@@ -17,7 +17,7 @@ try:
 
     release = lammpskit.__version__
 except ImportError:
-    release = "1.2.0"
+    release = "1.2.1"
 
 project = "LAMMPSKit"
 copyright = "2025, Simanta Lahkar"

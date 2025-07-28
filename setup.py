@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="lammpskit",
-    version="1.2.0",
+    version="1.2.1",
     description="Toolkit for MD simulations and analysis with LAMMPS - specialized for electrochemical memory device characterization.",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

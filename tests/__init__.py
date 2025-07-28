@@ -54,5 +54,5 @@ Baseline Management:
 For detailed testing guidelines, see CONTRIBUTING.md and LOCAL_DOCKER_TEST.md
 """
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __all__ = []

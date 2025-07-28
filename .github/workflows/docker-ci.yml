@@ -91,13 +91,31 @@ jobs:
         docker cp test_container_${{ matrix.python-version }}:/app/coverage.xml ./coverage-${{ matrix.python-version }}.xml
         docker cp test_container_${{ matrix.python-version }}:/app/htmlcov ./htmlcov-${{ matrix.python-version }}
         
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+    - name: Generate coverage badge
+      if: matrix.python-version == '3.12'
+      run: |
+        # Install coverage-badge if not available
+        pip install coverage-badge || echo "coverage-badge installation failed, continuing..."
+        # Generate badge from coverage.xml
+        coverage-badge -i ./coverage-3.12.xml -o coverage-badge.svg || echo "Badge generation failed, continuing..."
+        
+    - name: Upload coverage badge
+      if: matrix.python-version == '3.12'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-badge
+        path: coverage-badge.svg
+        retention-days: 30
+
+    - name: Upload coverage reports to Codecov
+      if: matrix.python-version == '3.12'
+      uses: codecov/codecov-action@v5
       with:
         files: ./coverage-${{ matrix.python-version }}.xml
         flags: unittests-python${{ matrix.python-version }}
         name: codecov-python${{ matrix.python-version }}
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
         
     - name: Clean up container
       if: always()

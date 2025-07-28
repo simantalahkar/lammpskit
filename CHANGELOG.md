@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-07-29
+
+### Enhanced
+- **Badge Infrastructure**: Improved GitHub Actions badge reliability and coverage reporting integration
+- **Coverage Reporting**: Added automated coverage badge generation in CI/CD pipeline for better visibility of test coverage
+- **Codecov Integration**: Enhanced Codecov upload workflow with fail-safe error handling and artifact generation
+
+### Fixed
+- **GitHub Actions Badges**: Fixed tests badge reference to correctly point to `docker-ci.yml` workflow for accurate status reporting
+- **Coverage Badge Display**: Resolved coverage badge visibility issues by implementing local badge generation as backup to Codecov integration
+- **CI/CD Workflow Optimization**: Added conditional coverage upload (Python 3.12 only) to prevent duplicate uploads and improve build efficiency
+
+### Changed
+- **Version**: Upgraded to v1.2.1 to reflect improved badge infrastructure and coverage reporting enhancements
+- **Documentation**: Updated all version references throughout project documentation and configuration files
+
 ## [1.2.0] - 2025-07-29
 
 ### Enhanced

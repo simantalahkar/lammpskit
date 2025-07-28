@@ -118,7 +118,7 @@ docker run --rm `
 
 - [ ] Docker image builds successfully (with OVITO dependencies)
 - [ ] OVITO imports without errors in container
-- [ ] LAMMPSKit imports and shows correct version (1.2.0)
+- [ ] LAMMPSKit imports and shows correct version (1.2.1)
 - [ ] `analyze_clusters` function can be imported
 - [ ] Tests run without ImportError exceptions
 - [ ] Documentation builds successfully

@@ -1,4 +1,4 @@
-# LAMMPSKit v1.1.0 CI/CD Modernization Summary
+# LAMMPSKit v1.2.1 CI/CD Modernization Summary
 
 ## Overview
 Successfully modernized LAMMPSKit's CI/CD infrastructure from problematic native GitHub Actions to a robust Docker-based pipeline, resolving OVITO integration challenges and ensuring reliable testing and deployment.
@@ -130,4 +130,4 @@ Successfully modernized LAMMPSKit's CI/CD infrastructure from problematic native
 7. **Developer Experience**: Comprehensive documentation and clear testing guidelines for contributors
 
 ## Migration Complete
-LAMMPSKit v1.1.0 now has a modern, robust CI/CD infrastructure that addresses all previous GitHub Actions failures while maintaining full functionality and test coverage.
+LAMMPSKit v1.2.1 now has a modern, robust CI/CD infrastructure that addresses all previous GitHub Actions failures while maintaining full functionality and test coverage.
