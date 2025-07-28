@@ -37,8 +37,8 @@ print('analyze_clusters function imported successfully')
 docker exec test_container bash -c "
   export DISPLAY=:99
   Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  cd /app && pytest --mpl-generate-path=tests/baseline tests/ || echo 'Baseline generation complete'
-  cd /app && pytest --mpl --mpl-baseline-path=tests/baseline --cov=lammpskit --cov-report=xml tests/
+  cd /app && python -m pytest --mpl-generate-path=tests/baseline tests/ || echo 'Baseline generation complete'
+  cd /app && python -m pytest --mpl --mpl-baseline-path=tests/baseline --cov=lammpskit --cov-report=xml tests/
 "
 
 # Clean up
@@ -87,8 +87,8 @@ docker run --rm `
     export DISPLAY=:99
     Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
     python -c 'import ovito; import lammpskit; from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters; print(\"All imports successful\")'
-    cd /app && pytest --mpl-generate-path=tests/baseline tests/ || echo 'Baseline generation complete'
-    cd /app && pytest --mpl --mpl-baseline-path=tests/baseline --cov=lammpskit --cov-report=xml tests/
+    cd /app && python -m pytest --mpl-generate-path=tests/baseline tests/ || echo 'Baseline generation complete'
+    cd /app && python -m pytest --mpl --mpl-baseline-path=tests/baseline --cov=lammpskit --cov-report=xml tests/
   "
 ```
 ```
@@ -104,6 +104,7 @@ docker run --rm `
 - **Tests Not Copied**: Test files mounted as volumes for live updates
 - **Baseline Management**: Tests/baseline directory accessible via volume mounts
 - **Development Friendly**: Change tests locally, immediately available in container
+- **Python Module Execution**: Uses `python -m pytest` instead of `pytest` command for reliable PATH resolution
 
 ### Simplified Commands
 - **Removed**: Complex system dependency installation steps

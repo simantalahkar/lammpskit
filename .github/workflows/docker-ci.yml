@@ -66,7 +66,7 @@ jobs:
     - name: Generate baseline images for pytest-mpl (centralized approach)
       run: |
         docker exec test_container_${{ matrix.python-version }} bash -c "
-          cd /app && pytest --mpl-generate-path=tests/baseline tests/ || true
+          cd /app && python -m pytest --mpl-generate-path=tests/baseline tests/ || true
         "
       # Note: Centralized baseline approach ensures all test modules use tests/baseline/
       # regardless of their location in the test directory structure
@@ -76,7 +76,7 @@ jobs:
         docker exec test_container_${{ matrix.python-version }} bash -c "
           export DISPLAY=:99
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          cd /app && pytest --mpl --mpl-baseline-path=tests/baseline \
+          cd /app && python -m pytest --mpl --mpl-baseline-path=tests/baseline \
             --cov=lammpskit --cov-report=xml --cov-report=html \
             tests/
         "

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Docker Build**: Removed unnecessary `COPY tests` from Dockerfile to prevent GitHub Actions build failures; tests now exclusively use volume mounts for better development workflow
 - **CI/CD Python Indentation**: Fixed IndentationError in GitHub Actions workflow by correcting Python command indentation in docker exec statements
+- **CI/CD pytest Command**: Fixed "pytest: command not found" error by using `python -m pytest` instead of direct `pytest` command in Docker containers
 
 ## [1.1.0] - 2025-07-28
 
