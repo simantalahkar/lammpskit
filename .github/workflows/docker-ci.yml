@@ -32,6 +32,7 @@ jobs:
     - name: Create test container with volume mounts
       run: |
         docker run -d --name test_container_${{ matrix.python-version }} \
+          --user root \
           -v $PWD/tests:/app/tests \
           -v $PWD/supporting_docs:/app/supporting_docs \
           -v $PWD/usage:/app/usage \
@@ -39,6 +40,8 @@ jobs:
           -e OVITO_HEADLESS=1 \
           ${{ env.IMAGE_NAME }}:test-${{ matrix.python-version }} \
           bash -c "sleep infinity"
+      # Note: Using --user root to avoid permission issues with volume mounts
+      # and coverage database creation
         
     - name: Install testing dependencies in container
       run: |

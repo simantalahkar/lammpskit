@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI/CD pytest Command**: Fixed "pytest: command not found" error by using `python -m pytest` instead of direct `pytest` command in Docker containers
 - **Documentation Build Permissions**: Fixed "Permission denied" error in Sphinx documentation build by running docs container as root user for volume mount compatibility
 - **Documentation RST Files**: Fixed malformed RST files including title underlines, duplicate content, and corrupted automodule directives
+- **Coverage Database Permissions**: Fixed SQLite database permission errors by running test container as root user to avoid coverage file access issues
 
 ## [1.1.0] - 2025-07-28
 

@@ -13,6 +13,7 @@ docker build -t simantalahkar/lammpskit:test .
 ```powershell
 # Create test container (OVITO dependencies pre-installed in Dockerfile)
 docker run -d --name test_container `
+  --user root `
   -v ${PWD}/tests:/app/tests `
   -v ${PWD}/supporting_docs:/app/supporting_docs `
   -v ${PWD}/usage:/app/usage `
@@ -77,6 +78,7 @@ For quick verification without persistent containers:
 ```powershell
 # Build and test in one command
 docker run --rm `
+  --user root `
   -v ${PWD}/tests:/app/tests `
   -v ${PWD}/supporting_docs:/app/supporting_docs `
   -v ${PWD}/usage:/app/usage `
@@ -132,6 +134,7 @@ docker run --rm `
 - **Docker Desktop**: Make sure Docker Desktop is running on Windows
 - **PowerShell Execution**: Run PowerShell as Administrator if needed
 - **Documentation Build Permissions**: Use `--user root` for docs container to avoid permission issues with volume mounts
+- **Coverage Database Permissions**: Use `--user root` for test container to avoid SQLite database permission errors
 
 ### Verification Commands
 ```powershell
