@@ -34,6 +34,16 @@ The example data corresponds to various simulation setups:
 
 ## Requirements
 
+**Installation:**
+```bash
+# For development (if working from repository)
+pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
+
+# For usage only (from PyPI)
+pip install lammpskit
+```
+
+**Other requirements:**
 - LAMMPSKit package installed
 - Example data files in the `data/` subdirectory
 - Python environment with numpy, matplotlib, and ovito

@@ -31,7 +31,12 @@ pip install lammpskit
 ```bash
 git clone https://github.com/simantalahkar/lammpskit.git
 cd lammpskit
+
+# Primary method (modern pip with optional dependencies)
 pip install -e .[dev]
+
+# Alternative method (if above fails)
+pip install -e . && pip install -r requirements-dev.txt
 ```
 
 ## 📋 Requirements
@@ -187,18 +192,25 @@ pip install lammpskit
 
 For development and testing:
 ```sh
-pip install -r requirements.txt
+# Method 1: Using optional dependencies (recommended)
+pip install -e .[dev]
+
+# Method 2: Manual installation (fallback)
+pip install -e .
 pip install -r requirements-dev.txt
 ```
 
 ## Development and Testing Environment
 
-All runtime dependencies are listed in `requirements.txt`. Development and test dependencies are listed in `requirements-dev.txt` and in the `[dev]` group of `pyproject.toml` and `setup.py`.
+All runtime dependencies are listed in `requirements.txt`. Development and test dependencies are available in multiple formats:
+- `[project.optional-dependencies]` in `pyproject.toml` (modern standard)
+- `requirements-dev.txt` (traditional method)  
+- `extras_require` in `setup.py` (legacy compatibility)
 
 To set up a development environment and run tests locally:
 ```sh
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+# Recommended approach with fallback
+pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
 pytest
 ```
 Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.

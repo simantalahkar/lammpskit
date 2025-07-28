@@ -34,7 +34,12 @@ For development and testing:
 
 .. code-block:: bash
 
+   # Primary method (modern pip with optional dependencies)
    pip install lammpskit[dev]
+   
+   # Alternative method (if above fails with older pip versions)
+   pip install lammpskit
+   pip install -r https://raw.githubusercontent.com/simantalahkar/lammpskit/main/requirements-dev.txt
 
 Install from Source
 -------------------
@@ -53,7 +58,12 @@ For development:
 
    git clone https://github.com/simantalahkar/lammpskit.git
    cd lammpskit
+   
+   # Primary method (modern pip with optional dependencies)
    pip install -e .[dev]
+   
+   # Alternative method (if above fails with older pip versions)
+   pip install -e . && pip install -r requirements-dev.txt
 
 Docker Installation
 -------------------
@@ -93,10 +103,93 @@ For contributing to LAMMPSKit:
 
    git clone https://github.com/simantalahkar/lammpskit.git
    cd lammpskit
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt
+   
+   # Recommended approach with automatic fallback
+   pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
    
    # Run tests to verify setup
    pytest
 
+**Alternative Installation Methods:**
+
+The package supports multiple dependency installation approaches for maximum compatibility:
+
+1. **Modern approach** (Python 3.8+, pip 21.2+):
+
+   .. code-block:: bash
+   
+      pip install -e .[dev]
+
+2. **Traditional approach** (any pip version):
+
+   .. code-block:: bash
+   
+      pip install -e .
+      pip install -r requirements-dev.txt
+
+3. **Hybrid approach** (automatic fallback):
+
+   .. code-block:: bash
+   
+      pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
+
 The test suite includes 270+ test functions and 205 baseline images for visual regression testing.
+
+Dependency Management
+---------------------
+
+**Automatic Dependency Detection in Documentation:**
+
+When dependencies change in ``pyproject.toml`` or ``requirements-dev.txt``, documentation builds will **automatically detect and use the updated dependencies** because:
+
+1. **CI/CD Integration**: GitHub Actions workflows install dependencies from the current repository state during each build
+2. **Live Installation**: Documentation builds use ``pip install -e .[dev]`` which reads the current ``pyproject.toml`` 
+3. **Read the Docs**: Automatically pulls the latest repository state and installs current dependencies
+4. **Version Synchronization**: The ``conf.py`` imports the package to get the current version dynamically
+
+**Dependency Configuration Files:**
+
+The package maintains dependencies in multiple formats for compatibility:
+
+- ``pyproject.toml`` - Modern Python packaging standard (``[project.optional-dependencies]``)
+- ``requirements-dev.txt`` - Traditional pip requirements format
+- ``setup.py`` - Legacy setuptools format (``extras_require``)
+
+Changes to any of these files are automatically reflected in the next documentation build cycle.
+
+Troubleshooting
+---------------
+
+**Common Installation Issues:**
+
+1. **"No module named sphinx" Error:**
+   
+   Use the fallback installation method:
+   
+   .. code-block:: bash
+   
+      pip install -e . && pip install -r requirements-dev.txt
+
+2. **Optional Dependencies Not Found:**
+   
+   Older pip versions may not support ``[project.optional-dependencies]``. Use:
+   
+   .. code-block:: bash
+   
+      pip install --upgrade pip
+      pip install -e .[dev]
+
+3. **CI/CD Build Failures:**
+   
+   GitHub Actions uses the hybrid approach automatically:
+   
+   .. code-block:: bash
+   
+      pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
+
+**Verify Installation:**
+
+.. code-block:: bash
+
+   python -c "import lammpskit; print(f'LAMMPSKit {lammpskit.__version__} installed successfully')"
+   python -m sphinx --version  # For development installations

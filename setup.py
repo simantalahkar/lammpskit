@@ -37,6 +37,9 @@ setup(
         "matplotlib>=3.10.3",
         "ovito>=3.12.4"
     ],
+    # Development dependencies for legacy compatibility
+    # Note: Also available in pyproject.toml [project.optional-dependencies] and requirements-dev.txt
+    # Install with: pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
     extras_require={
         "dev": [
             # Testing framework
