@@ -41,10 +41,12 @@ jobs:
         cd docs
         python -m sphinx -b html source build
         
-    - name: Setup Pages
+    - name: Setup Pages (only on main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: actions/configure-pages@v5
       
-    - name: Upload artifact
+    - name: Upload artifact (only on main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: actions/upload-pages-artifact@v3
       with:
         path: docs/build
@@ -55,7 +57,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
