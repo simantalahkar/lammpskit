@@ -1,23 +1,40 @@
+# LAMMPSKit Development Dependencies
+# Updated: July 28, 2025
+
+# Testing framework
 pytest>=8.4.1
 pytest-cov>=6.2.1
 pytest-mpl>=0.17.0
+coverage>=7.9.1
+
+# Documentation tools
+sphinx>=8.2.3
+sphinx-autodoc-typehints>=3.2.0
+sphinx-rtd-theme>=3.0.2
 Jinja2>=3.1.6
 MarkupSafe>=3.0.2
+
+# Code quality and formatting
+black>=25.1.0
+isort>=5.13.0
+flake8>=7.3.0
+mypy>=1.8.0
+
+# Build and distribution
+build>=1.2.2.post1
+setuptools>=80.9.0
+wheel>=0.45.1
+twine>=6.1.0
+readme_renderer>=44.0
+
+# Development utilities
 pillow>=11.2.1
 packaging>=25.0
-build>=1.2.2.post1
-coverage>=7.9.1
 cycler>=0.12.1
 fonttools>=4.58.4
 pluggy>=1.6.0
 pyparsing>=3.2.3
 python-dateutil>=2.9.0.post0
-readme_renderer>=44.0
 requests>=2.32.4
 requests-toolbelt>=1.0.0
 rich>=14.0.0
-setuptools>=80.9.0
-twine>=6.1.0
-sphinx>=8.2.3
-sphinx-autodoc-typehints>=3.2.0
-sphinx-rtd-theme>=3.0.2

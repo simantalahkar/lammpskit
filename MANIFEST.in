@@ -1,11 +1,47 @@
+# LAMMPSKit Package Manifest
+# Updated: July 28, 2025
+
+# Core package files
 include README.md
 include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
 include setup.py
+include pyproject.toml
+
+# Dependency files
 include requirements.txt
 include requirements-dev.txt
-include pyproject.toml
-include CHANGELOG.md
+include .readthedocs.yaml
 
+# Documentation
 recursive-include docs *
 
-global-exclude *.pyc __pycache__/
+# CI/CD configuration (for source distributions)
+include .github/workflows/*.yml
+include .github/ISSUE_TEMPLATE/*.yml
+include .github/pull_request_template.md
+include .github/CODEOWNERS
+include ci_test.py
+
+# Package source code and configuration
+recursive-include lammpskit *.py
+include lammpskit/py.typed
+
+# Exclude compiled files and caches
+global-exclude *.pyc
+global-exclude __pycache__/
+global-exclude .DS_Store
+global-exclude *.egg-info/
+global-exclude .git*
+global-exclude .venv/
+global-exclude build/
+global-exclude dist/
+
+# Exclude development/testing files from distribution
+recursive-exclude tests *
+exclude .pytest_cache
+exclude .coverage
+exclude coverage.xml
+recursive-exclude htmlcov *
+recursive-exclude supporting_docs *

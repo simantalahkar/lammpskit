@@ -17,12 +17,16 @@ try:
 
     release = lammpskit.__version__
 except ImportError:
-    release = "1.0.0"
+    release = "1.1.0"
 
 project = "LAMMPSKit"
 copyright = "2025, Simanta Lahkar"
 author = "Simanta Lahkar"
 version = release
+
+# Project description
+html_title = "LAMMPSKit Documentation"
+html_short_title = "LAMMPSKit"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -83,3 +87,35 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+
+# Theme options
+html_theme_options = {
+    "logo_only": False,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": False,
+    "collapse_navigation": True,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
+}
+
+# Additional HTML context
+html_context = {
+    "display_github": True,
+    "github_user": "simantalahkar",
+    "github_repo": "lammpskit",
+    "github_version": "main",
+    "conf_py_path": "/docs/source/",
+}
+
+# Custom sidebar
+html_sidebars = {
+    "**": [
+        "about.html",
+        "navigation.html",
+        "relations.html", 
+        "searchbox.html",
+        "donate.html",
+    ]
+}

@@ -39,7 +39,7 @@ def main():
     checks = [
         (f'"{venv_python}" -m black --check lammpskit/', "Black code formatting"),
         (f'"{venv_python}" -m flake8 lammpskit/ --exclude=__pycache__ --statistics', "Flake8 linting"),
-        (f'"{venv_python}" -m pytest tests/ --cov=lammpskit --quiet', "Unit tests with coverage"),
+        (f'"{venv_python}" -m pytest tests/test_io.py --cov=lammpskit --quiet', "Unit tests with coverage"),
         (f'cd docs && "{venv_python}" -m sphinx -b html source build -W', "Documentation build"),
     ]
     

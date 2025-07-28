@@ -1,20 +1,31 @@
+# Python cache and bytecode
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Testing and coverage
 .pytest_cache
-wheels/
 .coverage
+coverage.xml
+htmlcov/
+test/
+tests/
+
+# Build artifacts
+wheels/
 build/
 dist/
 *.egg-info/
+
+# Development environment
 .venv/
-test/
-tests/
-output/
-usage/
 .git/
 .gitignore
+
+# Development and example files
+output/
+usage/
 outputs/
 main.py
 supporting_docs/
@@ -23,7 +34,18 @@ data/
 demo_output/
 temp_baseline/
 test_output/
+
+# CI/CD and documentation (not needed in container)
+.github/
+docs/
+ci_test.py
+.readthedocs.yaml
+
+# Docker files
 .dockerignore
+Dockerfile
+
+# Development configuration files
 phase2_categorization_report.md
 phase3a_safe_removals_complete.md
 phase3b_questionable_modules_complete.md

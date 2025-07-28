@@ -1,7 +1,31 @@
 # CHANGELOG
 
+All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2025-01-23
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.0] - 2025-07-28
+
+### Added
+- **CI/CD Infrastructure**: Complete GitHub Actions workflows for automated testing, documentation building, and code quality checks
+- **Professional Documentation**: Sphinx-based documentation with Read the Docs deployment and hybrid autosummary structure
+- **Code Quality Tools**: Black formatting, flake8 linting, isort import sorting, and mypy type checking
+- **Collaboration Framework**: Issue templates, PR templates, contributing guidelines, and CODEOWNERS configuration
+- **Enhanced Dependencies**: Updated all development dependencies to latest versions with comprehensive code quality toolchain
+
+### Enhanced
+- **Project Metadata**: Added comprehensive package classifiers, keywords, and enhanced project URLs
+- **Development Workflow**: Local CI/CD testing script for pre-deployment validation
+- **Documentation Links**: Updated all references to point to https://lammpskit.readthedocs.io/
+
+### Changed
+- **Version**: Upgraded to v1.1.0 to reflect comprehensive project modernization
+- **Dependency Management**: Reorganized and updated all development dependencies with clear categorization
+
+## [1.0.0] - 2025-07-23
 
 ### Added
 - **New timeseries plotting module** (`lammpskit.plotting.timeseries_plots`) with centralized plotting logic and configuration

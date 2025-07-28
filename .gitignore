@@ -6,10 +6,13 @@ dist/
 wheels/
 *.egg-info
 .coverage
+coverage.xml
+htmlcov/
 .pytest_cache/
 
 # Virtual environments
 .venv
+.vscode
 
 # Folders and files to be completed and used only in development
 # docs/
@@ -28,3 +31,4 @@ phase3b_questionable_modules_complete.md
 phase3c_over_engineering_simplification_complete.md
 streamlining_project_complete_summary.md
 LAMMPSKIT_EVOLUTION_WORKFLOW.md
+coverage.xml

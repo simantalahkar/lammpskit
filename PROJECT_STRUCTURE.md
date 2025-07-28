@@ -1,5 +1,7 @@
 # LAMMPSKit Project Structure
 
+**Last Updated:** July 28, 2025
+
 ## Root Directory
 ```
 └── lammpskit/                                    # Main project directory
@@ -7,10 +9,10 @@
 
 ## Configuration Files
 ```
-├── pyproject.toml                                # Modern Python packaging configuration 
+├── pyproject.toml                                # Modern Python packaging with enhanced metadata
 ├── setup.py                                     # Legacy Python packaging setup
 ├── requirements.txt                             # Production dependencies
-├── requirements-dev.txt                         # Development dependencies
+├── requirements-dev.txt                         # Development dependencies (updated with code quality tools)
 ├── uv.lock                                      # Dependency lock file (uv package manager)
 ├── MANIFEST.in                                  # Package data inclusion rules
 ├── .python-version                              # Python version specification
@@ -18,13 +20,30 @@
 ├── .travis.yml                                  # Travis CI configuration
 ├── Dockerfile                                   # Docker container configuration
 ├── .dockerignore                                # Docker ignore patterns
+├── .readthedocs.yaml                            # Read the Docs configuration
 └── .coverage                                    # Coverage report data
+```
+
+## CI/CD Infrastructure
+```
+├── .github/                                     # GitHub-specific configuration
+│   ├── workflows/
+│   │   ├── tests.yml                           # Comprehensive testing, linting, and quality checks
+│   │   └── docs.yml                            # Documentation building and deployment
+│   ├── ISSUE_TEMPLATE/                         # Issue templates for bugs, features, documentation
+│   │   ├── bug_report.yml
+│   │   ├── feature_request.yml
+│   │   └── documentation.yml
+│   ├── pull_request_template.md                # PR template with checklist
+│   └── CODEOWNERS                              # Code review assignments
+└── ci_test.py                                   # Local CI/CD testing script
 ```
 
 ## Documentation & Reports
 ```
-├── README.md                                    # Project overview and usage
-├── CHANGELOG.md                                 # Version history and changes
+├── README.md                                    # Enhanced project overview with badges and documentation links
+├── CHANGELOG.md                                 # Version history (updated with CI/CD and tooling changes)
+├── CONTRIBUTING.md                              # Contributor guidelines and workflow
 ├── LICENSE                                      # GPL-3.0-or-later license
 ├── LAMMPSKIT_EVOLUTION_WORKFLOW.md              # Technical workflow documentation
 ├── phase2_categorization_report.md              # Refactoring analysis report

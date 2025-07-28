@@ -1,61 +1,53 @@
-# lammpskit
+# LAMMPSKit
 
-**lammpskit** is a Python toolkit for running, post-processing, and analyzing molecular dynamics (MD) simulations with [LAMMPS](https://lammps.org/). It provides a collection of functions and scripts to streamline simulation workflows and automate analysis of LAMMPS output data. While designed for computational materials science, its modular data processing and analysis functions are broadly applicable to scientific computing, data engineering, and machine learning workflows involving structured time series or atomic-scale data.
+[![Tests](https://github.com/simantalahkar/lammpskit/workflows/Tests%20and%20Quality%20Checks/badge.svg)](https://github.com/simantalahkar/lammpskit/actions)
+[![Documentation](https://readthedocs.org/projects/lammpskit/badge/?version=latest)](https://lammpskit.readthedocs.io/en/latest/?badge=latest)
+[![Coverage](https://codecov.io/gh/simantalahkar/lammpskit/branch/main/graph/badge.svg)](https://codecov.io/gh/simantalahkar/lammpskit)
+[![PyPI version](https://badge.fury.io/py/lammpskit.svg)](https://badge.fury.io/py/lammpskit)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## Features
+**LAMMPSKit** is a comprehensive Python toolkit for molecular dynamics (MD) simulation analysis with [LAMMPS](https://lammps.org/), specialized for electrochemical memory device characterization and filament analysis. It provides advanced post-processing capabilities for HfTaO-based resistive random access memory (ReRAM) devices, including filament formation tracking, charge redistribution analysis, and temporal evolution characterization.
 
-- **Modular architecture** with separate I/O, plotting, and analysis components
-- **Comprehensive data processing** for LAMMPS trajectory and displacement files
-- **Advanced visualization tools** including timeseries plotting with font customization
-- **Atomic-scale analysis functions** for distributions, charges, displacements, and clusters
-- **Filament evolution tracking** for electrochemical simulation analysis
-- **Configuration management** with centralized settings and validation
-- **Complete example workflows** demonstrating real-test usage patterns
-- **Extensive test coverage** with visual regression testing for plots
+## 🚀 Features
 
-## Installation
+- **🔬 Specialized Analysis**: Advanced filament evolution tracking for electrochemical memory devices
+- **📊 Comprehensive Visualization**: Publication-ready scientific plotting with customizable styling
+- **⚡ High Performance**: Optimized for large trajectory analysis (>1M atoms, >10K frames)
+- **🧪 OVITO Integration**: Advanced cluster analysis and structural characterization
+- **📐 Robust Data Processing**: Memory-efficient streaming for multi-gigabyte datasets
+- **🎯 Modular Design**: Separate I/O, plotting, and analysis components for flexibility
+- **🔧 Configuration Management**: Centralized validation and parameter management
+- **✅ Complete Testing**: 96% code coverage with visual regression testing
 
-```sh
+## 📦 Installation
+
+### From PyPI (Recommended)
+```bash
 pip install lammpskit
 ```
 
-Or, for development:
-
-```sh
-pip install .[dev]
+### For Development
+```bash
+git clone https://github.com/simantalahkar/lammpskit.git
+cd lammpskit
+pip install -e .[dev]
 ```
 
+## 📋 Requirements
 
-## Requirements
-
-**Runtime requirements (for using the package):**
+**Runtime Dependencies:**
 - Python 3.12+
-- numpy
-- matplotlib
-- ovito
+- numpy ≥2.3.1
+- matplotlib ≥3.10.3
+- ovito ≥3.12.4
 
-**Development & testing requirements (for contributing, testing, or building):**
-- All runtime requirements above
-- pytest
-- pytest-cov
-- pytest-mpl
-- Jinja2
-- MarkupSafe
-- pillow
-- packaging
-- build
-- coverage
-- cycler
-- fonttools
-- pluggy
-- pyparsing
-- python-dateutil
-- readme_renderer
-- requests
-- requests-toolbelt
-- rich
-- setuptools
-- twine
+**Development Dependencies:**
+- All runtime requirements
+- Testing: pytest, pytest-cov, pytest-mpl
+- Documentation: sphinx, sphinx-rtd-theme
+- Code Quality: black, flake8, isort, mypy
+- Build Tools: build, twine, setuptools
 
 
 
@@ -99,7 +91,7 @@ pip install .[dev]
 
 ### Using the Example Workflow
 
-LAMMPSKit v1.0.0 includes a comprehensive example workflow that demonstrates all major package capabilities:
+LAMMPSKit v1.1.0 includes a comprehensive example workflow that demonstrates all major package capabilities:
 
 ```python
 # Clone the repository and navigate to the usage example
@@ -120,7 +112,7 @@ Generated plots and analysis results are saved to `usage/ecellmodel/output/`.
 
 ### Package Structure
 
-LAMMPSKit v1.0.0 features a modular architecture:
+LAMMPSKit v1.1.0 features a modular architecture:
 
 ```
 lammpskit/
@@ -146,7 +138,7 @@ Using the Docker container provides a portable, reproducible environment with al
    ```
    Or pull a specific version:
    ```sh
-   docker pull simantalahkar/lammpskit:1.0.0
+   docker pull simantalahkar/lammpskit:1.1.0
    ```
 
 3. **Run the container with your local data mounted as a volume:**
@@ -214,7 +206,7 @@ Tests are not shipped with the PyPI package, but are available in the source rep
 
 ## Test Coverage
 
-LAMMPSKit v1.0.0 includes extensive test coverage with over 270 test functions and 205 baseline images for visual regression testing. Tests are organized by module and include edge cases and typical usage scenarios:
+LAMMPSKit v1.1.0 includes extensive test coverage with over 270 test functions and 205 baseline images for visual regression testing. Tests are organized by module and include edge cases and typical usage scenarios:
 
 - `tests/test_io.py` - I/O function validation
 - `tests/test_plotting.py` - General plotting utilities  
@@ -317,5 +309,5 @@ Simanta Lahkar
 ## Links
 
 - [Homepage](https://github.com/simantalahkar/lammpskit)
-- [Documentation](https://github.com/simantalahkar/lammpskit#readme)
+- [Documentation](https://lammpskit.readthedocs.io/)
 - [Changelog](./CHANGELOG.md)
