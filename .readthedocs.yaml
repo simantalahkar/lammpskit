@@ -14,7 +14,8 @@ build:
     post_create_environment:
       - pip install --upgrade pip setuptools wheel
     post_install:
-      - python -c "import lammpskit; print('LAMMPSKit installed successfully')"
+      - python -c "import lammpskit"
+      - echo "LAMMPSKit installed successfully"
       - python -m sphinx --version
       - echo "Dependencies installed successfully"
 
