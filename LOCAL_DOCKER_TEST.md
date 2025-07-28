@@ -49,6 +49,7 @@ docker rm -f test_container
 ```powershell
 # Create docs container (OVITO dependencies pre-installed in Dockerfile)
 docker run -d --name docs_container `
+  --user root `
   -v ${PWD}/docs:/app/docs `
   -e QT_QPA_PLATFORM=offscreen `
   -e OVITO_HEADLESS=1 `
@@ -63,7 +64,7 @@ docker exec docs_container pip install `
 docker exec docs_container bash -c "
   export DISPLAY=:99
   Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  cd /app/docs && python -m sphinx -b html source build -W
+  cd /app/docs && mkdir -p build && python -m sphinx -b html source build -W
 "
 
 # Clean up
@@ -130,6 +131,7 @@ docker run --rm `
 - **Volume Mount Paths**: Ensure you're in the project root directory
 - **Docker Desktop**: Make sure Docker Desktop is running on Windows
 - **PowerShell Execution**: Run PowerShell as Administrator if needed
+- **Documentation Build Permissions**: Use `--user root` for docs container to avoid permission issues with volume mounts
 
 ### Verification Commands
 ```powershell

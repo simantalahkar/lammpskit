@@ -117,11 +117,14 @@ jobs:
     - name: Create docs container with volume mounts
       run: |
         docker run -d --name docs_container \
+          --user root \
           -v $PWD/docs:/app/docs \
           -e QT_QPA_PLATFORM=offscreen \
           -e OVITO_HEADLESS=1 \
           ${{ env.IMAGE_NAME }}:docs \
           bash -c "sleep infinity"
+      # Note: Using --user root to avoid permission issues with volume mounts
+      # when creating build directories in the docs/ volume
           
     - name: Install documentation dependencies in container
       run: |
@@ -147,12 +150,13 @@ jobs:
         docker exec docs_container bash -c "
           export DISPLAY=:99
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          cd /app/docs && python -m sphinx -b html source build -W
+          cd /app/docs && mkdir -p build && chmod 755 build &&
+          python -m sphinx -b html source build -W
         "
         
     - name: Check documentation links in container
       run: |
-        docker exec docs_container bash -c "cd /app/docs && python -m sphinx -b linkcheck source build"
+        docker exec docs_container bash -c "cd /app/docs && mkdir -p build && python -m sphinx -b linkcheck source build"
         
     - name: Copy documentation from container
       run: |
