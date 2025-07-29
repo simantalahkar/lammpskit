@@ -311,42 +311,6 @@ ITEM: ATOMS id type q x y z ix iy iz vx vy vz c_eng
 # end loop
 ```
 
-## Main Functions
-
-### `read_structure_info(filepath)`
-Reads a LAMMPS trajectory file and returns timestep, atom count, and box dimensions. Robust to missing/malformed data.
-
-### `read_coordinates(file_list, skip_rows, columns_to_read)`
-Loads atomic coordinates and simulation cell parameters from a list of trajectory files.
-
-### `read_displacement_data(filepath, loop_start, loop_end, repeat_count=0)`
-Reads binwise averaged displacement data from processed output files, handling chunked data and errors.
-
-### `plot_multiple_cases(x_arr, y_arr, labels, xlabel, ylabel, output_filename, xsize, ysize, ...)`
-General plotting utility for 1D/2D arrays, supporting various plot customizations.
-
-### `plot_atomic_distribution(file_list, labels, skip_rows, z_bins, analysis_name, output_dir)`
-Reads coordinates, computes atomic distributions (O, Hf, Ta, metals), and plots stoichiometry and atom counts.
-
-### `plot_atomic_charge_distribution(file_list, labels, skip_rows, z_bins, analysis_name, output_dir)`
-Computes and plots charge distributions and mean charges for atom types.
-
-### `plot_displacement_comparison(file_list, loop_start, loop_end, labels, analysis_name, repeat_count, output_dir)`
-Reads displacement data for multiple cases, plots z/lateral displacements vs. bin positions.
-
-### `analyze_clusters(filepath)`
-Uses OVITO to perform cluster analysis, coordination, and connectivity checks on metallic atoms, returning filament properties.
-
-### `track_filament_evolution(file_list, analysis_name, time_step, dump_interval_steps, output_dir)`
-Tracks filament connectivity/gap/separation/size over time, and generates summary plots.
-
-### `plot_displacement_timeseries(file_list, datatype, dataindex, Nchunks, loop_start, loop_end, output_dir)`
-Plots time series of displacement data for selected data indices.
-
-### `run_analysis(...)`
-Orchestrates all analysis workflows, setting up parameters, file lists, and calling the above functions for various scenarios.
-
-
 ## Changelog
 
 See the [CHANGELOG.md](https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md) for a detailed list of changes and updates.
