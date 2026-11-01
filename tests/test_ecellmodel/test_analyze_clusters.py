@@ -4,6 +4,8 @@ import warnings
 from pathlib import Path
 from lammpskit.ecellmodel.filament_layer_analysis import analyze_clusters
 
+pytestmark = pytest.mark.requires_ovito
+
 # Get the directory containing this test file
 TEST_DIR = Path(__file__).parent
 TEST_DATA_DIR = TEST_DIR / "test_data" / "data_for_layer_analysis"

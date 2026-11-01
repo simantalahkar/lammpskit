@@ -133,7 +133,7 @@ The package supports multiple dependency installation approaches for maximum com
    
       pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
 
-The test suite includes 270+ test functions and 205 baseline images for visual regression testing.
+The test suite has 221 tests, including visual regression tests against 106 baseline images. Tests that need OVITO are skipped when it is not installed.
 
 Dependency Management
 ---------------------

@@ -60,16 +60,15 @@ Basic Workflow
 Example Workflow
 ----------------
 
-LAMMPSKit includes a comprehensive example workflow in ``usage/ecellmodel/``:
+LAMMPSKit includes an example workflow in ``usage/ecellmodel/``. The simulation data it reads is not
+included in the repository: put your LAMMPS trajectory and displacement files in ``usage/ecellmodel/data/``
+(the script shows the file patterns it expects), then run it from the repository root:
 
 .. code-block:: bash
 
-   # Clone repository and navigate to examples
    git clone https://github.com/simantalahkar/lammpskit.git
-   cd lammpskit/usage/ecellmodel
-   
-   # Run complete analysis workflow
-   python run_analysis.py
+   cd lammpskit
+   python usage/ecellmodel/run_analysis.py
 
 This demonstrates four main analysis types:
 

@@ -7,284 +7,167 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-**LAMMPSKit** is a comprehensive Python toolkit for molecular dynamics (MD) simulation analysis with [LAMMPS](https://lammps.org/), specialized for electrochemical memory device characterization and filament analysis. It provides advanced post-processing capabilities for HfTaO-based resistive random access memory (ReRAM) devices, including filament formation tracking, charge redistribution analysis, and temporal evolution characterization.
+LAMMPSKit is a Python toolkit for post-processing and analysing molecular-dynamics (MD) simulations run with [LAMMPS](https://lammps.org/). It was built for simulations of HfTaO-based resistive random-access memory (ReRAM) devices: it tracks how conductive filaments form and evolve, analyses atomic, charge and displacement distributions, and produces publication-ready plots.
 
-## 🚀 Features
+## Features
 
-- **🔬 Specialized Analysis**: Advanced filament evolution tracking for electrochemical memory devices
-- **📊 Comprehensive Visualization**: Publication-ready scientific plotting with customizable styling
-- **⚡ High Performance**: Optimized for large trajectory analysis (>1M atoms, >10K frames)
-- **🧪 OVITO Integration**: Advanced cluster analysis and structural characterization
-- **📐 Robust Data Processing**: Memory-efficient streaming for multi-gigabyte datasets
-- **🎯 Modular Design**: Separate I/O, plotting, and analysis components for flexibility
-- **🔧 Configuration Management**: Centralized validation and parameter management
-- **✅ Complete Testing**: 96% code coverage with visual regression testing
+- **Filament analysis**: OVITO-based cluster analysis that tracks filament connectivity, gap, size and height over time
+- **Distributions**: atomic, charge and displacement distributions by element and position
+- **Large trajectories**: reads only the columns it needs, in batches; tested on trajectories with more than 1M atoms and more than 10K frames
+- **Plotting**: publication-ready figures with central control of fonts and styles
+- **Modular design**: separate I/O, analysis and plotting modules, with central input validation
+- **Tests**: 221 tests, including visual regression tests against baseline images; coverage is reported by Codecov (badge above)
 
-## 📦 Installation
+## Installation
 
-### From PyPI (Recommended)
 ```bash
 pip install lammpskit
 ```
 
-### For Development
+Requirements: Python 3.12+, NumPy ≥2.3.1, Matplotlib ≥3.10.3 and OVITO ≥3.12.4.
+
+For development:
+
 ```bash
 git clone https://github.com/simantalahkar/lammpskit.git
 cd lammpskit
-
-# Primary method (modern pip with optional dependencies)
 pip install -e .[dev]
-
-# Alternative method (if above fails)
-pip install -e . && pip install -r requirements-dev.txt
+# or, if that fails: pip install -e . && pip install -r requirements-dev.txt
 ```
 
-## 📋 Requirements
+The development extras add pytest, pytest-cov and pytest-mpl for testing, Sphinx for the documentation, black, flake8, isort and mypy for code quality, and build and twine for packaging.
 
-**Runtime Dependencies:**
-- Python 3.12+
-- numpy ≥2.3.1
-- matplotlib ≥3.10.3
-- ovito ≥3.12.4
+## Function summary
 
-**Development Dependencies:**
-- All runtime requirements
-- Testing: pytest, pytest-cov, pytest-mpl
-- Documentation: sphinx, sphinx-rtd-theme
-- Code Quality: black, flake8, isort, mypy
-- Build Tools: build, twine, setuptools
-
-
-
-## Function Summary Table
-
-### Core I/O Functions (`lammpskit.io.lammps_readers`)
+### I/O (`lammpskit.io`)
 | Function                       | Purpose                                                        |
 |--------------------------------|----------------------------------------------------------------|
-| read_structure_info            | Parse trajectory metadata (timestep, atom count, box dims)    |
-| read_coordinates               | Load coordinates and cell info from trajectory files          |
-| read_displacement_data         | Parse processed displacement data with robust error handling   |
+| read_structure_info            | Read trajectory metadata (timestep, atom count, box dimensions) |
+| read_coordinates               | Load coordinates and cell information from trajectory files   |
 
-### Analysis Functions (`lammpskit.ecellmodel.filament_layer_analysis`)
+### Analysis (`lammpskit.ecellmodel.filament_layer_analysis`)
 | Function                       | Purpose                                                        |
 |--------------------------------|----------------------------------------------------------------|
-| analyze_clusters               | OVITO-based cluster analysis and filament property extraction |
-| track_filament_evolution       | Track filament connectivity, gap, and size over time          |
-| plot_atomic_distribution       | Analyze and plot atomic distributions by element type         |
-| plot_atomic_charge_distribution| Analyze and plot atomic charge distributions                   |
-| plot_displacement_comparison   | Compare displacement data across multiple cases               |
-| plot_displacement_timeseries   | Plot time series of displacement data with customization      |
+| analyze_clusters               | OVITO-based cluster analysis and filament properties          |
+| track_filament_evolution       | Track filament connectivity, gap and size over time           |
+| read_displacement_data         | Read processed displacement data files                        |
+| plot_atomic_distribution       | Analyse and plot atomic distributions by element              |
+| plot_atomic_charge_distribution| Analyse and plot atomic charge distributions                  |
+| plot_displacement_comparison   | Compare displacement data across cases                        |
+| plot_displacement_timeseries   | Plot displacement time series                                 |
 
-### Plotting Utilities (`lammpskit.plotting`)
+### Data processing (`lammpskit.ecellmodel.data_processing`)
+| Function                             | Purpose                                                  |
+|--------------------------------------|----------------------------------------------------------|
+| select_atom_types_from_coordinates   | Select atoms by type from coordinate arrays              |
+| calculate_z_bins_setup               | Set up spatial bins along z                              |
+| calculate_atomic_distributions       | Atomic distributions per bin                             |
+| calculate_charge_distributions       | Charge distributions per bin                             |
+| extract_element_label_from_filename  | Read the element label from a file name                  |
+
+### Plotting (`lammpskit.plotting`)
 | Function                       | Purpose                                                        |
 |--------------------------------|----------------------------------------------------------------|
-| plot_multiple_cases            | General scientific plotting utility with flexible styling     |
-| timeseries_plots.*             | Centralized timeseries plotting with font and style control   |
+| plot_multiple_cases            | General plotting utility for several cases                    |
+| timeseries_plots.*             | Time-series plots with central font and style control         |
 
-### Data Processing (`lammpskit.ecellmodel.data_processing`)
-| Function                       | Purpose                                                        |
-|--------------------------------|----------------------------------------------------------------|
-| Various validation functions   | Centralized input validation and error handling               |
+Input validation functions live in `lammpskit.config`.
 
-### Example Workflows (`usage/ecellmodel/`)
-| Script                         | Purpose                                                        |
-|--------------------------------|----------------------------------------------------------------|
-| run_analysis.py               | Complete workflow demonstrating 4 main analysis types        |
+## Example workflow
 
+`usage/ecellmodel/run_analysis.py` shows four analyses:
 
-## Quick Start
+1. **Filament evolution**: filament connectivity and structure over time
+2. **Displacement**: atomic displacements compared across species (Hf, O, Ta)
+3. **Charge distribution**: local charge distributions in the device
+4. **Atomic distribution**: atomic distributions under different applied voltages
 
-### Using the Example Workflow
+The simulation data it reads is not included in the repository. Put your LAMMPS trajectory and displacement files in `usage/ecellmodel/data/` (see the paths in the script), then run it from the repository root:
 
-LAMMPSKit v1.2.1 includes a comprehensive example workflow that demonstrates all major package capabilities:
-
-```python
-# Clone the repository and navigate to the usage example
-git clone https://github.com/simantalahkar/lammpskit.git
-cd lammpskit/usage/ecellmodel
-
-# Run the complete analysis workflow
-python run_analysis.py
+```bash
+python usage/ecellmodel/run_analysis.py
 ```
 
-This workflow demonstrates four main analysis types:
-1. **Filament Evolution Tracking** - Monitor filament connectivity and structural changes over time
-2. **Displacement Analysis** - Compare atomic displacements across different species (Hf, O, Ta)
-3. **Charge Distribution Analysis** - Analyze local charge distributions in electrochemical systems
-4. **Atomic Distribution Analysis** - Study atomic distributions under different applied voltages
+Plots are written to `usage/ecellmodel/output/`, which holds the figures from the author's own run.
 
-Generated plots and analysis results are saved to `usage/ecellmodel/output/`.
-
-### Package Structure
-
-LAMMPSKit v1.2.1 features a modular architecture:
+### Package structure
 
 ```
 lammpskit/
-├── io/                    # Data reading and I/O operations
-├── plotting/              # Visualization utilities and timeseries plots
-├── ecellmodel/           # Electrochemical analysis functions
-└── config.py             # Centralized configuration management
+├── io/            # Reading LAMMPS files
+├── plotting/      # Plotting utilities and time-series plots
+├── ecellmodel/    # Analysis of electrochemical (ReRAM) cell simulations
+└── config.py      # Configuration and input validation
 ```
 
-## Docker Image
+## Docker image
 
-An official Docker image for **lammpskit** is available on [Docker Hub](https://hub.docker.com/r/simantalahkar/lammpskit).
-Using the Docker container provides a portable, reproducible environment with all dependencies pre-installed for running and testing lammpskit anywhere Docker is supported.
+A Docker image with all dependencies installed is available on [Docker Hub](https://hub.docker.com/r/simantalahkar/lammpskit).
 
-### How to Use
+1. Install Docker (see [Get Docker](https://docs.docker.com/get-docker/)).
 
-1. **Install Docker** on your system.  
-   See [Get Docker](https://docs.docker.com/get-docker/) for instructions.
-
-2. **Pull the latest image:**
+2. Pull the image:
    ```sh
    docker pull simantalahkar/lammpskit:latest
-   ```
-   Or pull a specific version:
-   ```sh
+   # or a specific version
    docker pull simantalahkar/lammpskit:1.2.1
    ```
 
-3. **Run the container with your local data mounted as a volume:**
+3. Run it with your data mounted as a volume:
    ```sh
    docker run -it -v /path/to/your/data:/data simantalahkar/lammpskit:latest
    ```
-   This starts a bash shell in the container. Your local data is accessible at `/data`.
+   This starts a bash shell in the container, with your data at `/data`.
 
-4. **Use the installed Python package:**
+4. Use the package:
    ```sh
    python
    >>> import lammpskit
-   # ...your analysis code...
    ```
 
-5. **Copy custom scripts or files into the container (from another terminal):**
+5. Copy scripts into the container from another terminal, or install more packages inside it:
    ```sh
    docker cp /path/to/local/script.py <container_id>:/home/lammpsuser/
-   ```
-   You can also install additional Python packages inside the container:
-   ```sh
    pip install <package-name>
    ```
 
-6. **Exit the container after analysis:**
-   ```sh
-   exit
-   ```
-   The container will remain on your system for future use.  
-   To re-enter the container:
-   ```sh
-   docker start <container_id>
-   docker exec -it <container_id> bash
-   ```
-   To delete the container completely:
-   ```sh
-   docker rm <container_id>
-   ```
+6. Leave with `exit`. The container stays on your system: re-enter it with `docker start <container_id>` and `docker exec -it <container_id> bash`, or delete it with `docker rm <container_id>`.
 
-## Installation (PyPI)
+## Tests
 
-For end users (runtime):
+The test suite has 221 tests, including visual regression tests against baseline images in `tests/baseline/`. Tests that need OVITO are skipped when it is not installed. Tests are not shipped with the PyPI package.
+
+- `tests/test_io.py`: I/O functions
+- `tests/test_plotting.py`: plotting utilities
+- `tests/test_timeseries_plots.py`: time-series plots
+- `tests/test_centralized_font_control.py`: font and style consistency
+- `tests/test_config.py`: configuration and validation
+- `tests/test_ecellmodel/`: analysis functions
+
 ```sh
-pip install lammpskit
-```
-
-For development and testing:
-```sh
-# Method 1: Using optional dependencies (recommended)
 pip install -e .[dev]
 
-# Method 2: Manual installation (fallback)
-pip install -e .
-pip install -r requirements-dev.txt
-```
-
-## Development and Testing Environment
-
-All runtime dependencies are listed in `requirements.txt`. Development and test dependencies are available in multiple formats:
-- `[project.optional-dependencies]` in `pyproject.toml` (modern standard)
-- `requirements-dev.txt` (traditional method)  
-- `extras_require` in `setup.py` (legacy compatibility)
-
-To set up a development environment and run tests locally:
-```sh
-# Recommended approach with fallback
-pip install -e .[dev] || (pip install -e . && pip install -r requirements-dev.txt)
-pytest
-```
-Tests are not shipped with the PyPI package, but are available in the source repository for development and validation.
-
-
-## Test Coverage & Visual Regression Testing
-
-LAMMPSKit v1.2.1 includes extensive test coverage with over 270 test functions and 90+ baseline images for visual regression testing. The test suite uses a **centralized baseline approach** for consistent and maintainable visual regression testing.
-
-### Test Organization
-- `tests/test_io.py` - I/O function validation
-- `tests/test_plotting.py` - General plotting utilities  
-- `tests/test_timeseries_plots.py` - Timeseries plotting functions
-- `tests/test_centralized_font_control.py` - Font and styling consistency
-- `tests/test_ecellmodel/` - Analysis function validation (subdirectory)
-- `tests/test_config.py` - Configuration management
-- `tests/baseline/` - **Centralized baseline images for all visual tests**
-
-### Running Tests Locally
-```sh
-# Install with development dependencies
-pip install .[dev]
-
-# Run all tests
+# Run all tests (with coverage, as set in pyproject.toml)
 pytest
 
 # Run with visual regression testing
 pytest --mpl
 
-# Generate new baseline images (when plots change intentionally)
+# Regenerate the baseline images after an intended change to a plot
 pytest --mpl-generate-path=tests/baseline tests/
-
-# Run tests with coverage
-pytest --cov=lammpskit --cov-report=html
 ```
 
-### Visual Regression Testing Architecture
+All baseline images are kept in `tests/baseline/`. Tests in `tests/` use `baseline_dir="baseline"` and tests in `tests/test_ecellmodel/` use `baseline_dir="../baseline"`, so the same paths work locally, in Docker and in CI:
 
-**Centralized Baseline Directory Structure:**
-```
-tests/
-├── baseline/                    # All baseline images (centralized)
-├── test_*.py                   # Root level tests → "baseline"
-├── test_ecellmodel/            # Subdirectory tests → "../baseline"
-│   └── test_*.py              # Use relative paths to centralized location
-└── conftest.py                # Shared pytest configuration
-```
-
-**Key Benefits:**
-- **Cross-platform compatibility**: Relative paths work on Windows, Linux, macOS
-- **Container compatibility**: Works identically in Docker and local environments  
-- **Maintainability**: Single location for all baseline images
-- **CI/CD integration**: Simplified path handling in GitHub Actions and Docker
-
-**Implementation Pattern:**
 ```python
-# For tests in tests/ directory (root level)
-BASELINE_DIR_RELATIVE = "baseline"
-
-# For tests in tests/test_ecellmodel/ directory (subdirectory)  
-BASELINE_DIR_RELATIVE = "../baseline"
-
-@pytest.mark.mpl_image_compare(baseline_dir=BASELINE_DIR_RELATIVE, remove_text=True)
+@pytest.mark.mpl_image_compare(baseline_dir="../baseline", remove_text=True)
 def test_plotting_function():
-    # Test implementation returns matplotlib figure
     return figure
 ```
 
-Tests use `pytest`, `pytest-mpl`, and `pytest-cov` for automated validation, image comparison, and coverage analysis. The centralized baseline approach ensures consistent visual regression testing across all development and CI/CD environments.
+## Data formats
 
-
-## Data Format Examples
-
-### LAMMPS Trajectory File (`.lammpstrj`)
+### LAMMPS trajectory file (`.lammpstrj`)
 ```
 ITEM: TIMESTEP
 1200000
@@ -300,7 +183,7 @@ ITEM: ATOMS id type q x y z ix iy iz vx vy vz c_eng
 ... (one line per atom)
 ```
 
-### Processed Displacement Data File
+### Processed displacement data file
 ```
 # header1
 # header2
@@ -313,13 +196,13 @@ ITEM: ATOMS id type q x y z ix iy iz vx vy vz c_eng
 
 ## Changelog
 
-See the [CHANGELOG.md](https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md) for a detailed list of changes and updates.
+See [CHANGELOG.md](https://github.com/simantalahkar/lammpskit/blob/main/CHANGELOG.md).
 
 ## Citation
 
 If you use this package in your research, please cite:
 
-S. Lahkar et al., Decoupling Local Electrostatic Potential and Temperature-Driven Atomistic Forming Mechanisms in TaOx/HfO2-Based ReRAMs using Reactive Molecular Dynamics Simulations, arXiv:2505.24468, https://doi.org/10.48550/arXiv.2505.24468
+S. Lahkar et al., Decoupling Electric Field and Temperature-Driven Atomistic Forming Mechanisms in TaOx/HfO2-Based ReRAMs using Reactive Molecular Dynamics Simulations, arXiv:2505.24468 (2025), https://doi.org/10.48550/arXiv.2505.24468
 
 
 ## License
