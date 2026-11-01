@@ -1,5 +1,6 @@
-# Use official Python image
-FROM python:3.12-slim
+# Use official Python image, pinned to Debian 12 (bookworm): some of the system
+# packages below (e.g. libgl1-mesa-glx) are not available in Debian 13 (trixie)
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 

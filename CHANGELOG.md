@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Tests that need OVITO are marked `requires_ovito` and skipped when OVITO is not installed.
+- Docker base image pinned to `python:3.12-slim-bookworm`, so the system packages it installs stay available.
+- README and documentation updated: function tables, example workflow instructions, test counts and citation.
+
+### Removed
+- Outdated project-structure files and the unused Travis CI configuration.
+
 ## [1.2.1] - 2025-07-29
 
 ### Enhanced

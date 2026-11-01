@@ -5,14 +5,15 @@ This directory contains a complete example workflow for analyzing LAMMPS simulat
 ## Files Structure
 
 - `run_analysis.py` - Main analysis script demonstrating comprehensive workflow
-- `usage/ecellmodel/data/` - Example simulation data directory
-- `usage/ecellmodel/output/` - Generated plots and results directory
+- `usage/ecellmodel/data/` - Simulation data directory (not included in the repository; add your own files)
+- `usage/ecellmodel/output/` - Generated plots (holds the figures from the author's own run)
 
 ## Usage
 
+Put your LAMMPS trajectory and displacement files in `usage/ecellmodel/data/` (the script shows the file patterns it expects), then run it from the repository root, because the script uses paths relative to the root:
+
 ```bash
-cd usage/ecellmodel
-python run_analysis.py
+python usage/ecellmodel/run_analysis.py
 ```
 
 ## Analysis Workflow
@@ -45,12 +46,12 @@ pip install lammpskit
 
 **Other requirements:**
 - LAMMPSKit package installed
-- Example data files in the `data/` subdirectory
+- Simulation data files in the `data/` subdirectory
 - Python environment with numpy, matplotlib, and ovito
 
 ## Customization
 
-The script can be easily modified to:
+The script can be modified to:
 - Use different simulation parameters
 - Analyze custom data files
 - Use different column configurations according to data and analysis.

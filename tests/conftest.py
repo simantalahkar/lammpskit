@@ -44,10 +44,15 @@ def test_plotting_function(baseline_dir):
 ```
 """
 
+import importlib.util
 import pytest
 import tempfile
 import os
 from pathlib import Path
+
+# OVITO is a runtime dependency, but it is not available on every platform.
+# Tests marked requires_ovito are skipped when it is not installed.
+OVITO_AVAILABLE = importlib.util.find_spec("ovito") is not None
 
 
 @pytest.fixture(scope="session")
@@ -120,8 +125,13 @@ def pytest_collection_modifyitems(config, items):
     Automatically adds markers to tests based on their characteristics:
     - Tests with 'mpl_image_compare' decorator get 'visual' marker
     - Tests in certain modules get 'slow' marker
+    - Tests marked 'requires_ovito' are skipped when OVITO is not installed
     """
+    skip_without_ovito = pytest.mark.skip(reason="OVITO is not installed")
     for item in items:
+        if not OVITO_AVAILABLE and "requires_ovito" in item.keywords:
+            item.add_marker(skip_without_ovito)
+
         # Add visual marker to matplotlib image comparison tests
         if hasattr(item, 'pytestmark'):
             for mark in item.pytestmark:

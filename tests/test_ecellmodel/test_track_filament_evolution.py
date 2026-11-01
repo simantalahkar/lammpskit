@@ -3,6 +3,8 @@ import glob
 import pytest
 from lammpskit.ecellmodel.filament_layer_analysis import track_filament_evolution
 
+pytestmark = pytest.mark.requires_ovito
+
 # Get baseline directory relative to tests root (works from any execution context)
 # Since this test file is in tests/test_ecellmodel/, the baseline is one level up
 BASELINE_DIR_RELATIVE = "../baseline"

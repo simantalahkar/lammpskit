@@ -182,7 +182,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "visual: marks tests as visual regression tests",
-    "mpl_image_compare: marks tests for matplotlib image comparison with centralized baselines"
+    "mpl_image_compare: marks tests for matplotlib image comparison with centralized baselines",
+    "requires_ovito: marks tests that need the OVITO Python module (skipped when it is not installed)"
 ]
 
 # Centralized baseline configuration for visual regression testing
