@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Tests that need OVITO are marked `requires_ovito` and skipped when OVITO is not installed.
 - Docker base image pinned to `python:3.12-slim-bookworm`, so the system packages it installs stay available.
+- Docker image pins OVITO to 3.12.4, the version in `uv.lock`; newer OVITO releases give a different cluster-analysis result in the tests.
 - README and documentation updated: function tables, example workflow instructions, test counts and citation.
 
 ### Removed

@@ -24,8 +24,10 @@ RUN apt-get update && apt-get install -y \
     libqt5core5a \
     && rm -rf /var/lib/apt/lists/*
 
-# Install key build tools and runtime dependencies 
-RUN pip install --no-cache-dir setuptools wheel twine build numpy>=2.3.1 matplotlib>=3.10.3 ovito>=3.12.4
+# Install key build tools and runtime dependencies
+# OVITO is pinned to the version in uv.lock, which the tests were written against:
+# newer OVITO releases give a different cluster-analysis result in the tests
+RUN pip install --no-cache-dir setuptools wheel twine build numpy>=2.3.1 matplotlib>=3.10.3 ovito==3.12.4
 
 COPY requirements.txt /app/
 # Install dependencies from requirements.txt (if any extra are needed)
