@@ -16,7 +16,7 @@ LAMMPSKit is a Python toolkit for post-processing and analysing molecular-dynami
 - **Large trajectories**: reads only the columns it needs, in batches; tested on trajectories with more than 1M atoms and more than 10K frames
 - **Plotting**: publication-ready figures with central control of fonts and styles
 - **Modular design**: separate I/O, analysis and plotting modules, with central input validation
-- **Tests**: 221 tests, including visual regression tests against baseline images; 96% code coverage
+- **Tests**: 221 tests, including visual regression tests against baseline images; coverage is reported by Codecov (badge above)
 
 ## Installation
 
