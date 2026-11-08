@@ -9,7 +9,7 @@
       "orcid": "0000-0002-6687-5227"
     }
   ],
-  "license": "GPL-3.0-or-later",
+  "license": "gpl-3.0-or-later",
   "access_right": "open",
   "keywords": [
     "LAMMPS",
@@ -26,7 +26,7 @@
       "scheme": "doi"
     },
     {
-      "relation": "isCompatibleWith",
+      "relation": "references",
       "identifier": "https://github.com/simantalahkar/LAMMPS-CTIP-EChemDID",
       "scheme": "url"
     },
