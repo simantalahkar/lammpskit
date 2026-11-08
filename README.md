@@ -1,5 +1,6 @@
 # LAMMPSKit
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24062686.svg)](https://doi.org/10.5281/zenodo.24062686)
 [![Tests](https://github.com/simantalahkar/lammpskit/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/simantalahkar/lammpskit/actions)
 [![Documentation](https://readthedocs.org/projects/lammpskit/badge/?version=latest)](https://lammpskit.readthedocs.io/en/latest/?badge=latest)
 [![Coverage](https://codecov.io/gh/simantalahkar/lammpskit/branch/main/graph/badge.svg)](https://codecov.io/gh/simantalahkar/lammpskit)
@@ -200,9 +201,11 @@ See [CHANGELOG.md](https://github.com/simantalahkar/lammpskit/blob/main/CHANGELO
 
 ## Citation
 
-If you use this package in your research, please cite:
+If you use this package in your research, please cite the software and the paper.
 
-S. Lahkar et al., Decoupling Electric Field and Temperature-Driven Atomistic Forming Mechanisms in TaOx/HfO2-Based ReRAMs using Reactive Molecular Dynamics Simulations, arXiv:2505.24468 (2025), https://doi.org/10.48550/arXiv.2505.24468
+**Software** (all versions): S. Lahkar, LAMMPSKit, Zenodo, https://doi.org/10.5281/zenodo.24062686. This DOI always resolves to the latest release. To cite a specific version, use its own DOI from the [Zenodo record](https://doi.org/10.5281/zenodo.24062686); v1.2.1 is https://doi.org/10.5281/zenodo.24062687.
+
+**Paper**: S. Lahkar et al., Decoupling Electric Field and Temperature-Driven Atomistic Forming Mechanisms in TaOx/HfO2-Based ReRAMs using Reactive Molecular Dynamics Simulations, arXiv:2505.24468 (2025), https://doi.org/10.48550/arXiv.2505.24468
 
 
 ## License
