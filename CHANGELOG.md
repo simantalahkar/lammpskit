@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `CITATION.cff` and `.zenodo.json`, so that releases archived on Zenodo carry author, licence and citation metadata.
+- Zenodo DOI badge and software citation (DOI 10.5281/zenodo.24062686) in the README; `CITATION.cff` now cites the software by its DOI, with the paper under `references`.
 
 ### Changed
 - Tests that need OVITO are marked `requires_ovito` and skipped when OVITO is not installed.
