@@ -1,0 +1,39 @@
+{
+  "title": "LAMMPSKit",
+  "upload_type": "software",
+  "description": "<p>A Python toolkit for post-processing and analysing molecular-dynamics simulations run with LAMMPS, built for simulations of HfTaO-based ReRAM devices. It tracks filament formation and evolution with OVITO-based cluster analysis, analyses atomic, charge and displacement distributions, and produces publication-ready plots.</p>",
+  "creators": [
+    {
+      "name": "Lahkar, Simanta",
+      "affiliation": "Eindhoven University of Technology",
+      "orcid": "0000-0002-6687-5227"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "access_right": "open",
+  "keywords": [
+    "LAMMPS",
+    "molecular dynamics",
+    "ReRAM",
+    "filament analysis",
+    "materials science",
+    "python"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "10.48550/arXiv.2505.24468",
+      "scheme": "doi"
+    },
+    {
+      "relation": "isCompatibleWith",
+      "identifier": "https://github.com/simantalahkar/LAMMPS-CTIP-EChemDID",
+      "scheme": "url"
+    },
+    {
+      "relation": "isDocumentedBy",
+      "identifier": "https://lammpskit.readthedocs.io/en/latest/",
+      "scheme": "url"
+    }
+  ]
+}

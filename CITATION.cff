@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "LAMMPSKit"
+abstract: "A Python toolkit for post-processing and analysing LAMMPS molecular-dynamics simulations of ReRAM devices: filament evolution, atomic, charge and displacement distributions, and publication-ready plots."
+type: software
+license: GPL-3.0-or-later
+repository-code: "https://github.com/simantalahkar/lammpskit"
+url: "https://lammpskit.readthedocs.io/en/latest/"
+keywords:
+  - LAMMPS
+  - molecular dynamics
+  - ReRAM
+  - filament analysis
+  - materials science
+authors:
+  - family-names: Lahkar
+    given-names: Simanta
+    orcid: "https://orcid.org/0000-0002-6687-5227"
+    affiliation: "Eindhoven University of Technology"
+preferred-citation:
+  type: article
+  title: "Decoupling Electric Field and Temperature-Driven Atomistic Forming Mechanisms in TaOx/HfO2-Based ReRAMs using Reactive Molecular Dynamics Simulations"
+  authors:
+    - family-names: Lahkar
+      given-names: Simanta
+  year: 2025
+  doi: 10.48550/arXiv.2505.24468
+  journal: "arXiv preprint arXiv:2505.24468"
