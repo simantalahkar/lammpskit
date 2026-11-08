@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `CITATION.cff` and `.zenodo.json`, so that releases archived on Zenodo carry author, licence and citation metadata.
+
 ### Changed
 - Tests that need OVITO are marked `requires_ovito` and skipped when OVITO is not installed.
 - Docker base image pinned to `python:3.12-slim-bookworm`, so the system packages it installs stay available.
